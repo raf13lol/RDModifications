@@ -1,4 +1,4 @@
-# rdthing-RDModifications
+# RDModifications
 
 ## a bepinex 6 mod !! sorry bepinex 5 users
 
