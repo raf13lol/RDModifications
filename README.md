@@ -4,7 +4,7 @@
 
 some random modifications that some people could want and such so why not
 
-## Warning!: some of the modifications could cause issues (accidentally and purposefully) in levels
+## warning: some of the modifications could cause issues (accidentally and purposefully) in levels
 #### (e.g. 2x+ speed seems to cause some ***visual*** issues sometimes)<br>
 
 Check the config file or use that Config manager that bepinex have said about
