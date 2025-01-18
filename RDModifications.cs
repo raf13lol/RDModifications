@@ -29,6 +29,7 @@ public class RDModifications : BaseUnityPlugin
             CustomIceChiliSpeeds.Init(patcher, Config, Logger, ref anyEnabled);
             DoctorMode.Init(patcher, Config, Logger, ref anyEnabled);
             PretendFOnMistake.Init(patcher, Config, Logger, ref anyEnabled);
+            WindowTransparency.Init(patcher, Config, Logger, ref anyEnabled);
 
             ExtraLevelEndDetails.Init(patcher, Config, Logger, ref anyEnabled);
 
