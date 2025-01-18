@@ -18,5 +18,6 @@ List of modifications available with a simple summary:
 - DoctorMode -> Removes the `Rhythm` from `Rhythm Doctor` (destroys the rhythm engine)
 - ExtraLevelEndDetails -> Provides extra details at the end of a level, e.g. previous best
 - PretendFOnMistake -> Allows for flashing a fake rank screen and a sound to play on each miss, with being able to choose the Rank shown/said
+- WindowTransparency (WINDOWS ONLY) -> Allows for setting how transparent the game window is
 
 # Create a github issue for suggestions/bugs or just ping me if you're in a server i'm in
