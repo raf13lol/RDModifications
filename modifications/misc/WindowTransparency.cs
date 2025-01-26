@@ -4,7 +4,6 @@ using BepInEx.Logging;
 using UnityEngine;
 using System;
 using System.Runtime.InteropServices;
-using System.Reflection;
 
 namespace RDModifications
 {
@@ -12,7 +11,6 @@ namespace RDModifications
     {
         public static ConfigEntry<bool> enabled;
         public static ConfigEntry<byte> opacity;
-        public static ConfigEntry<string> largeImageText;
 
         public static ManualLogSource logger;
 
@@ -28,14 +26,14 @@ namespace RDModifications
             opacity = config.Bind("WindowTransparency", "Opacity", (byte)128,
             "What the window's opacity should be. (0-255)");
 
-            if (!enabled.Value)
-                return;
-
-            // so the window exists first ?
-            patcher.PatchAll(typeof(DoTheCodeHere));
-            anyEnabled = true;
+            if (enabled.Value)
+            {
+                // so the window exists first ?
+                patcher.PatchAll(typeof(DoTheCodeHere));
+                anyEnabled = true;
+            }
         }
-        
+
         [HarmonyPatch(typeof(scnMenu), "Update")]
         private class DoTheCodeHere
         {
@@ -45,8 +43,6 @@ namespace RDModifications
             {
                 if (doneItYet)
                     return;
-
-                
 
                 // native functions
                 [DllImport("User32.dll")]

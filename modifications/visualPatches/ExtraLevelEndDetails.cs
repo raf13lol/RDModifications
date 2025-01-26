@@ -114,7 +114,7 @@ namespace RDModifications
                 if (RDTime.speed != 1.0f)
                     baseMods.Add($"{RDTime.speed}x");
                 if (WindowTransparency.enabled.Value && WindowTransparency.opacity.Value <= 192)
-                    baseMods.Add($"WT ({Mathf.Round(WindowTransparency.opacity.Value/2.56f * 3f)/3f}%)"); // prevents too much precision
+                    baseMods.Add($"WT ({Mathf.Round(WindowTransparency.opacity.Value / 2.56f * 3f) / 3f}%)"); // prevents too much precision
 
                 // if (PretendFOnMistake.enabled.Value)
                 //     baseMods.Add($"PFOM ({PretendFOnMistake.rankToDisplayAndSay.Value})");
@@ -152,10 +152,10 @@ namespace RDModifications
                     [authorPart.Value, levelAuthor, includeAuthor.Value, false],
                     [hitsPart.Value, hits, includeHits.Value, true],
                     [bestPrevPart.Value, bestPrev, includeBestPrev.Value, true],
-                    [modificationsPart.Value, modifications, includeModifications.Value, true] 
+                    [modificationsPart.Value, modifications, includeModifications.Value, true]
                 ];
 
-                Regex colorlessRegex = new(@"<(\/)?color(=("")?#([ABCDEFabcdef0-9]){3,8}("")?)?>", RegexOptions.Multiline);
+                Regex colorlessRegex = new(@"<(\/)?color(=("")?([#A-Za-z0-9 ])*("")?)?>", RegexOptions.Multiline);
                 foreach (object[] field in fields)
                 {
                     // if they've disabled it
@@ -202,16 +202,16 @@ namespace RDModifications
             public static bool isEditor = false;
             public static float storedPerfects = 0;
 
-            public static IEnumerable<MethodBase> TargetMethods()
+            public static IEnumerable<MethodInfo> TargetMethods()
             {
                 List<MethodInfo> levelBaseMethods = AccessTools.GetDeclaredMethods(typeof(LevelBase));
-                List<MethodBase> methods = [];
+                List<MethodInfo> methods = [];
                 foreach (var method in levelBaseMethods)
                 {
                     if (method.Name.StartsWith("ResetHitHistory"))
                         methods.Add(method);
                 }
-                methods.Add(AccessTools.FirstMethod(typeof(scnGame), (method) => method.Name == "Start"));
+                methods.Add(AccessUtils.GetMethodCalled(typeof(scnGame), "Start"));
                 return methods.AsEnumerable();
             }
 
@@ -237,7 +237,7 @@ namespace RDModifications
 
                 bool customLevel = scnGame.levelToLoadSource == LevelSource.ExternalPath;
                 bestPrev = isEditor ? Rank.NotAvailable : Persistence.GetLevelRank(game.levelIdentifier);
-                
+
                 if (!customLevel)
                     return;
                 Level_Custom custom = game.currentLevel as Level_Custom;
@@ -257,7 +257,7 @@ namespace RDModifications
                     if (scnCLS.CachedData.levelFileData != null)
                         hash = scnCLS.CachedData.levelFileData.hash;
 
-                    bestPrev = Persistence.GetCustomLevelRank(hash, RDTime.speed); 
+                    bestPrev = Persistence.GetCustomLevelRank(hash, RDTime.speed);
                 }
             }
 
@@ -269,8 +269,8 @@ namespace RDModifications
             // It seems bepinex runs scnGame.Start under this assembly which when paired with GetType causes a few issues
             public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
-                MethodInfo concatFunc = AccessTools.Method("System.String:Concat", [typeof(string), typeof(string)]); 
-                
+                MethodInfo concatFunc = AccessTools.Method("System.String:Concat", [typeof(string), typeof(string)]);
+
                 return new CodeMatcher(instructions)
                     .MatchForward(false, new CodeMatch(OpCodes.Ldstr, "Level_"))
                     .MatchForward(false, new CodeMatch(OpCodes.Call, concatFunc)) // should be concat

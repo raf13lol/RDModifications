@@ -25,9 +25,10 @@ public class RDModifications : BaseUnityPlugin
             // (i'm making it sound really fancy)
             CustomDifficulty.Init(patcher, Config, Logger, ref anyEnabled);
             CustomDiscordRichPresence.Init(patcher, Config, Logger, ref anyEnabled);
-            CustomSamuraiMode.Init(patcher, Config, Logger, ref anyEnabled);
             CustomIceChiliSpeeds.Init(patcher, Config, Logger, ref anyEnabled);
+            CustomSamuraiMode.Init(patcher, Config, Logger, ref anyEnabled);
             DoctorMode.Init(patcher, Config, Logger, ref anyEnabled);
+            EditorPatches.Init(patcher, Config, Logger, ref anyEnabled);
             PretendFOnMistake.Init(patcher, Config, Logger, ref anyEnabled);
             WindowTransparency.Init(patcher, Config, Logger, ref anyEnabled);
 

@@ -126,7 +126,7 @@ namespace RDModifications
                     hud.header.DOFade(1f, 0.0f).SetEase(Ease.Linear).SetUpdate(true);
                     headerTween = null;
                 });
-                
+
                 // just in case so
                 hud.description.gameObject.SetActive(false);
                 // hud.statusText.gameObject.SetActive(false);
@@ -137,7 +137,6 @@ namespace RDModifications
                 hud.resultsP2.gameObject.SetActive(false);
             }
 
-            // found this by means of "being bad"
             [HarmonyPostfix]
             [HarmonyPatch(typeof(HUD), nameof(HUD.AdvanceGameover))]
             public static void PreventFadeOutRank()
@@ -152,7 +151,7 @@ namespace RDModifications
 
         }
 
-        public enum LevelRank 
+        public enum LevelRank
         {
             FMinus,
             F,

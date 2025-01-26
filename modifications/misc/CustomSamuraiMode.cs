@@ -55,53 +55,47 @@ namespace RDModifications
 
         private class SamuraiTextPatch
         {
-            public static IEnumerable<MethodBase> TargetMethods()
+            public static IEnumerable<MethodInfo> TargetMethods()
             {
-                List<MethodBase> methods = [];
+                List<MethodInfo> methods = [];
                 // This sucks
                 Type[] makeLyricsTypes = [typeof(string), typeof(Vector2), typeof(int), typeof(float), typeof(Color),
                 typeof(int), typeof(int), typeof(float), typeof(bool), typeof(Color), typeof(TextAnchor), typeof(bool), typeof(bool)];
 
-                methods.Add(typeof(RDString).GetMethod("Get", BindingFlags.Public | BindingFlags.Static));
-                methods.Add(typeof(LyricsGame).GetMethod("AdvanceText", BindingFlags.Public | BindingFlags.Instance));
+                methods.Add(AccessUtils.GetMethodCalled(typeof(RDString), nameof(RDString.Get)));
+                methods.Add(AccessUtils.GetMethodCalled(typeof(LyricsGame), nameof(LyricsGame.AdvanceText)));
 
                 // compiler generated
-                methods.Add(AccessTools.FirstMethod(typeof(LevelEvent_TextExplosion), method => method.Name.Contains("<Run>")));
-                // two functions with same name
-                methods.Add(typeof(scrVfxControl).GetMethod("MakeLyrics", BindingFlags.Public | BindingFlags.Instance, null, makeLyricsTypes, null));
+                methods.Add(AccessUtils.GetMethodContains(typeof(LevelEvent_TextExplosion), "<Run>"));
+                // two functions with same name so we need to get this really specific one
+                methods.Add(typeof(scrVfxControl).GetMethod(nameof(scrVfxControl.MakeLyrics), BindingFlags.Public | BindingFlags.Instance, null, makeLyricsTypes, null));
 
                 return methods.AsEnumerable();
             }
 
-            public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            [HarmonyTranspiler]
+            public static IEnumerable<CodeInstruction> SamuraiTranspiler(IEnumerable<CodeInstruction> instructions)
             {
                 // This is actually quite useful !
-                return new CodeMatcher(instructions)
-                    .MatchForward(false, new CodeMatch(OpCodes.Ldstr, "Samurai.")) // Easy
-                    .SetOperandAndAdvance(samuraiReplacement.Value)
-                    .InstructionEnumeration();
+                return TranspilerUtils.ReplaceString(instructions, "Samurai.", samuraiReplacement.Value);
             }
         }
         private class DoubleSamuraiPatch
         {
-            public static MethodBase TargetMethod()
+            public static MethodInfo TargetMethod()
             {
                 // This is Stupid
                 // i believe it's due to compiled IEnumerable ?
                 // the IL code looks like it
                 var type = AccessTools.FirstInner(typeof(RDInk), t => t.Name.Contains("<Say>"));
-                return AccessTools.FirstMethod(type, method => method.Name.Contains("MoveNext"));
+                return AccessUtils.GetInnerMethodContains(typeof(RDInk), "<Say>", "MoveNext");
             }
 
-            public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            [HarmonyTranspiler]
+            public static IEnumerable<CodeInstruction> DoubleSamuraiTranspiler(IEnumerable<CodeInstruction> instructions)
             {
                 // This is actually quite useful !
-                return new CodeMatcher(instructions)
-                    .MatchForward(false, new CodeMatch(OpCodes.Ldstr, "Samurai.")) // Easy
-                    .SetOperandAndAdvance(samuraiReplacement.Value)
-                    .MatchForward(false, new CodeMatch(OpCodes.Ldstr, "Samurai.")) // Easy x2
-                    .SetOperandAndAdvance(samuraiReplacement.Value)
-                    .InstructionEnumeration();
+                return TranspilerUtils.ReplaceString(instructions, "Samurai.", samuraiReplacement.Value, 2);
             }
         }
 
@@ -157,7 +151,7 @@ namespace RDModifications
 
                     if (symbolsToNames.TryGetValue(letter.ToString(), out string name))
                         enumGet = name;
-                    
+
                     if (isNumber)
                         enumGet = "Alpha" + letter;
 
@@ -188,7 +182,7 @@ namespace RDModifications
                     if (i < input.Length - 1 && logAdd.Length > 1)
                         logOutput += " ";
                 }
-                
+
                 if (inputs.Count > 0)
                 {
                     if (inputs.Count <= 2)
@@ -202,7 +196,7 @@ namespace RDModifications
                     return;
 
                 if (logOutput.Length > 0)
-                    logger.LogMessage($"CustomSamuraiMode: Input '{logOutput}' to toggle Samurai mode.");    
+                    logger.LogMessage($"CustomSamuraiMode: Input '{logOutput}' to toggle Samurai mode.");
                 else if (!hasLogged)
                     logger.LogWarning("CustomSamuraiMode: SamuraiInputReplacement as KeyCode[] is empty, 'Samurai.' is still needed to be inputted.");
 

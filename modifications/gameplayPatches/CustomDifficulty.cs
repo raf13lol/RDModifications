@@ -1,10 +1,10 @@
 using BepInEx.Configuration;
 using HarmonyLib;
 using BepInEx.Logging;
-using UnityEngine;
-using UnityEngine.InputSystem.EnhancedTouch;
 using System.Reflection;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace RDModifications
 {
@@ -33,7 +33,7 @@ namespace RDModifications
                 if (hitMargin.Value <= 0f)
                 {
                     hitMargin.Value = 25f;
-                    logger.LogWarning("CustomDifficulty: Invalid value for HitMargin, resetted back to 25ms.");    
+                    logger.LogWarning("CustomDifficulty: Invalid value for HitMargin, resetted back to 25ms.");
                 }
                 patcher.PatchAll(typeof(DifficultyPatch));
                 patcher.PatchAll(typeof(ButtonHitStripPatch));
@@ -44,22 +44,16 @@ namespace RDModifications
 
         private class DifficultyPatch
         {
-            [HarmonyPrefix]
-            [HarmonyPatch(typeof(scnGame), nameof(scnGame.GetHitMargin))]
-            public static bool HitPrefix(ref float __result, RDPlayer player)
+            public static IEnumerable<MethodInfo> TargetMethods()
             {
-                if ((player != RDPlayer.P2 && p1Enabled.Value)
-                || (player == RDPlayer.P2 && p2Enabled.Value))
-                {
-                    __result = marginMult(hitMargin.Value / 1000);
-                    return false;
-                }
-                return true;
+                List<MethodInfo> methods = [];
+                methods.Add(AccessUtils.GetMethodCalled(typeof(scnGame), nameof(scnGame.GetHitMargin)));
+                methods.Add(AccessUtils.GetMethodCalled(typeof(scnGame), nameof(scnGame.GetReleaseMargin)));
+                return methods.AsEnumerable();
             }
 
             [HarmonyPrefix]
-            [HarmonyPatch(typeof(scnGame), nameof(scnGame.GetReleaseMargin))]
-            public static bool ReleasePrefix(ref float __result, RDPlayer player)
+            public static bool HitRleasePrefix(ref float __result, RDPlayer player)
             {
                 if ((player != RDPlayer.P2 && p1Enabled.Value)
                 || (player == RDPlayer.P2 && p2Enabled.Value))
@@ -78,7 +72,7 @@ namespace RDModifications
                     float mult = scnGame.instance.currentLevel.hitMarginMultiplier;
                     if (mult > 0f)
                         ret *= mult;
-                } 
+                }
                 return ret;
             }
         }
@@ -106,12 +100,12 @@ namespace RDModifications
                 float hitmar = hitMargin.Value;
                 float width;
                 if (hitmar >= 80f)
-                { 
+                {
                     // forced easy-unmissable width
                     width = 39f;
                     if (hitmar > 400f)
                         width += (hitmar - 400f) / 25f;
-                } 
+                }
                 else if (hitmar > 40f && hitmar < 80f)
                     width = 11f + (13f * ((hitmar - 40f) / 40f));
                 else
@@ -121,7 +115,7 @@ namespace RDModifications
                 }
                 if (hitStripWidthLimiting.Value && width > 50f)
                     width = 50f;
-                
+
                 // stupid reflection shit for private var
                 __result.GetType()
                 .GetField("width", BindingFlags.Instance | BindingFlags.NonPublic)
@@ -167,7 +161,7 @@ namespace RDModifications
                     // misc stuff
                     PauseMenuMode.CheckCJKText(__instance.valueText);
                     __instance.rightArrow.rect.gameObject.SetActive(false);
-			        __instance.leftArrow.rect.gameObject.SetActive(false);
+                    __instance.leftArrow.rect.gameObject.SetActive(false);
                     return false;
                 }
                 return true;

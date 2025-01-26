@@ -3,7 +3,8 @@ using HarmonyLib;
 using UnityEngine;
 using System.Reflection;
 using BepInEx.Logging;
-using System.Xml.Schema;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace RDModifications
 {
@@ -21,9 +22,9 @@ namespace RDModifications
             logger = logging;
 
             enabled = config.Bind("CustomSpeeds", "Enabled", false, "Whether to use the custom defined ice/chili speeds.");
-            iceSpeed = config.Bind("CustomSpeeds", "IceSpeed", 0.75f, "The speed multipler to use for ice speeds.");
-            chiliSpeed = config.Bind("CustomSpeeds", "ChiliSpeed", 1.5f, "The speed multipler to use for chili speeds.");
-            enabledRankScr = config.Bind("CustomSpeeds", "RankScreen", true, "Makes the rank screen colors match the speed more.");
+            iceSpeed = config.Bind("CustomSpeeds", "IceSpeed", 0.75f, "The speed multiplier to use for ice speeds.");
+            chiliSpeed = config.Bind("CustomSpeeds", "ChiliSpeed", 1.5f, "The speed multiplier to use for chili speeds.");
+            enabledRankScr = config.Bind("CustomSpeeds", "RankScreen", true, "Makes the rank screen colors adjust depending on the speed more accurately.");
 
             if (enabled.Value)
             {
@@ -123,23 +124,18 @@ namespace RDModifications
 
         private class CLSAudioSpeedPatch
         {
-            // private methods are stupido
-            [HarmonyPostfix]
-            [HarmonyPatch(typeof(LevelDetail), "Start")]
-            public static void StartPostfix(LevelDetail __instance)
+            public static IEnumerable<MethodInfo> TargetMethods()
             {
-                // even stupider
-                var privVar = __instance.GetType().GetField("audioSource", BindingFlags.NonPublic | BindingFlags.Instance);
-                setAudioSpeed((AudioSource)privVar.GetValue(__instance));
+                List<MethodInfo> methods = [];
+                methods.Add(AccessUtils.GetMethodCalled(typeof(LevelDetail), "Start"));
+                methods.Add(AccessUtils.GetMethodCalled(typeof(LevelDetail), "ChangeLevelSpeed"));
+                return methods.AsEnumerable();
             }
 
             [HarmonyPostfix]
-            [HarmonyPatch(typeof(LevelDetail), "ChangeLevelSpeed")]
-            public static void ChangeSpeedPostfix(LevelDetail __instance)
+            public static void ASPostfix(AudioSource ___audioSource)
             {
-                // even stupider
-                var privVar = __instance.GetType().GetField("audioSource", BindingFlags.NonPublic | BindingFlags.Instance);
-                setAudioSpeed((AudioSource)privVar.GetValue(__instance));
+                setAudioSpeed(___audioSource);
             }
 
             private static void setAudioSpeed(AudioSource audioSource)

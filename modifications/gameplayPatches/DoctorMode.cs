@@ -25,21 +25,21 @@ namespace RDModifications
             "It destroys the rhythm engine by multipling the 'crotchet' by a random value between 2 bounds.\n" +
             "With these settings, you can configure how much to destroy it by modifying these 2 bounds.");
 
-            lowMult = config.Bind("DoctorMode", "LowMultipler", 0.75f, "The lowest multipler to use in the random multipler.");
-            highMult = config.Bind("DoctorMode", "HighMultipler", 1.25f, "The highest multipler to use in the random multipler.");
+            lowMult = config.Bind("DoctorMode", "LowMultiplier", 0.75f, "The lowest multiplier to use in the random multiplier.");
+            highMult = config.Bind("DoctorMode", "HighMultiplier", 1.25f, "The highest multiplier to use in the random multiplier.");
             auto = config.Bind("DoctorMode", "Auto", false, "If the songs should be played automatically. Only applies to Doctor mode. (NO RANKS NOR ANY ACHIEVEMENTS WILL BE SAVED)");
 
             if (enabled.Value)
             {
                 if (lowMult.Value == 1.00f && highMult.Value == 1.00f)
                 {
-                    logger.LogWarning("DoctorMode: LowMultipler and HighMultipler are both 1.00. No Doctor mode patches will be applied.");
+                    logger.LogWarning("DoctorMode: LowMultiplier and HighMultiplier are both 1.00. No Doctor mode patches will be applied.");
                     return;
                 }
                 if (lowMult.Value > highMult.Value)
                 {
                     lowMult.Value = highMult.Value;
-                    logger.LogWarning("DoctorMode: LowMultipler was greater than HighMultipler. LowMultipler has been set to HighMultipler.");
+                    logger.LogWarning("DoctorMode: LowMultiplier was greater than HighMultiplier. LowMultiplier has been set to HighMultiplier.");
                 }
                 patcher.PatchAll(typeof(ConductorPatch));
                 patcher.PatchAll(typeof(TitlescreenPatch));
@@ -76,7 +76,7 @@ namespace RDModifications
                 // twice?! ... okay then :pensive:
                 return new CodeMatcher(instructions)
                     // need to Ignore the first two `mul`'s so
-                    
+
                     // sets it to the max via the Idiotproofing (oob)
                     .Advance(500000)
                     // goes backwards to the last one before ret
