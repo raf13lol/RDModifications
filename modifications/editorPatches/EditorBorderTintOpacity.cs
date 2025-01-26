@@ -134,24 +134,24 @@ namespace RDModifications
                 {
                     void setColorAlpha(string name, ColorOrPalette baseColor, int newAlpha)
                     {
-                        // at the very end, do everything
-                        if (propertyInfo.name == "opacity")
-                        {
-                            string propName = name.Replace("Opacity", "Color");
-                            PropertyControl_Color colorControl = (PropertyControl_Color)levelEvent.inspectorPanel.properties
-                                .Find((p) => p.name.StartsWith(propName)).control;
+                        // at the very end, do everything 
+                        string propName = name.Replace("Opacity", "Color");
+                        PropertyControl_Color colorControl = (PropertyControl_Color)levelEvent.inspectorPanel.properties
+                            .Find((p) => p.name.StartsWith(propName)).control;
 
-                            baseColor = baseColor.ToColor().WithAlpha(newAlpha / 100);
-                            colorControl.colorPicker.color = baseColor.Encode(true);
+                        baseColor = baseColor.ToColor().WithAlpha(newAlpha / 100);
+                        colorControl.colorPicker.color = baseColor.Encode(true);
 
-                            typeof(LevelEvent_TintRows)
-                                .GetProperty(propName, BindingFlags.Instance | BindingFlags.Public)
-                                .SetValue(tintRowsEvent, baseColor);
-                        }
+                        typeof(LevelEvent_TintRows)
+                            .GetProperty(propName, BindingFlags.Instance | BindingFlags.Public)
+                            .SetValue(tintRowsEvent, baseColor);  
                     }
 
-                    setColorAlpha("borderOpacity", tintRowsEvent.borderColor, VariablesNeeded.borderOpacity);
-                    setColorAlpha("tintOpacity", tintRowsEvent.tintColor, VariablesNeeded.tintOpacity);
+                    if (propertyInfo.name == "opacity")
+                    {
+                        setColorAlpha("borderOpacity", tintRowsEvent.borderColor, VariablesNeeded.borderOpacity);
+                        setColorAlpha("tintOpacity", tintRowsEvent.tintColor, VariablesNeeded.tintOpacity);
+                    }
                 }
             }
         }
