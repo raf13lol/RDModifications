@@ -45,12 +45,21 @@ namespace RDModifications
             [JsonProperty("", "", null, "", false, true, "EnableBorderColorIf")]
             [SliderAlpha(false, null)]
             [IntInfo(0, 100)]
-            public static int borderOpacity { get; set; } = 100;
+            public static int borderOpacity { 
+                get => (int)(trueBorderOpacity * 100d); 
+                set => trueBorderOpacity = value / 100d; 
+            }
 
             [JsonProperty("", "", null, "", false, true, "EnableTintColorIf")]
             [SliderAlpha(false, null)]
             [IntInfo(0, 100)]
-            public static int tintOpacity { get; set; } = 100;
+            public static int tintOpacity { 
+                get => (int)(trueTintOpacity * 100); 
+                set => trueTintOpacity = value / 100d;  
+            }
+
+            public static double trueBorderOpacity = 1d;
+            public static double trueTintOpacity = 1d;
 
             public static LevelEvent_TintRows eventToUse;
 
@@ -94,8 +103,8 @@ namespace RDModifications
                 if (levelEventControl.levelEvent is LevelEvent_TintRows tintRowsEvent)
                 {
                     VariablesNeeded.eventToUse = tintRowsEvent;
-                    VariablesNeeded.borderOpacity = (int)((tintRowsEvent.borderColor.alpha ?? 1) * 100);
-                    VariablesNeeded.tintOpacity = (int)((tintRowsEvent.tintColor.alpha ?? 1) * 100);
+                    VariablesNeeded.trueBorderOpacity = Math.Round((double)tintRowsEvent.borderColor.alpha, 2);
+                    VariablesNeeded.trueTintOpacity = Math.Round((double)tintRowsEvent.tintColor.alpha, 2);
                 }
             }
         }
@@ -132,14 +141,14 @@ namespace RDModifications
 
                 if (levelEvent is LevelEvent_TintRows tintRowsEvent)
                 {
-                    void setColorAlpha(string name, ColorOrPalette baseColor, int newAlpha)
+                    void setColorAlpha(string name, ColorOrPalette baseColor, double newAlpha)
                     {
                         // at the very end, do everything 
                         string propName = name.Replace("Opacity", "Color");
                         PropertyControl_Color colorControl = (PropertyControl_Color)levelEvent.inspectorPanel.properties
                             .Find((p) => p.name.StartsWith(propName)).control;
 
-                        baseColor = baseColor.ToColor().WithAlpha(newAlpha / 100);
+                        baseColor = baseColor.ToColor().WithAlpha((float)newAlpha);
                         colorControl.colorPicker.color = baseColor.Encode(true);
 
                         typeof(LevelEvent_TintRows)
@@ -149,8 +158,8 @@ namespace RDModifications
 
                     if (propertyInfo.name == "opacity")
                     {
-                        setColorAlpha("borderOpacity", tintRowsEvent.borderColor, VariablesNeeded.borderOpacity);
-                        setColorAlpha("tintOpacity", tintRowsEvent.tintColor, VariablesNeeded.tintOpacity);
+                        setColorAlpha("borderOpacity", tintRowsEvent.borderColor, VariablesNeeded.trueBorderOpacity);
+                        setColorAlpha("tintOpacity", tintRowsEvent.tintColor, VariablesNeeded.trueTintOpacity);
                     }
                 }
             }
