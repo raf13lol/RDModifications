@@ -8,6 +8,7 @@ using DG.Tweening.Core;
 using DG.Tweening.Plugins.Options;
 using System.Reflection;
 using UnityEngine.UI;
+using UnityEngine;
 
 namespace RDModifications
 {
@@ -59,22 +60,22 @@ namespace RDModifications
         // mwehehehehe
         private class FPatch
         {
-            private static TweenerCore<UnityEngine.Color, UnityEngine.Color, ColorOptions> rankscreenTween = null;
-            private static TweenerCore<UnityEngine.Color, UnityEngine.Color, ColorOptions> rankTween = null;
-            private static TweenerCore<UnityEngine.Color, UnityEngine.Color, ColorOptions> headerTween = null;
+            private static TweenerCore<Color, Color, ColorOptions> rankscreenTween = null;
+            private static TweenerCore<Color, Color, ColorOptions> rankTween = null;
+            private static TweenerCore<Color, Color, ColorOptions> headerTween = null;
 
             private static float baseAlpha = 0.0f;
 
             [HarmonyPostfix]
-            [HarmonyPatch(typeof(MistakesManager), nameof(MistakesManager.UpdateConsecutiveMistakes))]
-            public static void ShowFPostfix(ref RDPlayer player, ref OffsetType ot)
+            [HarmonyPatch(typeof(scnGame), nameof(scnGame.OnMistakeOrHeal))]
+            public static void ShowFPostfix(float weight)
             {
                 static bool isInOver(FieldInfo field, HUD hud)
                 {
                     return (int)field.GetValue(hud) > 0;
                 }
 
-                if (ot == OffsetType.Perfect)
+                if (weight <= 0.0f)
                     return;
                 HUD hud = scnGame.instance.hud;
                 FieldInfo field = typeof(HUD).GetField("trueGameover", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -83,7 +84,7 @@ namespace RDModifications
                     return;
 
                 if (say.Value)
-                    scrConductor.PlayImmediately("sndJyi - Rank" + text, sayVolume.Value, RDUtils.GetMixerGroup("RDGSVoice"), 1f, 0f, false, false, false);
+                    scrConductor.PlayImmediately("sndJyi - Rank" + text, sayVolume.Value * Mathf.Clamp01(weight), RDUtils.GetMixerGroup("RDGSVoice"), 1f, 0f, false, false, false);
 
                 if (!display.Value)
                     return;
