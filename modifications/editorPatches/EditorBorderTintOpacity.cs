@@ -149,7 +149,7 @@ namespace RDModifications
                             .Find((p) => p.name.StartsWith(propName)).control;
 
                         baseColor = baseColor.ToColor().WithAlpha((float)newAlpha);
-                        colorControl.colorPicker.color = baseColor.Encode(true);
+                        colorControl.colorPicker.color = baseColor.Encode(false) + "FF";
 
                         typeof(LevelEvent_TintRows)
                             .GetProperty(propName, BindingFlags.Instance | BindingFlags.Public)
