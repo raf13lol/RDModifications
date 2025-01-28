@@ -137,7 +137,7 @@ namespace RDModifications
                             .Find((p) => p.name.StartsWith(propName)).control;
 
                         // colorControl.colorPicker.color = baseColor.Encode(false);
-                        if (newAlpha == 1d) // this should keep palette colours entact so we'll do it
+                        if (newAlpha == 1d) // this should keep palette colours entact as best as possible so we'll do it
                             baseColor = baseColor.WithAlpha((float)newAlpha);
                         else
                             baseColor = baseColor.ToColor().WithAlpha((float)newAlpha);
