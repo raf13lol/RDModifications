@@ -44,17 +44,19 @@ namespace RDModifications
             [JsonProperty("", "", null, "", false, true, "EnableBorderColorIf")]
             [SliderAlpha(false, null)]
             [IntInfo(0, 100)]
-            public static int borderOpacity { 
-                get => (int)(trueBorderOpacity * 100d); 
-                set => trueBorderOpacity = value / 100d; 
+            public static int borderOpacity
+            {
+                get => (int)(trueBorderOpacity * 100d);
+                set => trueBorderOpacity = value / 100d;
             }
 
             [JsonProperty("", "", null, "", false, true, "EnableTintColorIf")]
             [SliderAlpha(false, null)]
             [IntInfo(0, 100)]
-            public static int tintOpacity { 
-                get => (int)(trueTintOpacity * 100); 
-                set => trueTintOpacity = value / 100d;  
+            public static int tintOpacity
+            {
+                get => (int)(trueTintOpacity * 100);
+                set => trueTintOpacity = value / 100d;
             }
 
             public static double trueBorderOpacity = 1d;
@@ -135,11 +137,14 @@ namespace RDModifications
                             .Find((p) => p.name.StartsWith(propName)).control;
 
                         // colorControl.colorPicker.color = baseColor.Encode(false);
-                        baseColor = baseColor.ToColor().WithAlpha((float)newAlpha);
+                        if (newAlpha == 1d) // this should keep palette colours entact so we'll do it
+                            baseColor = baseColor.WithAlpha((float)newAlpha);
+                        else
+                            baseColor = baseColor.ToColor().WithAlpha((float)newAlpha);
 
                         typeof(LevelEvent_TintRows)
                             .GetProperty(propName, BindingFlags.Instance | BindingFlags.Public)
-                            .SetValue(tintRowsEvent, baseColor);  
+                            .SetValue(tintRowsEvent, baseColor);
                     }
 
                     if (propertyInfo.name == "opacity")
