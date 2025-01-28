@@ -32,7 +32,6 @@ namespace RDModifications
                 // i needed to seperate everything into its own class for my brain because this is a bit complex let's say
                 patcher.PatchAll(typeof(AddStringsLocPatch));
                 patcher.PatchAll(typeof(SetVariablesNeededPatch));
-                patcher.PatchAll(typeof(SetInputFieldTextPatch));
                 patcher.PatchAll(typeof(SetTintRowsEventDataPatch));
                 patcher.PatchAll(typeof(LevelEventInfoConstructorPatch));
                 anyEnabled = true;
@@ -105,26 +104,13 @@ namespace RDModifications
                     VariablesNeeded.eventToUse = tintRowsEvent;
                     VariablesNeeded.trueBorderOpacity = Math.Round((double)tintRowsEvent.borderColor.alpha, 2);
                     VariablesNeeded.trueTintOpacity = Math.Round((double)tintRowsEvent.tintColor.alpha, 2);
-                }
-            }
-        }
 
-        [HarmonyPriority(Priority.Last)]
-        [HarmonyPatch(typeof(PropertyControl_SliderAlpha), nameof(PropertyControl_SliderAlpha.UpdateUI))]
-        private class SetInputFieldTextPatch
-        {
-            public static void Postfix(PropertyControl_SliderAlpha __instance, LevelEvent_Base levelEvent)
-            {
-                BasePropertyInfo propertyInfo = (BasePropertyInfo)typeof(PropertyControl)
-                    .GetMethod("get_propertyInfo", BindingFlags.NonPublic | BindingFlags.Instance)
-                    .Invoke(__instance, []);
-
-                if (levelEvent is LevelEvent_TintRows)
-                {
-                    if (propertyInfo.name == "borderOpacity")
-                        __instance.inputField.text = VariablesNeeded.borderOpacity.ToString();
-                    if (propertyInfo.name == "tintOpacity")
-                        __instance.inputField.text = VariablesNeeded.tintOpacity.ToString();
+                    PropertyControl_Color colorControlBorder = (PropertyControl_Color)tintRowsEvent.inspectorPanel.properties
+                        .Find((p) => p.name.StartsWith("borderColor")).control;
+                    PropertyControl_Color colorControlTint = (PropertyControl_Color)tintRowsEvent.inspectorPanel.properties
+                        .Find((p) => p.name.StartsWith("tintColor")).control;
+                    colorControlBorder.colorPicker.storesAlpha = false;
+                    colorControlTint.colorPicker.storesAlpha = false;
                 }
             }
         }
@@ -148,8 +134,8 @@ namespace RDModifications
                         PropertyControl_Color colorControl = (PropertyControl_Color)levelEvent.inspectorPanel.properties
                             .Find((p) => p.name.StartsWith(propName)).control;
 
+                        // colorControl.colorPicker.color = baseColor.Encode(false);
                         baseColor = baseColor.ToColor().WithAlpha((float)newAlpha);
-                        colorControl.colorPicker.color = baseColor.Encode(false) + "FF";
 
                         typeof(LevelEvent_TintRows)
                             .GetProperty(propName, BindingFlags.Instance | BindingFlags.Public)
