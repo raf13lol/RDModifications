@@ -206,7 +206,7 @@ namespace RDModifications
             {
                 List<MethodInfo> levelBaseMethods = AccessTools.GetDeclaredMethods(typeof(LevelBase));
                 List<MethodInfo> methods = [];
-                foreach (var method in levelBaseMethods)
+                foreach (MethodInfo method in levelBaseMethods)
                 {
                     if (method.Name.StartsWith("ResetHitHistory"))
                         methods.Add(method);

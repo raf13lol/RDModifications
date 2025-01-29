@@ -29,10 +29,9 @@ public class RDModifications : BaseUnityPlugin
             CustomSamuraiMode.Init(patcher, Config, Logger, ref anyEnabled);
             DoctorMode.Init(patcher, Config, Logger, ref anyEnabled);
             EditorPatches.Init(patcher, Config, Logger, ref anyEnabled);
+            ExtraLevelEndDetails.Init(patcher, Config, Logger, ref anyEnabled);
             PretendFOnMistake.Init(patcher, Config, Logger, ref anyEnabled);
             WindowTransparency.Init(patcher, Config, Logger, ref anyEnabled);
-
-            ExtraLevelEndDetails.Init(patcher, Config, Logger, ref anyEnabled);
 
             if (anyEnabled)
                 Logger.LogMessage("Any modifications that have been enabled have been loaded. See individual messages for any info on issues.");

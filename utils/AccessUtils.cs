@@ -33,7 +33,7 @@ namespace RDModifications
             Type innerType = AccessTools.FirstInner(T, (t) => t.Name.Contains(inner));
             List<MethodInfo> possibleMethods = AccessTools.GetDeclaredMethods(innerType);
 
-            foreach (var possibleMethod in possibleMethods)
+            foreach (MethodInfo possibleMethod in possibleMethods)
             {
                 if (!possibleMethod.Name.Contains(name))
                     continue;
@@ -62,7 +62,7 @@ namespace RDModifications
         {
             FieldInfo[] possibleFields = T.GetFields();
 
-            foreach (var possibleField in possibleFields)
+            foreach (FieldInfo possibleField in possibleFields)
             {
                 if (possibleField.Name.Contains(name))
                     return possibleField;

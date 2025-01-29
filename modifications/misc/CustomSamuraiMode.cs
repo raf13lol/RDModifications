@@ -87,7 +87,7 @@ namespace RDModifications
                 // This is Stupid
                 // i believe it's due to compiled IEnumerable ?
                 // the IL code looks like it
-                var type = AccessTools.FirstInner(typeof(RDInk), t => t.Name.Contains("<Say>"));
+                Type type = AccessTools.FirstInner(typeof(RDInk), t => t.Name.Contains("<Say>"));
                 return AccessUtils.GetInnerMethodContains(typeof(RDInk), "<Say>", "MoveNext");
             }
 

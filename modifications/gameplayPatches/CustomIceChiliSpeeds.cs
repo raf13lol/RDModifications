@@ -88,30 +88,30 @@ namespace RDModifications
                 if (RDTime.speed == 1f)
                     return;
 
-                Color iceColour = "70D8ED".HexToColor();
-                Color chiliColour = "ED7070".HexToColor();
+                Color iceColor = "70D8ED".HexToColor();
+                Color chiliColor = "ED7070".HexToColor();
 
-                Color normalColour = Color.white;
-                Color targetColour = chiliColour;
+                Color normalColor = Color.white;
+                Color targetColor = chiliColor;
                 float intensifier = (RDTime.speed - 1f) / 0.5f;
 
                 if (RDTime.speed < 1f)
                 {
-                    targetColour = iceColour;
+                    targetColor = iceColor;
                     intensifier = (1f - RDTime.speed) / 0.25f;
                 }
                 intensifier = halfValuePast1(intensifier);
 
-                Color endColour = new(
-                    Mathf.LerpUnclamped(normalColour.r, targetColour.r, intensifier),
-                    Mathf.LerpUnclamped(normalColour.g, targetColour.g, intensifier),
-                    Mathf.LerpUnclamped(normalColour.b, targetColour.b, intensifier)
+                Color endColor = new(
+                    Mathf.LerpUnclamped(normalColor.r, targetColor.r, intensifier),
+                    Mathf.LerpUnclamped(normalColor.g, targetColor.g, intensifier),
+                    Mathf.LerpUnclamped(normalColor.b, targetColor.b, intensifier)
                 );
 
                 // should be safe to do so aswell
-                __instance.rank.color = endColour;
-                __instance.customText.color = endColour;
-                __instance.vividStasisRank.color = endColour;
+                __instance.rank.color = endColor;
+                __instance.customText.color = endColor;
+                __instance.vividStasisRank.color = endColor;
             }
 
             private static float halfValuePast1(float value)
