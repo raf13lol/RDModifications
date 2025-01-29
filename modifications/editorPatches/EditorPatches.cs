@@ -21,6 +21,7 @@ namespace RDModifications
             "If any of these patches should be enabled.");
 
             DisableSliderLimits.Init(patcher, config, logging, ref anyEnabled);
+            DuplicateDecorationButton.Init(patcher, config, logging, ref anyEnabled);
             EditorBorderTintOpacity.Init(patcher, config, logging, ref anyEnabled);
         }
     }

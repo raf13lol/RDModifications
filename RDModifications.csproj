@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFramework>netstandard2.1</TargetFramework>
         <AssemblyName>com.rhythmdr.randommodifications</AssemblyName>
-        <Product>Random Modifications</Product>
+        <Product>RD Modifications</Product>
         <Version>1.5.0</Version>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
