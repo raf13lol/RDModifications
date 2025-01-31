@@ -21,4 +21,10 @@ List of modifications available with a simple summary:
 - PretendFOnMistake -> Allows for flashing a fake rank screen and a sound to play on each miss, with being able to choose the Rank shown/said
 - WindowTransparency (WINDOWS ONLY) -> Allows for setting how transparent the game window is
 
+## EditorPatches
+
+- DisableSliderLimits -> numerical slider limits are disabled (albeit you must use the input field)
+- DuplicateDecorationButton -> adds a button to duplicate a deco, above the delete button for the deco
+- EditorBorderTintOpacity -> (will only work with DisableSliderLimits enabled) adds a slider for border/tint opacity, meant for under/overtinting (hence why slider limits need to be disabled)
+
 # Create a github issue for suggestions/bugs or just ping me if you're in a server i'm in
