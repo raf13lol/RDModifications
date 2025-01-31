@@ -143,7 +143,7 @@ namespace RDModifications
                 text.horizontalOverflow = HorizontalWrapMode.Overflow;
                 text.fontSize = textSize.Value;
                 // is there a way to modify this better? i'm too lazy to figure out how to though 😁😁 for now atleast
-                text.gameObject.transform.position = new Vector3(141, 174, __instance.description.transform.position.z);
+                text.gameObject.transform.position = new(141, 174, __instance.description.transform.position.z);
                 text.transform.SetParent(__instance.description.transform.parent.transform.parent);
 
                 List<object[]> fields = [ // the fourth bool is if it should exist in story mode
@@ -275,8 +275,8 @@ namespace RDModifications
                     .MatchForward(false, new CodeMatch(OpCodes.Ldstr, "Level_"))
                     .MatchForward(false, new CodeMatch(OpCodes.Call, concatFunc)) // should be concat
                     .InsertAndAdvance([
-                        new CodeInstruction(OpCodes.Ldstr, ", " + typeof(scnGame).Assembly.GetName()),
-                        new CodeInstruction(OpCodes.Call, concatFunc)
+                        new(OpCodes.Ldstr, ", " + typeof(scnGame).Assembly.GetName()),
+                        new(OpCodes.Call, concatFunc)
                     ])
                     .InstructionEnumeration();
             }

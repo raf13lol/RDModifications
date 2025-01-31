@@ -69,7 +69,7 @@ namespace RDModifications
             {
                 if (eventToUse == null)
                     return false;
-                return eventToUse.border > BorderType.Outline;
+                return eventToUse.border > BorderType.None;
             }
 
             // Token: 0x0600231E RID: 8990 RVA: 0x000E918D File Offset: 0x000E738D
@@ -104,8 +104,8 @@ namespace RDModifications
                 if (levelEventControl.levelEvent is LevelEvent_TintRows tintRowsEvent)
                 {
                     VariablesNeeded.eventToUse = tintRowsEvent;
-                    VariablesNeeded.trueBorderOpacity = Math.Round((double)tintRowsEvent.borderColor.alpha, 2);
-                    VariablesNeeded.trueTintOpacity = Math.Round((double)tintRowsEvent.tintColor.alpha, 2);
+                    VariablesNeeded.trueBorderOpacity = Math.Round((double)(tintRowsEvent.borderColor.alpha ?? 1f), 2);
+                    VariablesNeeded.trueTintOpacity = Math.Round((double)(tintRowsEvent.tintColor.alpha ?? 1f), 2);
 
                     PropertyControl_Color colorControlBorder = (PropertyControl_Color)tintRowsEvent.inspectorPanel.properties
                         .Find((p) => p.name.StartsWith("borderColor")).control;

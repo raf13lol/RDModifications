@@ -67,10 +67,10 @@ namespace RDModifications
             public static IEnumerable<CodeInstruction> BeatToTimeTranspiler(IEnumerable<CodeInstruction> instructions)
             {
                 CodeInstruction[] randMult = [
-                    new CodeInstruction(OpCodes.Ldc_R4, lowMult.Value),
-                    new CodeInstruction(OpCodes.Ldc_R4, highMult.Value),
-                    new CodeInstruction(OpCodes.Call, AccessTools.Method("UnityEngine.Random:Range", [typeof(float), typeof(float)])),
-                    new CodeInstruction(OpCodes.Mul)
+                    new(OpCodes.Ldc_R4, lowMult.Value),
+                    new(OpCodes.Ldc_R4, highMult.Value),
+                    new(OpCodes.Call, AccessTools.Method("UnityEngine.Random:Range", [typeof(float), typeof(float)])),
+                    new(OpCodes.Mul)
                 ];
 
                 // twice?! ... okay then :pensive:
@@ -99,8 +99,8 @@ namespace RDModifications
         {
             public static void Postfix(scnMenu __instance)
             {
-                __instance.logo.rhythm.image.color = new Color(0, 0, 0, 0);
-                __instance.logo.rhythmChinese.image.color = new Color(0, 0, 0, 0);
+                __instance.logo.rhythm.image.color = new(0, 0, 0, 0);
+                __instance.logo.rhythmChinese.image.color = new(0, 0, 0, 0);
             }
         }
 
