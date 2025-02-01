@@ -23,6 +23,7 @@ namespace RDModifications
             DisableSliderLimits.Init(patcher, config, logging, ref anyEnabled);
             DuplicateDecorationButton.Init(patcher, config, logging, ref anyEnabled);
             EditorBorderTintOpacity.Init(patcher, config, logging, ref anyEnabled);
+            InsertDeleteBars.Init(patcher, config, logging, ref anyEnabled);
         }
     }
 }
