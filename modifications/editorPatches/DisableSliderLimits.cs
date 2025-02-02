@@ -7,29 +7,20 @@ using RDLevelEditor;
 
 namespace RDModifications
 {
+    [EditorModification]
     public class DisableSliderLimits
     {
-        public static ConfigEntry<bool> enabled;
-
         public static ManualLogSource logger;
 
-        public static void Init(Harmony patcher, ConfigFile config, ManualLogSource logging, ref bool anyEnabled)
+        public static ConfigEntry<bool> enabled;
+
+        public static bool Init(ConfigFile config, ManualLogSource logging)
         {
             logger = logging;
-
-            enabled = config.Bind("EditorPatches", "DisableSliderLimits", false,
+            enabled = config.Bind("EditorPatches", "DisableSliderLimits", false, 
             "If input boxes next to sliders in the editor shouldn't be limited.");
 
-            if (!EditorPatches.enabled.Value)
-                return;
-            if (enabled.Value)
-            {
-                patcher.PatchAll(typeof(SliderOnEndEditPatch));
-                patcher.PatchAll(typeof(SliderPatch));
-                patcher.PatchAll(typeof(SliderAlphaPatch));
-                patcher.PatchAll(typeof(SliderPercentPatch));
-                anyEnabled = true;
-            }
+            return enabled.Value;
         }
 
         // we need to use this because of the delegation
@@ -89,9 +80,7 @@ namespace RDModifications
             [HarmonyPrefix]
             [HarmonyPatch(typeof(PropertyControl_SliderAlpha), nameof(PropertyControl_SliderAlpha.UpdateSlider))]
             public static void UpdateSliderPrefix(PropertyControl_SliderAlpha __instance, ref string __state)
-            {
-                __state = __instance.inputField.text;
-            }
+                => __state = __instance.inputField.text;
 
             [HarmonyPostfix]
             [HarmonyPatch(typeof(PropertyControl_SliderAlpha), nameof(PropertyControl_SliderAlpha.UpdateSlider))]
@@ -130,9 +119,7 @@ namespace RDModifications
             [HarmonyPrefix]
             [HarmonyPatch(typeof(PropertyControl_SliderPercent), nameof(PropertyControl_SliderPercent.UpdateSlider))]
             public static void UpdateSliderPrefix(PropertyControl_SliderPercent __instance, ref string __state)
-            {
-                __state = __instance.inputField.text;
-            }
+                => __state = __instance.inputField.text;
 
             [HarmonyPostfix]
             [HarmonyPatch(typeof(PropertyControl_SliderPercent), nameof(PropertyControl_SliderPercent.UpdateSlider))]

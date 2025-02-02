@@ -5,41 +5,42 @@ using System.Reflection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
 namespace RDModifications
 {
+    [Modification]
     public class CustomDifficulty
     {
+        public static ManualLogSource logger;
+
         public static ConfigEntry<bool> p1Enabled;
         public static ConfigEntry<bool> p2Enabled;
         public static ConfigEntry<float> hitMargin;
         public static ConfigEntry<string> name;
         public static ConfigEntry<bool> hitStripWidthLimiting;
 
-        public static ManualLogSource logger;
-
-        public static void Init(Harmony patcher, ConfigFile config, ManualLogSource logging, ref bool anyEnabled)
+        public static bool Init(ConfigFile config, ManualLogSource logging)
         {
             logger = logging;
+            p1Enabled = config.Bind("CustomDifficulty", "P1Enabled", false, 
+            "Enabling this will make P1 use the custom hit margin defined.");
+            p2Enabled = config.Bind("CustomDifficulty", "P2Enabled", false, 
+            "Enabling this will make P2 use the custom hit margin defined.");
 
-            p1Enabled = config.Bind("CustomDifficulty", "P1Enabled", false, "Enabling this will make P1 use the custom hit margin defined.");
-            p2Enabled = config.Bind("CustomDifficulty", "P2Enabled", false, "Enabling this will make P2 use the custom hit margin defined.");
-            hitMargin = config.Bind("CustomDifficulty", "HitMargin", 25f, "How many milliseconds there should be to hit. (e.g. -25ms to +25ms)");
-            name = config.Bind("CustomDifficulty", "Name", "Custom", "What the difficulty should be called in the options menu.");
-            hitStripWidthLimiting = config.Bind("CustomDifficulty", "HitStripWidthLimiting", true, "If the Hit Strip width should be limited.");
+            hitMargin = config.Bind("CustomDifficulty", "HitMargin", 25f, 
+            "How many milliseconds there should be to hit. (e.g. -25ms to +25ms)");
 
-            if (p1Enabled.Value || p2Enabled.Value)
+            name = config.Bind("CustomDifficulty", "Name", "Custom", 
+            "What the difficulty should be called in the options menu.");
+
+            hitStripWidthLimiting = config.Bind("CustomDifficulty", "HitStripWidthLimiting", true,
+            "If the Hit Strip width should be limited.");
+
+            if (hitMargin.Value <= 0f)
             {
-                if (hitMargin.Value <= 0f)
-                {
-                    hitMargin.Value = 25f;
-                    logger.LogWarning("CustomDifficulty: Invalid value for HitMargin, resetted back to 25ms.");
-                }
-                patcher.PatchAll(typeof(DifficultyPatch));
-                patcher.PatchAll(typeof(ButtonHitStripPatch));
-                patcher.PatchAll(typeof(SettingsPatch));
-                anyEnabled = true;
+                hitMargin.Value = 25f;
+                logger.LogWarning("CustomDifficulty: Invalid value for HitMargin, resetted back to 25ms.");
             }
+            return p1Enabled.Value || p2Enabled.Value;
         }
 
         private class DifficultyPatch

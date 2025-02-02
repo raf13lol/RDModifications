@@ -12,31 +12,24 @@ using System.Reflection.Emit;
 
 namespace RDModifications
 {
+    [EditorModification]
     public class DuplicateDecorationButton
     {
+        public static ManualLogSource logger;
+        
         public static ConfigEntry<bool> enabled;
 
-        public static ManualLogSource logger;
-
-        public static void Init(Harmony patcher, ConfigFile config, ManualLogSource logging, ref bool anyEnabled)
+        public static bool Init(ConfigFile config, ManualLogSource logging)
         {
             logger = logging;
-
-            enabled = config.Bind("EditorPatches", "DuplicateDecorationButton", false,
+            enabled = config.Bind("EditorPatches", "DuplicateDecorationButton", false, 
             "If there should be a button to duplicate decoration in the Sprite Settings panel.");
 
-            if (!EditorPatches.enabled.Value)
-                return;
-            if (enabled.Value)
-            {
-                patcher.PatchAll(typeof(CreateDuplicateButton));
-                patcher.PatchAll(typeof(FixCommentBug));
-                anyEnabled = true;
-            }
+            return enabled.Value;
         }
 
         [HarmonyPatch(typeof(InspectorPanel_MakeSprite), nameof(InspectorPanel_MakeSprite.Awake))]
-        private class CreateDuplicateButton
+        private class CreateDuplicateButtonPatch
         {
             public static void Postfix(InspectorPanel_MakeSprite __instance)
             {
@@ -127,7 +120,7 @@ namespace RDModifications
         }
         
         [HarmonyPatch(typeof(LevelEvent_Base), nameof(LevelEvent_Base.isSpriteTabEvent), MethodType.Getter)]
-        private class FixCommentBug
+        private class FixCommentBugPatch
         {
             public static void Postfix(LevelEvent_Base __instance, ref bool __result)
             {

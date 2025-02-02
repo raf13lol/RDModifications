@@ -8,6 +8,7 @@ using System.Linq;
 
 namespace RDModifications
 {
+    [Modification]
     public class CustomIceChiliSpeeds
     {
         public static ConfigEntry<bool> enabled;
@@ -17,39 +18,37 @@ namespace RDModifications
 
         public static ManualLogSource logger;
 
-        public static void Init(Harmony patcher, ConfigFile config, ManualLogSource logging, ref bool anyEnabled)
+        public static bool Init(ConfigFile config, ManualLogSource logging)
         {
             logger = logging;
+            enabled = config.Bind("CustomSpeeds", "Enabled", false, 
+            "Whether to use the custom defined ice/chili speeds.");
 
-            enabled = config.Bind("CustomSpeeds", "Enabled", false, "Whether to use the custom defined ice/chili speeds.");
-            iceSpeed = config.Bind("CustomSpeeds", "IceSpeed", 0.75f, "The speed multiplier to use for ice speeds.");
-            chiliSpeed = config.Bind("CustomSpeeds", "ChiliSpeed", 1.5f, "The speed multiplier to use for chili speeds.");
-            enabledRankScr = config.Bind("CustomSpeeds", "RankScreen", true, "Makes the rank screen colors adjust depending on the speed more accurately.");
+            iceSpeed = config.Bind("CustomSpeeds", "IceSpeed", 0.75f, 
+            "The speed multiplier to use for ice speeds.");
 
-            if (enabled.Value)
+            chiliSpeed = config.Bind("CustomSpeeds", "ChiliSpeed", 1.5f, 
+            "The speed multiplier to use for chili speeds.");
+
+            enabledRankScr = config.Bind("CustomSpeeds", "RankScreen", true, 
+            "Makes the rank screen colors adjust depending on the speed more accurately.");
+
+            if (enabled.Value && iceSpeed.Value == 0.75f && chiliSpeed.Value == 1.5f)
             {
-                if (iceSpeed.Value == 0.75f && chiliSpeed.Value == 1.5f)
-                    logger.LogMessage("CustomSpeeds: All values are default. No differences from base game.");
-
-                if (iceSpeed.Value <= 0.00f || iceSpeed.Value >= 1.00f)
-                {
-                    iceSpeed.Value = 0.75f;
-                    logger.LogWarning("CustomSpeeds: Invalid IceSpeed, value is reset to 0.75x");
-                }
-                if (chiliSpeed.Value <= 1.00f)
-                {
-                    chiliSpeed.Value = 1.5f;
-                    logger.LogWarning("CustomSpeeds: Invalid ChiliSpeed, value is reset to 1.5x");
-                }
-
-                patcher.PatchAll(typeof(GameSpeedPatch));
-                patcher.PatchAll(typeof(SaveSpeedPatch));
-                patcher.PatchAll(typeof(CLSAudioSpeedPatch));
-                if (enabledRankScr.Value)
-                    patcher.PatchAll(typeof(RankScreenPatch));
-
-                anyEnabled = true;
+                logger.LogMessage("CustomSpeeds: All values are default. No differences from base game.");
+                return false;
             }
+            if (iceSpeed.Value <= 0.00f || iceSpeed.Value >= 1.00f)
+            {
+                iceSpeed.Value = 0.75f;
+                logger.LogWarning("CustomSpeeds: Invalid IceSpeed, value is reset to 0.75x");
+            }
+            if (chiliSpeed.Value <= 1.00f)
+            {
+                chiliSpeed.Value = 1.5f;
+                logger.LogWarning("CustomSpeeds: Invalid ChiliSpeed, value is reset to 1.5x");
+            }
+            return enabled.Value;
         }
 
         [HarmonyPatch(typeof(scnGame), nameof(scnGame.StartTheGame))]
@@ -85,7 +84,7 @@ namespace RDModifications
         {
             public static void Postfix(HUD __instance)
             {
-                if (RDTime.speed == 1f)
+                if (RDTime.speed == 1f || !enabledRankScr.Value)
                     return;
 
                 Color iceColor = "70D8ED".HexToColor();
@@ -133,10 +132,8 @@ namespace RDModifications
             }
 
             [HarmonyPostfix]
-            public static void ASPostfix(AudioSource ___audioSource)
-            {
-                setAudioSpeed(___audioSource);
-            }
+            public static void ASPostfix(AudioSource ___audioSource) 
+                => setAudioSpeed(___audioSource);
 
             private static void setAudioSpeed(AudioSource audioSource)
             {

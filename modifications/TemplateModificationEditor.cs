@@ -7,25 +7,20 @@ using RDLevelEditor;
 
 namespace RDModifications
 {
-    public class TemplateEditor
+    [EditorModification]
+    public class TemplateModificationEditor
     {
+        public static ManualLogSource logger;
+        
         public static ConfigEntry<bool> enabled;
 
-        public static ManualLogSource logger;
-
-        public static void Init(Harmony patcher, ConfigFile config, ManualLogSource logging, ref bool anyEnabled)
+        public static bool Init(ConfigFile config, ManualLogSource logging)
         {
             logger = logging;
-
             enabled = config.Bind("EditorPatches", "Template", false,
             "Template");
 
-            if (!EditorPatches.enabled.Value)
-                return;
-            if (enabled.Value)
-            {
-                anyEnabled = true;
-            }
+            return enabled.Value;
         }
     }
 }

@@ -14,6 +14,7 @@ using System.IO;
 
 namespace RDModifications
 {
+    [Modification]
     public class ExtraLevelEndDetails
     {
         public static ConfigEntry<bool> enabled;
@@ -26,35 +27,47 @@ namespace RDModifications
 
         public static ConfigEntry<bool> includeSong;
         public static ConfigEntry<string> songPart;
+
         public static ConfigEntry<bool> includeArtist;
         public static ConfigEntry<string> artistPart;
+
         public static ConfigEntry<bool> includeAuthor;
         public static ConfigEntry<string> authorPart;
+
         public static ConfigEntry<bool> includeHits;
         public static ConfigEntry<string> hitsPart;
+
         public static ConfigEntry<bool> includeBestPrev;
         public static ConfigEntry<string> bestPrevPart;
+
         public static ConfigEntry<bool> includeModifications;
         public static ConfigEntry<string> modificationsPart;
-
+        
         public static ManualLogSource logger;
 
-        public static void Init(Harmony patcher, ConfigFile config, ManualLogSource logging, ref bool anyEnabled)
+        public static bool Init(ConfigFile config, ManualLogSource logging)
         {
             logger = logging;
+            enabled = config.Bind("ExtraLevelEndDetails", "Enabled", false, 
+            "Whether extra information should be displayed on the rank screen.");
 
-            enabled = config.Bind("ExtraLevelEndDetails", "Enabled", false, "Whether extra information should be displayed on the rank screen.");
+            samuraiModeAffects = config.Bind("ExtraLevelEndDetails", "SamuraiModeAffects", false, 
+            "Whether Samurai mode should affect the text.");
 
-            samuraiModeAffects = config.Bind("ExtraLevelEndDetails", "SamuraiModeAffects", false, "Whether Samurai mode should affect the text.");
             lineSeperator = config.Bind("ExtraLevelEndDetails", "LineSeperator", "\\n",
             "What each line should be seperated by.\n" +
             "(\\n is a new line.)");
-            textAlignment = config.Bind("ExtraLevelEndDetails", "TextAlignment", TextAnchor.UpperLeft, "How the text should be aligned.");
-            textSize = config.Bind("ExtraLevelEndDetails", "TextSize", 6, "How big the text should be.");
-            // textPosition = config.Bind<List<float>>("ExtraLevelEndDetails", "TextPosition", [352, 198], "Where the text should be positioned.");
+
+            textAlignment = config.Bind("ExtraLevelEndDetails", "TextAlignment", TextAnchor.UpperLeft, 
+            "How the text should be aligned.");
+
+            textSize = config.Bind("ExtraLevelEndDetails", "TextSize", 6, 
+            "How big the text should be.");
+
             maxLineLength = config.Bind("ExtraLevelEndDetails", "MaxLineLength", 60,
             "How long a line can be before being cut-off.\n" +
             "(To disable the line length limit, set the value to 0 or lower.)");
+
 
             includeSong = config.Bind("ExtraLevelEndDetails", "IncludeSong", true, "If the song name should be displayed.");
             songPart = config.Bind("ExtraLevelEndDetails", "SongPart", "Song:", "What the prefix to the song name should be.");
@@ -74,19 +87,12 @@ namespace RDModifications
             includeModifications = config.Bind("ExtraLevelEndDetails", "IncludeModifications", true, "If the other enabled modifications (that affect gameplay) should be displayed.");
             modificationsPart = config.Bind("ExtraLevelEndDetails", "ModificationsPart", "Modifications:", "What the prefix to the shown modifications should be.");
 
-
-            if (enabled.Value)
+            if (textSize.Value <= 0)
             {
-                if (textSize.Value <= 0)
-                {
-                    textSize.Value = 10;
-                    logger.LogWarning("ExtraLevelEndDetails: Invalid TextSize, resetting back to 10.");
-                }
-                patcher.PatchAll(typeof(LevelDetailsPatch));
-                patcher.PatchAll(typeof(LevelStatsPatch));
-                patcher.PatchAll(typeof(FixScnGame));
-                anyEnabled = true;
+                textSize.Value = 10;
+                logger.LogWarning("ExtraLevelEndDetails: Invalid TextSize, resetting back to 10.");
             }
+            return enabled.Value;
         }
 
         [HarmonyPatch(typeof(HUD), nameof(HUD.ShowRankDescription))]

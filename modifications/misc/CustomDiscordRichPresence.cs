@@ -6,6 +6,7 @@ using System.Reflection.Emit;
 
 namespace RDModifications
 {
+    [Modification]
     public class CustomDiscordRichPresence
     {
         public static ConfigEntry<long> discordClientID;
@@ -14,7 +15,7 @@ namespace RDModifications
 
         public static ManualLogSource logger;
 
-        public static void Init(Harmony patcher, ConfigFile config, ManualLogSource logging, ref bool anyEnabled)
+        public static bool Init(ConfigFile config, ManualLogSource logging)
         {
             logger = logging;
 
@@ -28,17 +29,7 @@ namespace RDModifications
             largeImageText = config.Bind("CustomDiscordRichPresence", "LargeImageText", "Samurai.",
             "The text that should be used for the rich presence image when you hover over it.");
 
-            if (largeImageText.Value != (string)largeImageText.DefaultValue)
-            {
-                patcher.PatchAll(typeof(TextPatch));
-                anyEnabled = true;
-            }
-            if (discordClientID.Value != 477926053420072961L)
-            {
-                patcher.PatchAll(typeof(IDPatch));
-                patcher.PatchAll(typeof(ImagePatch));
-                anyEnabled = true;
-            }
+            return true;
         }
 
         // easy !

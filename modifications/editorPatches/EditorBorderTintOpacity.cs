@@ -10,32 +10,22 @@ using System.Linq;
 
 namespace RDModifications
 {
+    [EditorModification]
     public class EditorBorderTintOpacity
     {
-        public static ConfigEntry<bool> enabled;
-
         public static ManualLogSource logger;
 
-        public static void Init(Harmony patcher, ConfigFile config, ManualLogSource logging, ref bool anyEnabled)
+        public static ConfigEntry<bool> enabled;
+
+        public static bool Init(ConfigFile config, ManualLogSource logging)
         {
             logger = logging;
-
             enabled = config.Bind("EditorPatches", "EditorBorderTintOpacity", false,
             "If there should be a slider for the border/tint opacity in Paint Rows.\n" +
             "Meant to simplify under/overtinting.\n" +
             "(Will only show if DisableSliderLimits is enabled as otherwise it would be useless.)");
 
-            if (!EditorPatches.enabled.Value)
-                return;
-            if (DisableSliderLimits.enabled.Value && enabled.Value)
-            {
-                // i needed to seperate everything into its own class for my brain because this is a bit complex let's say
-                patcher.PatchAll(typeof(AddStringsLocPatch));
-                patcher.PatchAll(typeof(SetVariablesNeededPatch));
-                patcher.PatchAll(typeof(SetTintRowsEventDataPatch));
-                patcher.PatchAll(typeof(LevelEventInfoConstructorPatch));
-                anyEnabled = true;
-            }
+            return DisableSliderLimits.enabled.Value && enabled.Value;
         }
 
         private class VariablesNeeded

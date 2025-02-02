@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace RDModifications
 {
+    [Modification]
     public class WindowTransparency
     {
         public static ConfigEntry<bool> enabled;
@@ -14,11 +15,11 @@ namespace RDModifications
 
         public static ManualLogSource logger;
 
-        public static void Init(Harmony patcher, ConfigFile config, ManualLogSource logging, ref bool anyEnabled)
+        public static bool Init(ConfigFile config, ManualLogSource logging)
         {
             logger = logging;
             if (Application.platform != RuntimePlatform.WindowsPlayer)
-                return;
+                return false;
 
             enabled = config.Bind("WindowTransparency", "Enabled", false,
             "If you should be able to control the window's opacity. (only works on Windows)");
@@ -26,16 +27,11 @@ namespace RDModifications
             opacity = config.Bind("WindowTransparency", "Opacity", (byte)128,
             "What the window's opacity should be. (0-255)");
 
-            if (enabled.Value)
-            {
-                // so the window exists first ?
-                patcher.PatchAll(typeof(DoTheCodeHere));
-                anyEnabled = true;
-            }
+            return enabled.Value;
         }
 
         [HarmonyPatch(typeof(scnMenu), "Update")]
-        private class DoTheCodeHere
+        private class DoTheCodeHerePatch
         {
             public static bool doneItYet = false;
 

@@ -14,6 +14,7 @@ using System.Text.RegularExpressions;
 
 namespace RDModifications
 {
+    [Modification]
     public class CustomSamuraiMode
     {
         public static ConfigEntry<bool> enabled;
@@ -24,33 +25,33 @@ namespace RDModifications
 
         public static ManualLogSource logger;
 
-        public static void Init(Harmony patcher, ConfigFile config, ManualLogSource logging, ref bool anyEnabled)
+        public static bool Init(ConfigFile config, ManualLogSource logging)
         {
             logger = logging;
+            enabled = config.Bind("CustomSamuraiMode", "Enabled", false, 
+            "This will change Samurai mode to have your own custom text.");
 
-            enabled = config.Bind("CustomSamuraiMode", "Enabled", false, "This will change Samurai mode to have your own custom text.");
-            modeEnabledAtStart = config.Bind("CustomSamuraiMode", "ModeEnabledAtStart", false, "If Samurai mode should be enabled by default when playing the game.");
-            replaceRank = config.Bind("CustomSamuraiMode", "ReplaceRank", false, "If Samurai mode should replace the rank text.");
-            samuraiReplacement = config.Bind("CustomSamuraiMode", "SamuraiReplacement", "Insomniac.", "What 'Samurai.' should be replaced with.");
+            modeEnabledAtStart = config.Bind("CustomSamuraiMode", "ModeEnabledAtStart", false, 
+            "If Samurai mode should be enabled by default when playing the game.");
+
+            replaceRank = config.Bind("CustomSamuraiMode", "ReplaceRank", false, 
+            "If Samurai mode should replace the rank text.");
+
+            samuraiReplacement = config.Bind("CustomSamuraiMode", "SamuraiReplacement", "Insomniac.", 
+            "What 'Samurai.' should be replaced with.");
+
             samuraiInputReplacement = config.Bind("CustomSamuraiMode", "SamuraiInputReplacement", "Insomniac.",
             "What you need to input for Samurai to be toggled.\n" +
             "The BepinEx log will output the inputs needed, as it may not be obvious at times.");
 
-            if (enabled.Value)
-            {
-                // this feels cursed
-                if (modeEnabledAtStart.Value)
-                    RDString.samuraiMode = true;
+            return enabled.Value;
+        }
 
-                patcher.PatchAll(typeof(SamuraiTextPatch));
-                patcher.PatchAll(typeof(DoubleSamuraiPatch));
-                patcher.PatchAll(typeof(SamuraiInputPatch));
-
-                if (replaceRank.Value)
-                    patcher.PatchAll(typeof(SamuraiRankPatch));
-
-                anyEnabled = true;
-            }
+        [HarmonyPatch(typeof(RDString), nameof(RDString.Setup))]
+        private class SamuraiModeStartPatch
+        {
+            public static void Postfix()
+                => RDString.samuraiMode = modeEnabledAtStart.Value;
         }
 
         private class SamuraiTextPatch
@@ -75,7 +76,7 @@ namespace RDModifications
 
             [HarmonyTranspiler]
             public static IEnumerable<CodeInstruction> SamuraiTranspiler(IEnumerable<CodeInstruction> instructions)
-            {
+            { 
                 // This is actually quite useful !
                 return TranspilerUtils.ReplaceString(instructions, "Samurai.", samuraiReplacement.Value);
             }
@@ -104,7 +105,7 @@ namespace RDModifications
         {
             public static void Postfix(HUD __instance)
             {
-                if (RDString.samuraiMode)
+                if (RDString.samuraiMode && replaceRank.Value)
                     __instance.rank.text = samuraiReplacement.Value;
             }
         }

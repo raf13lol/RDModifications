@@ -4,9 +4,12 @@ using BepInEx.Logging;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
+using System;
 
 namespace RDModifications
 {
+    [Modification]
     public class DoctorMode
     {
         public static ConfigEntry<bool> enabled;
@@ -16,41 +19,35 @@ namespace RDModifications
 
         public static ManualLogSource logger;
 
-        public static void Init(Harmony patcher, ConfigFile config, ManualLogSource logging, ref bool anyEnabled)
+        public static bool Init(ConfigFile config, ManualLogSource logging)
         {
             logger = logging;
-
             enabled = config.Bind("DoctorMode", "Enabled", false,
             "Doctor mode is where the mod will completely destroy the rhythm engine.\n" +
             "It destroys the rhythm engine by multipling the 'crotchet' by a random value between 2 bounds.\n" +
             "With these settings, you can configure how much to destroy it by modifying these 2 bounds.");
 
-            lowMult = config.Bind("DoctorMode", "LowMultiplier", 0.75f, "The lowest multiplier to use in the random multiplier.");
-            highMult = config.Bind("DoctorMode", "HighMultiplier", 1.25f, "The highest multiplier to use in the random multiplier.");
-            auto = config.Bind("DoctorMode", "Auto", false, "If the songs should be played automatically. Only applies to Doctor mode. (NO RANKS NOR ANY ACHIEVEMENTS WILL BE SAVED)");
+            lowMult = config.Bind("DoctorMode", "LowMultiplier", 0.75f, 
+            "The lowest multiplier to use in the random multiplier.");
 
-            if (enabled.Value)
+            highMult = config.Bind("DoctorMode", "HighMultiplier", 1.25f, 
+            "The highest multiplier to use in the random multiplier.");
+
+            auto = config.Bind("DoctorMode", "Auto", false, 
+            "If the songs should be played automatically. Only applies to Doctor mode. (NO RANKS NOR ANY ACHIEVEMENTS WILL BE SAVED)");
+
+            if (enabled.Value && lowMult.Value == 1.00f && highMult.Value == 1.00f)
             {
-                if (lowMult.Value == 1.00f && highMult.Value == 1.00f)
-                {
-                    logger.LogWarning("DoctorMode: LowMultiplier and HighMultiplier are both 1.00. No Doctor mode patches will be applied.");
-                    return;
-                }
-                if (lowMult.Value > highMult.Value)
-                {
-                    lowMult.Value = highMult.Value;
-                    logger.LogWarning("DoctorMode: LowMultiplier was greater than HighMultiplier. LowMultiplier has been set to HighMultiplier.");
-                }
-                patcher.PatchAll(typeof(ConductorPatch));
-                patcher.PatchAll(typeof(TitlescreenPatch));
-                if (auto.Value)
-                {
-                    patcher.PatchAll(typeof(AutoPatch));
-                    patcher.PatchAll(typeof(RanksAchievementsPatch));
-                }
-
-                anyEnabled = true;
+                logger.LogWarning("DoctorMode: LowMultiplier and HighMultiplier are both 1.00. No Doctor mode patches will be applied.");
+                return false;
             }
+            if (lowMult.Value > highMult.Value)
+            {
+                lowMult.Value = highMult.Value;
+                logger.LogWarning("DoctorMode: LowMultiplier was greater than HighMultiplier. LowMultiplier has been set to HighMultiplier.");
+            }
+
+            return enabled.Value;
         }
 
         private class ConductorPatch
@@ -58,9 +55,7 @@ namespace RDModifications
             [HarmonyPostfix]
             [HarmonyPatch(typeof(scrConductor), nameof(scrConductor.crotchet), MethodType.Getter)]
             public static void GetCrotchetPostfix(ref float __result)
-            {
-                __result *= Random.Range(lowMult.Value, highMult.Value);
-            }
+                => __result *= UnityEngine.Random.Range(lowMult.Value, highMult.Value);
 
             [HarmonyTranspiler]
             [HarmonyPatch(typeof(scrConductor), nameof(scrConductor.BeatToTime))]
@@ -110,15 +105,16 @@ namespace RDModifications
             [HarmonyPostfix]
             [HarmonyPatch(typeof(DebugSettings), nameof(DebugSettings.Auto), MethodType.Getter)]
             public static void AutoHitPostfix(ref bool __result)
-            {
                 // this code is only ran if auto.Value 
-                __result = true;
-            }
+                => __result = auto.Value;
 
             [HarmonyPostfix]
             [HarmonyPatch(typeof(HUD), nameof(HUD.ShowAndSaveRank))]
             public static void HUDPostfix(HUD __instance)
             {
+                if (!auto.Value)
+                    return;
+
                 // should be safe to do so
                 if (__instance.rank.text.Length > 0)
                     __instance.rank.text += "?";
@@ -132,31 +128,23 @@ namespace RDModifications
             [HarmonyPrefix]
             [HarmonyPatch(typeof(SteamIntegration), nameof(SteamIntegration.UnlockAchievement), [typeof(string), typeof(bool)])]
             public static bool AchievementPrefix()
-            {
-                return false;
-            }
+                => !auto.Value;
 
             [HarmonyPrefix]
             [HarmonyPatch(typeof(Persistence), nameof(Persistence.SetLevelRank), [typeof(string), typeof(Rank), typeof(bool), typeof(bool)])]
             public static bool RankPrefix()
-            {
-                return false;
-            }
-
-            [HarmonyPrefix]
-            [HarmonyPatch(typeof(Persistence), nameof(Persistence.SetCustomLevelRank), [typeof(string), typeof(Rank), typeof(float)])]
-            public static bool CustomRankPrefix(ref Rank rank)
-            {
-                return rank == -1;
-            }
+                => !auto.Value;
 
             // Score is really interesting!
             [HarmonyPrefix]
             [HarmonyPatch(typeof(Persistence), nameof(Persistence.SetLevelScore))]
             public static bool ScorePrefix()
-            {
-                return false;
-            }
+                => !auto.Value;
+
+            [HarmonyPrefix]
+            [HarmonyPatch(typeof(Persistence), nameof(Persistence.SetCustomLevelRank), [typeof(string), typeof(Rank), typeof(float)])]
+            public static bool CustomRankPrefix(ref Rank rank)
+                => !auto.Value || rank == Rank.NotFinished;
         }
     }
 }

@@ -12,6 +12,7 @@ using UnityEngine;
 
 namespace RDModifications
 {
+    [Modification]
     public class PretendFOnMistake
     {
         public static ConfigEntry<bool> enabled;
@@ -22,39 +23,44 @@ namespace RDModifications
         public static ConfigEntry<float> sayVolume;
         public static ConfigEntry<float> duration;
 
-        public static string text;
+        public static string soundName;
 
         public static ManualLogSource logger;
 
-        public static void Init(Harmony patcher, ConfigFile config, ManualLogSource logging, ref bool anyEnabled)
+        public static bool Init(ConfigFile config, ManualLogSource logging)
         {
             logger = logging;
+            enabled = config.Bind("PretendFOnMistake", "Enabled", false, 
+            "Whether a pretend rank should be shown and/or said on each mistake.");
 
-            enabled = config.Bind("PretendFOnMistake", "Enabled", false, "Whether a pretend rank should be shown and/or said on each mistake.");
-            display = config.Bind("PretendFOnMistake", "Display", true, "Whether the pretend rank should be shown on each mistake.");
-            say = config.Bind("PretendFOnMistake", "Say", true, "Whether the pretend rank should be said on each mistake.");
+            display = config.Bind("PretendFOnMistake", "Display", true, 
+            "Whether the pretend rank should be shown on each mistake.");
 
-            rankToDisplayAndSay = config.Bind("PretendFOnMistake", "RankToDisplayAndSay", LevelRank.F, "What the pretend rank should be.");
-            sayVolume = config.Bind("PretendFOnMistake", "SayVolume", 1f, "How loud the said pretend rank should be said.");
-            duration = config.Bind("PretendFOnMistake", "Duration", 0.5f, "How long the shown pretend rank should be shown for.\n(seconds)");
+            say = config.Bind("PretendFOnMistake", "Say", true, 
+            "Whether the pretend rank should be said on each mistake.");
 
-            text = rankToDisplayAndSay.Value.ToString().Replace("Minus", "-").Replace("Plus", "+");
 
-            if (enabled.Value)
+            rankToDisplayAndSay = config.Bind("PretendFOnMistake", "RankToDisplayAndSay", LevelRank.F, 
+            "What the pretend rank should be.");
+
+            sayVolume = config.Bind("PretendFOnMistake", "SayVolume", 1f, 
+            "How loud the said pretend rank should be said.");
+
+            duration = config.Bind("PretendFOnMistake", "Duration", 0.5f, 
+            "How long the shown pretend rank should be shown for.\n(seconds)");
+
+            soundName = rankToDisplayAndSay.Value.ToString().Replace("Minus", "-").Replace("Plus", "+");
+            if (sayVolume.Value < 0f)
             {
-                if (sayVolume.Value < 0f)
-                {
-                    sayVolume.Value = 1f;
-                    logger.LogWarning("PretendFOnMistake: Invalid SayVolume, value is reset to 1");
-                }
-                if (duration.Value < 0f)
-                {
-                    duration.Value = 0.5f;
-                    logger.LogWarning("PretendFOnMistake: Invalid Duration, value is reset to 0.5");
-                }
-                patcher.PatchAll(typeof(FPatch));
-                anyEnabled = true;
+                sayVolume.Value = 1f;
+                logger.LogWarning("PretendFOnMistake: Invalid SayVolume, value is reset to 1");
             }
+            if (duration.Value < 0f)
+            {
+                duration.Value = 0.5f;
+                logger.LogWarning("PretendFOnMistake: Invalid Duration, value is reset to 0.5");
+            }
+            return enabled.Value;
         }
 
         // mwehehehehe
@@ -71,9 +77,7 @@ namespace RDModifications
             public static void ShowFPostfix(float weight)
             {
                 static bool isInOver(FieldInfo field, HUD hud)
-                {
-                    return (int)field.GetValue(hud) > 0;
-                }
+                    => (int)field.GetValue(hud) > 0;
 
                 if (weight <= 0.0f)
                     return;
@@ -84,7 +88,7 @@ namespace RDModifications
                     return;
 
                 if (say.Value)
-                    scrConductor.PlayImmediately("sndJyi - Rank" + text, sayVolume.Value * Mathf.Clamp01(weight), RDUtils.GetMixerGroup("RDGSVoice"), 1f, 0f, false, false, false);
+                    scrConductor.PlayImmediately("sndJyi - Rank" + soundName, sayVolume.Value * Mathf.Clamp01(weight), RDUtils.GetMixerGroup("RDGSVoice"), 1f, 0f, false, false, false);
 
                 if (!display.Value)
                     return;
@@ -101,7 +105,7 @@ namespace RDModifications
                 hud.rankscreen.SetActive(true);
                 hud.header.gameObject.SetActive(true);
                 hud.rank.gameObject.SetActive(true);
-                hud.rank.text = text;
+                hud.rank.text = soundName;
                 float duration = 0.5f;
                 if (baseAlpha == 0.0f)
                     baseAlpha = img.color.a;
