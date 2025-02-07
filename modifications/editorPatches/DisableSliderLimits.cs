@@ -49,8 +49,9 @@ namespace RDModifications
             [HarmonyPatch(typeof(PropertyControl_Slider), nameof(PropertyControl_Slider.UpdateUI))]
             public static void UpdateUIPostfix(PropertyControl_Slider __instance, LevelEvent_Base levelEvent)
             {
-                if (!__instance.inputField.gameObject.activeInHierarchy)
+                if (!__instance.inputField.gameObject.activeInHierarchy || __instance.inputField == null)
                     return;
+                
                 object value = typeof(PropertyControl)
                     .GetMethod("GetEventValue", BindingFlags.NonPublic | BindingFlags.Instance)
                     .Invoke(__instance, [levelEvent]);
@@ -62,11 +63,13 @@ namespace RDModifications
             [HarmonyPatch(typeof(PropertyControl_Slider), nameof(PropertyControl_Slider.Save))]
             public static void SavePropertyPostfix(PropertyControl_Slider __instance, LevelEvent_Base levelEvent)
             {
-                if (!__instance.inputField.gameObject.activeInHierarchy)
+                if (!__instance.inputField.gameObject.activeInHierarchy || __instance.inputField == null)
                     return;
-                object num = Convert.ToInt32(__instance.inputField.text);
+                object num;
                 if (!__instance.slider.wholeNumbers)
                     num = float.Parse(__instance.inputField.text);
+                else
+                    num = Convert.ToInt32(__instance.inputField.text);
 
                 typeof(PropertyControl)
                     .GetMethod("SetEventValue", BindingFlags.NonPublic | BindingFlags.Instance)

@@ -14,4 +14,9 @@ namespace RDModifications
     public class EditorModificationAttribute(bool autoPatch = true) : BaseModificationAttribute(autoPatch) 
     {
     }
+
+
+    public class PatchAttribute : Attribute
+    {
+    }
 }

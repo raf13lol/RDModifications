@@ -20,11 +20,13 @@ List of modifications available with a simple summary:
 - ExtraLevelEndDetails -> Provides extra details at the end of a level, e.g. previous best
 - PretendFOnMistake -> Allows for flashing a fake rank screen and a sound to play on each miss, with being able to choose the Rank shown/said
 - WindowTransparency (WINDOWS ONLY) -> Allows for setting how transparent the game window is
+- ZeroOffsetSign -> Makes the Numerical Hit Judgement sign colored based on the hit's ""zero-offsetness""
 
 ## EditorPatches
 
 - DisableSliderLimits -> numerical slider limits are disabled (albeit you must use the input field)
 - DuplicateDecorationButton -> adds a button to duplicate a deco, above the delete button for the deco
 - EditorBorderTintOpacity -> (will only work with DisableSliderLimits enabled) adds a slider for border/tint opacity, meant for under/overtinting (hence why slider limits need to be disabled)
+- InsertDeleteBars -> Alt + left click inserts a bar, alt + right click deletes the bar clicked (hard to explain shortly)
 
 # Create a github issue for suggestions/bugs or just ping me if you're in a server i'm in
