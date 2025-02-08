@@ -172,7 +172,10 @@ namespace RDModifications
             [HarmonyPatch(typeof(RDArm), "Update")]
             public static void RDArmPostfix(RDArm __instance)
             {
-                if (!__instance.playerCanUse || __instance.cpuCanUse || __instance.player == RDPlayer.CPU)
+                logger.LogMessage(__instance.player);
+                logger.LogMessage(__instance.cpuCanUse);
+                logger.LogMessage(__instance.playerCanUse);
+                if ((!__instance.playerCanUse && __instance.cpuCanUse) || __instance.player == RDPlayer.CPU)
                     return;
 
                 int player = (int)__instance.player;
