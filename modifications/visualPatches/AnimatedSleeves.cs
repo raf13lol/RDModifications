@@ -161,7 +161,7 @@ namespace RDModifications
                 if (continueAnimation)
                 {
                     double elapsed = Time.deltaTime;
-                    if (consistentFPS.Value)
+                    if (consistentFPS.Value && RDTime.speed != 0)
                         elapsed /= RDTime.speed;
                     animatedSleeve.currentFrame = (currentFrame + elapsed * animatedSleeve.fps) % animatedSleeve.frames.Count;
                     SleeveData.animatedSleeves[player][slot] = animatedSleeve;
