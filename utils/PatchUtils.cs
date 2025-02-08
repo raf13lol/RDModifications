@@ -33,7 +33,7 @@ namespace RDModifications
                     if (attrib.autoPatch && shouldPatch)
                     {
                         Type[] innerTypes = [..(from t in type.GetNestedTypes(BindingFlags.NonPublic)
-                                            where t.Name.EndsWith("Patch") || t.GetCustomAttribute<PatchAttribute>() != null
+                                            where t.Name.EndsWith("Patch") || t.GetCustomAttribute(typeof(PatchAttribute)) != null
                                             select t)];
                         foreach (Type innerPatch in innerTypes)
                             patcher.PatchAll(innerPatch);

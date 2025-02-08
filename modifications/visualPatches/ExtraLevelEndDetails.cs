@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Linq;
 using System.Reflection.Emit;
 using System.IO;
+using System.Xml.Schema;
 
 namespace RDModifications
 {
@@ -186,6 +187,8 @@ namespace RDModifications
                     if (value.Length == 0)
                         continue;
                     value = colorlessRegex.Replace(value, "");
+                    value = value.Replace("\n", "");
+                    value = value.Replace("\r", "");
 
                     string toAdd = prefix + value;
                     if (maxLineLength.Value > 0 && toAdd.Length > maxLineLength.Value)
@@ -270,7 +273,7 @@ namespace RDModifications
         }
 
         [HarmonyPatch(typeof(scnGame), "Start")]
-        private class FixScnGame
+        private class FixScnGamePatch
         {
             // It seems bepinex runs scnGame.Start under this assembly which when paired with GetType causes a few issues
             public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)

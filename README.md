@@ -11,16 +11,43 @@ Check the config file or use that Config manager that bepinex have said about
 
 List of modifications available with a simple summary:
 
+- AnimatedSleeves -> Allows for animated sleeves [(see the section for how to do it)](#animatedsleeves-setup)
 - CustomDifficulty -> Allows for a custom hit margin
 - CustomDiscordRichPresence -> Allows for customising the discord rich presence, including the presence id
 - CustomIceChiliSpeeds -> Allows for having a custom speed on ice/chili speeds instead of 0.75x/1.5x
 - CustomSamuraiMode -> Allows for setting the `Samurai.` from Samurai. mode to any string
 - DoctorMode -> Removes the `Rhythm` from `Rhythm Doctor` (destroys the rhythm engine)
-- EditorPatches -> Some patches to extend editor features or to improve editor ([see the section for more info](#editorpatches))
+- EditorPatches -> Some patches to extend editor features or to improve editor [(see the section for more info)](#editorpatches)
 - ExtraLevelEndDetails -> Provides extra details at the end of a level, e.g. previous best
 - PretendFOnMistake -> Allows for flashing a fake rank screen and a sound to play on each miss, with being able to choose the Rank shown/said
 - WindowTransparency (WINDOWS ONLY) -> Allows for setting how transparent the game window is
 - ZeroOffsetSign -> Makes the Numerical Hit Judgement sign colored based on the hit's ""zero-offsetness""
+
+## AnimatedSleeves setup
+
+### there are two methods for having animated sleeves, either each frame is a seperate image or one big spritesheet
+
+#### each `frame` referred to here is and must be 524px x 40px (width x height) in size !!!
+
+#### the sleeve images are located at where rhythm doctor is installed to e.g. `C:\Program Files (x86)\Steam\steamapps\common\Rhythm Doctor\User\`
+
+### if you are doing the spritesheet, do note that:
+
+- there cannot be empty spots in the spritesheet
+- the program will read from left to right, top to bottom, so make sure to export correctly (e.g. in aseprite horizontal strip or by rows i think)
+- the game will refuse to handle an image that's too big in width or height so keep that in mind
+
+the spritesheet should be placed where the sleeve images are and should be suffixed with `_animated`, e.g. `scribbleP1_0_animated.png`
+<br>
+
+### if you are doing it with individual images
+
+each image should have the suffix of `_frameX` where X is a number starting from 1 e.g. like:
+
+`scribbleP1_0_frame1.png`, `scribbleP1_0_frame2.png`, `scribbleP1_0_frame3.png`, ...
+<br>
+
+### *please do ask for more details if there's some parts you don't understand*
 
 ## EditorPatches
 

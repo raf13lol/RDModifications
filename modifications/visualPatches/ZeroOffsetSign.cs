@@ -26,7 +26,7 @@ namespace RDModifications
         }
 
         [HarmonyPatch(typeof(HUD), nameof(HUD.status), MethodType.Setter)]
-        private class GreenSignPatch
+        private class GreenRedSignPatch
         {
             public static void Prefix(ref string value)
             {
