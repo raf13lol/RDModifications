@@ -91,7 +91,7 @@ namespace RDModifications
                     }
                     return;
                 }
-                Texture2D spritesheet = new(2, 2, TextureFormat.RGBA32, false);
+                Texture2D spritesheet = new(2, 2, TextureFormat.ARGB32, false);
                 spritesheet.LoadImage(File.ReadAllBytes(baseFilename + $"_animated.png"), false);
                 spritesheet.filterMode = FilterMode.Point;
 
