@@ -1,22 +1,21 @@
 using BepInEx.Configuration;
 using BepInEx.Logging;
 
-namespace RDModifications
+namespace RDModifications;
+
+[Modification]
+public class TemplateModification
 {
-    [Modification]
-    public class TemplateModification
+    public static ManualLogSource logger;
+
+    public static ConfigEntry<bool> enabled;
+
+    public static bool Init(ConfigFile config, ManualLogSource logging)
     {
-        public static ManualLogSource logger;
+        logger = logging;
+        enabled = config.Bind("Template", "Template", false,
+        "Template");
 
-        public static ConfigEntry<bool> enabled;
-
-        public static bool Init(ConfigFile config, ManualLogSource logging)
-        {
-            logger = logging;
-            enabled = config.Bind("Template", "Template", false,
-            "Template");
-
-            return enabled.Value;
-        }
+        return enabled.Value;
     }
 }
