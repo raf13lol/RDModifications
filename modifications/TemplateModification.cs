@@ -13,7 +13,7 @@ public class TemplateModification
     public static bool Init(ConfigFile config, ManualLogSource logging)
     {
         logger = logging;
-        enabled = config.Bind("Template", "Template", false,
+        enabled = config.Bind("Template", "Enabled", false,
         "Template");
 
         return enabled.Value;

@@ -1,6 +1,6 @@
 # RDModifications
 
-## a bepinex 6 mod !! sorry bepinex 5 users
+## a bepinex 6 (mono) mod !! sorry bepinex 5 users
 
 some random modifications that some people could want and such so why not
 
@@ -19,6 +19,8 @@ List of modifications available with a simple summary:
 - DoctorMode -> Removes the `Rhythm` from `Rhythm Doctor` (destroys the rhythm engine)
 - EditorPatches -> Some patches to extend editor features or to improve editor [(see the section for more info)](#editorpatches)
 - ExtraLevelEndDetails -> Provides extra details at the end of a level, e.g. previous best
+- ForceGameSpeed -> Forces the game speed to a certain value (may cause a few issues due to how forceful it is)
+- LevelPRStatus -> Colors the syringe body of a custom level depending on the peer-review status of it on Rhythm Café
 - PretendFOnMistake -> Allows for flashing a fake rank screen and a sound to play on each miss, with being able to choose the Rank shown/said
 - WindowTransparency (WINDOWS ONLY) -> Allows for setting how transparent the game window is
 - ZeroOffsetSign -> Makes the Numerical Hit Judgement sign colored based on the hit's ""zero-offsetness""
@@ -29,7 +31,7 @@ List of modifications available with a simple summary:
 
 #### each `frame` referred to here is and must be 524px x 40px (width x height) in size !!!
 
-#### the sleeve images are located at where rhythm doctor is installed to e.g. `C:\Program Files (x86)\Steam\steamapps\common\Rhythm Doctor\User\`
+#### the sleeve images are located at where rhythm doctor's save files are to e.g. `C:\Program Files (x86)\Steam\steamapps\common\Rhythm Doctor\User\`
 
 ### if you are doing the spritesheet, do note that:
 
