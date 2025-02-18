@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using UnityEngine;
+using System.Reflection.Emit;
 
 namespace RDModifications;
 
@@ -32,7 +33,7 @@ public class EditorBorderTintOpacity
     private class VariablesNeeded
     {
         // heh heh, important shit for my horribleness later on
-        [JsonProperty("", "", null, "", false, true, "EnableBorderColorIf")]
+        [JsonProperty("___borderOpacity", "", null, "", false, true, nameof(EnableBorderColorIf))]
         [SliderAlpha(false, null)]
         [IntInfo(0, 100)]
         public static int borderOpacity
@@ -41,7 +42,7 @@ public class EditorBorderTintOpacity
             set => trueBorderOpacity = value / 100d;
         }
 
-        [JsonProperty("", "", null, "", false, true, "EnableTintColorIf")]
+        [JsonProperty("___tintOpacity", "", null, "", false, true, nameof(EnableTintColorIf))]
         [SliderAlpha(false, null)]
         [IntInfo(0, 100)]
         public static int tintOpacity
@@ -69,10 +70,12 @@ public class EditorBorderTintOpacity
             return ((LevelEvent_TintRows)eventToUse).tint;
         }
 
+        public static bool stuffBeingEncoded = false;
+
         // Token: 0x0600231D RID: 8989 RVA: 0x000E9182 File Offset: 0x000E7382
         public static bool EnableBorderColorIf()
         {
-            if (eventToUse == null)
+            if (eventToUse == null || stuffBeingEncoded)
                 return false;
             return GetBorder() > BorderType.None;
         }
@@ -80,7 +83,7 @@ public class EditorBorderTintOpacity
         // Token: 0x0600231E RID: 8990 RVA: 0x000E918D File Offset: 0x000E738D
         public static bool EnableTintColorIf()
         {
-            if (eventToUse == null)
+            if (eventToUse == null || stuffBeingEncoded)
                 return false;
             return GetTint();
         }
@@ -93,7 +96,7 @@ public class EditorBorderTintOpacity
         {
             if (RDString.samuraiMode)
                 return;
-            string fullKey = "editor." + key;
+            string fullKey = "editor." + key.Replace("___", "");
             if (!___panelName.StartsWith("Tint"))
                 return;
 
@@ -138,22 +141,36 @@ public class EditorBorderTintOpacity
                 colorControlBorder.colorPicker.storesAlpha = false;
                 colorControlTint.colorPicker.storesAlpha = false;
             }
+            else
+                VariablesNeeded.eventToUse = null;
         }
+    }
+
+    [HarmonyPatch(typeof(LevelEvent_Base), nameof(LevelEvent_Base.Encode))]
+    private class PreventDuplicatedKeysPatch
+    {
+        public static void Prefix(LevelEvent_Base __instance)
+            => VariablesNeeded.stuffBeingEncoded = __instance is LevelEvent_Tint || __instance is LevelEvent_TintRows;
+            
+        public static void Postfix()
+            => VariablesNeeded.stuffBeingEncoded = false;
     }
 
     [HarmonyPriority(Priority.Last)]
     [HarmonyPatch(typeof(PropertyControl_SliderAlpha), nameof(PropertyControl_SliderAlpha.Save))]
-    private class SetTintRowsEventDataPatch
+    private class SetTintEventDataPatch
     {
         public static void Postfix(PropertyControl_SliderAlpha __instance, LevelEvent_Base levelEvent)
         {
+            if (levelEvent != VariablesNeeded.eventToUse)
+                return;
             BasePropertyInfo propertyInfo = (BasePropertyInfo)typeof(PropertyControl)
                 .GetMethod("get_propertyInfo", BindingFlags.NonPublic | BindingFlags.Instance)
                 .Invoke(__instance, []);
 
             if (levelEvent is LevelEvent_TintRows __tintRowsEvent
             || levelEvent is LevelEvent_Tint __tintEvent)
-            {
+            {   
                 void setColorAlpha(LevelEvent_Base levelEvent, string name, ColorOrPalette baseColor, double newAlpha)
                 {
                     // at the very end, do everything 
@@ -187,8 +204,8 @@ public class EditorBorderTintOpacity
                     {
                         borderCol = tintEvent.borderColor;
                         tintCol = tintEvent.tintColor;
-                    }   
-                
+                    }
+
                     setColorAlpha(levelEvent, "borderOpacity", borderCol, VariablesNeeded.trueBorderOpacity);
                     setColorAlpha(levelEvent, "tintOpacity", tintCol, VariablesNeeded.trueTintOpacity);
                 }
@@ -206,10 +223,10 @@ public class EditorBorderTintOpacity
 
             BindingFlags flags = BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public;
             // this is from the game because idk this query syntax shit atm
-            List<BasePropertyInfo> propsList = [.. from fieldInfo in eventType.GetProperties(flags)
+            List<BasePropertyInfo> propsList = [.. (from fieldInfo in eventType.GetProperties(flags)
                 where fieldInfo.IsDefined(typeof(JsonPropertyAttribute))
                 orderby fieldInfo.MetadataToken
-                select BasePropertyInfo.FromProperty(fieldInfo)];
+                select BasePropertyInfo.FromProperty(fieldInfo))];
 
             for (int i = 0; i < propsList.Count; i++)
             {
@@ -234,4 +251,5 @@ public class EditorBorderTintOpacity
         }
     }
 
+    
 }
