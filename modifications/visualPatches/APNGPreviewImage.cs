@@ -79,6 +79,7 @@ public class APNGPreviewImage
             if (!apngFrames.ContainsKey(id) || apngFrames[id].Count <= 0)
                 return;
 
+            currentFrame %= apngFrames[id].Count;
             OutputFrame frame = apngFrames[id][currentFrame];
             __instance.previewImage.texture = frame.Texture;
 
