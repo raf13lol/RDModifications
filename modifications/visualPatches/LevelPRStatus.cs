@@ -104,16 +104,7 @@ public class LevelPRStatus
     {
         public static void Postfix(CustomLevel __instance, CustomLevelData data)
         {
-            string path = data.path;
-            if (path.EndsWith(Path.DirectorySeparatorChar) || path.EndsWith(Path.AltDirectorySeparatorChar))
-                path = path[..^1];
-            string[] directories = path.Split(Path.DirectorySeparatorChar);
-            if (directories.Length <= 1)
-                directories = path.Split(Path.AltDirectorySeparatorChar);
-
-            string folderName = directories.Last();
-            folderName = folderName.Replace(".rdzip", "");
-            int status = PRLevels.Get(folderName);
+            int status = PRLevels.Get(LevelUtils.GetLevelID(data));
 
             if (status == -127)
             {

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using APNGP;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
@@ -85,7 +86,22 @@ public class AnimatedSleeves
                 }
                 return;
             }
-            Texture2D spritesheet = new(2, 2, TextureFormat.ARGB32, false);
+
+            using FileStream stream = File.Open(baseFilename + "_animated.png", FileMode.Open);
+            APNG apng = new(stream);
+    
+            if (apng.IsAnimated && apng.Width == 524 && apng.Height == 40) 
+            {
+                for (int i = 0; i < apng.FrameCount; i++)
+                {
+                    Texture2D tex = apng.GetFrame().Texture;
+                    tex.filterMode = FilterMode.Point;
+                    animatedSleeve.frames.Add(tex);
+                }
+                return;
+            }
+
+            Texture2D spritesheet = new(2, 2, TextureFormat.ARGB32, false, false, true);
             spritesheet.LoadImage(File.ReadAllBytes(baseFilename + $"_animated.png"), false);
             spritesheet.filterMode = FilterMode.Point;
 
@@ -98,7 +114,7 @@ public class AnimatedSleeves
                 int frameGridX = i % framesAcross;
                 int frameGridY = framesDown - 1 - i / framesAcross;
 
-                Texture2D frame = new(524, 40, spritesheet.format, false);
+                Texture2D frame = new(524, 40, spritesheet.format, false, false, true);
                 frame.CopyPixels(spritesheet, frameGridX * 524, frameGridY * 40, 524, 40, 0, 0, true);
                 frame.filterMode = FilterMode.Point;
 

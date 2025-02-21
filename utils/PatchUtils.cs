@@ -5,39 +5,38 @@ using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
 
-namespace RDModifications
+namespace RDModifications;
+
+public class PatchUtils
 {
-    public class PatchUtils
+    public static void PatchAllWithAttribute<T>(Harmony patcher, ConfigFile config, ManualLogSource logging, ref bool anyEnabled)
     {
-        public static void PatchAllWithAttribute<T>(Harmony patcher, ConfigFile config, ManualLogSource logging, ref bool anyEnabled)
+        Type[] potentialTypes = typeof(RDModificationsEntry).Assembly.GetTypes();
+
+        foreach (Type type in potentialTypes)
         {
-            Type[] potentialTypes = typeof(RDModificationsEntry).Assembly.GetTypes();
+            if (type.Name.StartsWith("TemplateModification") || type.Name.EndsWith("Attribute"))
+                continue;
 
-            foreach (Type type in potentialTypes)
+            BaseModificationAttribute attrib = (BaseModificationAttribute)type.GetCustomAttribute(typeof(T));
+            if (attrib != null)
             {
-                if (type.Name.StartsWith("TemplateModification") || type.Name.EndsWith("Attribute"))
-                    continue;
+                BindingFlags publicStatic =  BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy;
+                object[] funcParams = [config, logging];
+                if (!attrib.autoPatch)
+                    funcParams = [patcher, ..funcParams];
 
-                BaseModificationAttribute attrib = (BaseModificationAttribute)type.GetCustomAttribute(typeof(T));
-                if (attrib != null)
+                bool shouldPatch = (bool)type.GetMethod("Init", publicStatic).Invoke(null, funcParams);
+                if (!anyEnabled)
+                    anyEnabled = anyEnabled || shouldPatch;
+                
+                if (attrib.autoPatch && shouldPatch)
                 {
-                    BindingFlags publicStatic =  BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy;
-                    object[] funcParams = [config, logging];
-                    if (!attrib.autoPatch)
-                        funcParams = [patcher, ..funcParams];
-
-                    bool shouldPatch = (bool)type.GetMethod("Init", publicStatic).Invoke(null, funcParams);
-                    if (!anyEnabled)
-                        anyEnabled = anyEnabled || shouldPatch;
-                    
-                    if (attrib.autoPatch && shouldPatch)
-                    {
-                        Type[] innerTypes = [..(from t in type.GetNestedTypes(BindingFlags.NonPublic)
-                                            where t.Name.EndsWith("Patch") || t.GetCustomAttribute(typeof(PatchAttribute)) != null
-                                            select t)];
-                        foreach (Type innerPatch in innerTypes)
-                            patcher.PatchAll(innerPatch);
-                    }
+                    Type[] innerTypes = [..(from t in type.GetNestedTypes(BindingFlags.NonPublic)
+                                        where t.Name.EndsWith("Patch") || t.GetCustomAttribute(typeof(PatchAttribute)) != null
+                                        select t)];
+                    foreach (Type innerPatch in innerTypes)
+                        patcher.PatchAll(innerPatch);
                 }
             }
         }

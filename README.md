@@ -12,6 +12,7 @@ Check the config file or use that Config manager that bepinex have said about
 List of modifications available with a simple summary:
 
 - AnimatedSleeves -> Allows for animated sleeves [(see the section for how to do it)](#animatedsleeves-setup)
+- APNGPreviewImage -> Allows for animated preview images using the APNG file format
 - CustomDifficulty -> Allows for a custom hit margin
 - CustomDiscordRichPresence -> Allows for customising the discord rich presence, including the presence id
 - CustomIceChiliSpeeds -> Allows for having a custom speed on ice/chili speeds instead of 0.75x/1.5x
@@ -27,11 +28,19 @@ List of modifications available with a simple summary:
 
 ## AnimatedSleeves setup
 
-### there are two methods for having animated sleeves, either each frame is a seperate image or one big spritesheet
+### there are three methods for having animated sleeves, either each frame is a seperate image or the sleeve image is an apng file or one big spritesheet
 
 #### each `frame` referred to here is and must be 524px x 40px (width x height) in size !!!
 
 #### the sleeve images are located at where rhythm doctor's save files are to e.g. `C:\Program Files (x86)\Steam\steamapps\common\Rhythm Doctor\User\`
+
+### if you are doing the apng, do note that:
+
+- this is experimental so idk if it works please alert me if not
+- apngs are a bit special and idk where you make them so
+
+the apng should be placed where the sleeve images are and should be suffixed with `_animated`, e.g. `scribbleP1_0_animated.png`
+<br>
 
 ### if you are doing the spritesheet, do note that:
 
