@@ -7,6 +7,8 @@ public class LevelUtils
 {
     public static string GetLevelID(CustomLevelData data)
     {
+        if (data == null)
+            return "";
         string path = data.path;
         if (path.EndsWith(Path.DirectorySeparatorChar) || path.EndsWith(Path.AltDirectorySeparatorChar))
             path = path[..^1];

@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace APNGP;
 
-public class APNG
+public class APNG : IDisposable
 {
     public const TextureFormat Format = TextureFormat.ARGB32;
     public static readonly byte[] PNGSignature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
@@ -143,5 +143,15 @@ public class APNG
 
         // and then return
         return new(output, frame.FrameDuration);
+    }
+
+    ~APNG() => Dispose();
+
+    public void Dispose()
+    {
+        UnityEngine.Object.Destroy(outputBufferCurrent);
+        UnityEngine.Object.Destroy(outputBufferPrevious);
+        UnityEngine.Object.Destroy(emptyTexture);
+        System.GC.SuppressFinalize(this);
     }
 }
