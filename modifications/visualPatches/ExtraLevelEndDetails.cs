@@ -251,9 +251,7 @@ public class ExtraLevelEndDetails
             Level_Custom custom = game.currentLevel as Level_Custom;
             // local function :grin:
             static string notDefined(string thing)
-            {
-                return (thing == null || thing.Length <= 0) ? "Not Defined" : thing;
-            }
+                => (thing == null || thing.Length <= 0) ? "Not Defined" : thing;   
 
             songName = notDefined(custom.data.settings.song);
             songArtist = notDefined(custom.data.settings.artist);
