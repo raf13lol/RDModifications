@@ -23,6 +23,7 @@ List of modifications available with a simple summary:
 - ForceGameSpeed -> Forces the game speed to a certain value (may cause a few issues due to how forceful it is)
 - LevelPRStatus -> Colors the syringe body of a custom level depending on the peer-review status of it on Rhythm Café
 - PretendFOnMistake -> Allows for flashing a fake rank screen and a sound to play on each miss, with being able to choose the Rank shown/said
+- MassUnwrapLevels -> Allows for unwrapped all currently wrapped levels with a simple key combination
 - WindowTransparency (WINDOWS ONLY) -> Allows for setting how transparent the game window is
 - ZeroOffsetSign -> Makes the Numerical Hit Judgement sign colored based on the hit's ""zero-offsetness""
 
