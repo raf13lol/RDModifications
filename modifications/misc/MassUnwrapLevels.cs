@@ -27,7 +27,8 @@ public class MassUnwrapLevels
     {
         logger = logging;
         enabled = config.Bind("MassUnwrapLevels", "Enabled", false,
-        "If enabled, pressing a certain key combination in the custom level select screen will unwrap all wrapped levels.");
+        "If enabled, pressing a certain key combination in the custom level select screen will unwrap all wrapped levels.\n" + 
+        "Depending on the amount of wrapped levels, this could cause severe lag.");
 
         holdKey = config.Bind("MassUnwrapLevels", "HoldKey", "LeftControl",
         "The key that should be held in combination with PressKey being pressed to unwrap all wrapped levels.\n" +
@@ -71,7 +72,7 @@ public class MassUnwrapLevels
                 foreach (CustomLevelData data in __instance.levelsData)
                 {
                     Rank rank = Persistence.GetCustomLevelRank(data.Hash);
-                    if (rank != Rank.NeverSelected)
+                    if (rank != Rank.NeverSelected && rank != Rank.NotAvailable)
                         continue;
                     CustomLevel syringe = __instance.visibleLevels.Find((l) => l.path == data.path);
                     Persistence.SetCustomLevelRank(data.Hash, Rank.NotFinished, 1f);
