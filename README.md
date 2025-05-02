@@ -1,6 +1,8 @@
 # RDModifications
 
-## a bepinex 6 (mono) mod !! sorry bepinex 5 users
+## a bepinex 6 (mono) mod !! 
+
+Get bepinex 5 version via [a fork by jci](https://github.com/RandomGuyJCI/RDModifications)
 
 some random modifications that some people could want and such so why not
 
