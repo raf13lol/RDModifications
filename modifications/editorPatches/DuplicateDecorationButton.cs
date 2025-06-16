@@ -14,13 +14,13 @@ namespace RDModifications;
 public class DuplicateDecorationButton
 {
     public static ManualLogSource logger;
-    
+
     public static ConfigEntry<bool> enabled;
 
     public static bool Init(ConfigFile config, ManualLogSource logging)
     {
         logger = logging;
-        enabled = config.Bind("EditorPatches", "DuplicateDecorationButton", false, 
+        enabled = config.Bind("EditorPatches", "DuplicateDecorationButton", false,
         "If there should be a button to duplicate decoration in the Sprite Settings panel.");
 
         return enabled.Value;
@@ -116,14 +116,23 @@ public class DuplicateDecorationButton
             }
         }
     }
-    
+
+    // This bug can be done with 2 decos
+    // Put Tile Sprite or Comment on lower deco and delete the upper deco
+    // You will see that the event stays on the lower row
+    // This is because the part where it updates ui (scnEditor.DeleteSpriteClick) after deleting a sprite checks 
+    // if `isSpriteTabEvent` is true, if so, it moves the event to the correct place
+    // It is not true for Tile Sprite nor Comment
+    // This fixes that
+    // Although i'm not sure how i feel about putting a bugfix in a patch (usually opposed because it'll get fixed)
     [HarmonyPatch(typeof(LevelEvent_Base), nameof(LevelEvent_Base.isSpriteTabEvent), MethodType.Getter)]
-    private class FixCommentBugPatch
+    private class FixEventBugPatch
     {
         public static void Postfix(LevelEvent_Base __instance, ref bool __result)
         {
-            if (__instance.type == LevelEventType.Comment && __instance.tab == Tab.Sprites)
+            if ((__instance.type == LevelEventType.Comment && __instance.tab == Tab.Sprites)
+            || __instance.type == LevelEventType.Tile)
                 __result = true;
         }
-    }  
+    }
 }
