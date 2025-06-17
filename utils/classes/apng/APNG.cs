@@ -97,7 +97,7 @@ public class APNG : IDisposable
         preIDATChunksData = Utils.GetDataFromChunkList(preIDATChunks);
         postIDATChunksData = Utils.GetDataFromChunkList(postIDATChunks);
 
-        emptyTexture = new(Width, Height, Format, false, true, false);
+        emptyTexture = new(Width, Height, Format, false, true, true);
         emptyTexture.ClearTexture();
 
         outputBufferCurrent = new(Width, Height, Format, false, true, false);
@@ -128,6 +128,7 @@ public class APNG : IDisposable
         else
             outputBufferCurrent.MergePixels(frameImage, 0, 0, frame.Width, frame.Height, frame.XOffset, yOffset);
 
+        UnityEngine.Object.Destroy(frameImage);
         // render the frame
         Texture2D output = new(Width, Height, Format, false, true, true);
         output.CopyPixelsRaw(outputBufferCurrent, false);

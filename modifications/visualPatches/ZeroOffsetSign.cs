@@ -17,10 +17,10 @@ public class ZeroOffsetSign
     {
         logger = logging;
         enabled = config.Bind("ZeroOffsetSign", "Enabled", false,
-        "If Numerical Hit Judgements are enabled, and if a hit is within the range that it would count as \"zero-offset\", the sign text will be green.");
+        "If Numerical Hit Judgements are enabled, and if a hit is within the range that it would count as 'zero-offset', the sign text will be green.");
 
         redOffset = config.Bind("ZeroOffsetSign", "RedOffset", false,
-        "If enabled and the hit is out of the range that it would count as \"zero-offset\", the sign text will be red.");
+        "If enabled and the hit is out of the range that it would count as 'zero-offset', the sign text will be red.");
 
         return enabled.Value;
     }

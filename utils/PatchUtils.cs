@@ -9,7 +9,7 @@ namespace RDModifications;
 
 public class PatchUtils
 {
-    public static void PatchAllWithAttribute<T>(Harmony patcher, ConfigFile config, ManualLogSource logging, ref bool anyEnabled)
+    public static void PatchAllWithAttribute<T>(Harmony patcher, ConfigFile config, ManualLogSource logging, ref bool anyEnabled, bool forceOff = false)
     {
         Type[] potentialTypes = typeof(RDModificationsEntry).Assembly.GetTypes();
 
@@ -30,7 +30,7 @@ public class PatchUtils
                 if (!anyEnabled)
                     anyEnabled = anyEnabled || shouldPatch;
                 
-                if (attrib.autoPatch && shouldPatch)
+                if (attrib.autoPatch && shouldPatch && !forceOff)
                 {
                     Type[] innerTypes = [..(from t in type.GetNestedTypes(BindingFlags.NonPublic)
                                         where t.Name.EndsWith("Patch") || t.GetCustomAttribute(typeof(PatchAttribute)) != null

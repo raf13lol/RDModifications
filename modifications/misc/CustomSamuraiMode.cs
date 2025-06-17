@@ -41,7 +41,7 @@ public class CustomSamuraiMode
 
         samuraiInputReplacement = config.Bind("CustomSamuraiMode", "SamuraiInputReplacement", "Insomniac.",
         "What you need to input for Samurai to be toggled.\n" +
-        "The BepinEx log will output the inputs needed, as it may not be obvious at times.");
+        "The BepinEx console (may only apply to BepinEx 6, unsure) will output the inputs needed, as it may not be obvious at times.");
 
         return enabled.Value;
     }

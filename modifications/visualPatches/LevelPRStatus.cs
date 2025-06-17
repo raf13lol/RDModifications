@@ -35,6 +35,31 @@ public class LevelPRStatus
         return enabled.Value;
     }
 
+    [HarmonyPatch(typeof(CustomLevel), nameof(CustomLevel.UpdateInfo))]
+    private class CLSPatch
+    {
+        public static void Postfix(CustomLevel __instance, CustomLevelData data)
+        {
+            int status = PRLevels.Get(LevelUtils.GetLevelID(data));
+
+            if (status == -127)
+            {
+                __instance.syringeBodyImage.color = Color.white;
+                return;
+            }
+
+            Color colToSet = status switch
+            {
+                -1 => Color.red,
+                0 => Color.black,
+                10 => Color.green,
+                _ => Color.white
+            };
+
+            __instance.syringeBodyImage.color = Color.Lerp(Color.white, colToSet, Mathf.Min((status == 10 ? 0.325f : 0.5f) * colorAmplifier.Value, 1));
+        }
+    }
+    
     private class PRLevels
     {
         public static Dictionary<string, sbyte> levelStatuses = [];
@@ -98,30 +123,4 @@ public class LevelPRStatus
             }
         }
     }
-
-    [HarmonyPatch(typeof(CustomLevel), nameof(CustomLevel.UpdateInfo))]
-    private class CLSPatch
-    {
-        public static void Postfix(CustomLevel __instance, CustomLevelData data)
-        {
-            int status = PRLevels.Get(LevelUtils.GetLevelID(data));
-
-            if (status == -127)
-            {
-                __instance.syringeBodyImage.color = Color.white;
-                return;
-            }
-
-            Color colToSet = status switch
-            {   
-                -1 => Color.red,
-                0 => Color.black,
-                10 => Color.green,
-                _ => Color.white
-            };
-
-            __instance.syringeBodyImage.color = Color.Lerp(Color.white, colToSet, Mathf.Min((status == 10 ? 0.325f : 0.5f) * colorAmplifier.Value, 1));
-        }
-    }
-    
 }

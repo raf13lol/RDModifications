@@ -54,6 +54,56 @@ public class AnimatedSleeves
         return enabled.Value;
     }
 
+    private class AnimateSleevePatch
+    {
+        // why ???
+        public static List<List<int>> rdarmFrameCount = [
+            [0, 0, 0],
+            [0, 0, 0]
+        ];
+
+        static void animateSleeve(Material mat, int player, int slot, bool continueAnimation = true)
+        {
+            AnimatedSleeve animatedSleeve = SleeveData.animatedSleeves[player][slot];
+            double currentFrame = animatedSleeve.currentFrame;
+            if (animatedSleeve.frames.Count <= 0)
+                return;
+
+            mat.SetTexture("_Drawing", animatedSleeve.frames[(int)Math.Floor(currentFrame)]);
+            if (continueAnimation)
+            {
+                double elapsed = Time.deltaTime;
+                if (consistentFPS.Value && Time.timeScale != 0)
+                    elapsed /= Time.timeScale;
+                animatedSleeve.currentFrame = (currentFrame + elapsed * animatedSleeve.fps) % animatedSleeve.frames.Count;
+                SleeveData.animatedSleeves[player][slot] = animatedSleeve;
+            }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(RDArm), "Update")]
+        public static void RDArmPostfix(RDArm __instance)
+        {
+            if ((!__instance.playerCanUse && __instance.cpuCanUse) || __instance.cpuOwner != Character.Otto || __instance.player >= RDPlayer.CPU)
+                return;
+
+            int player = (int)__instance.player;
+            int slot = Persistence.currentSlotIndex;
+
+            animateSleeve(__instance.drawing.material, player, slot, rdarmFrameCount[player][slot] != Time.frameCount);
+            rdarmFrameCount[player][slot] = Time.frameCount;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(SlotUI), "Update")]
+        public static void SlotUIPostfix(SlotUI __instance)
+        {
+            animateSleeve(__instance.arm.material, (int)RDPlayer.P1, __instance.slot);
+            // update material, needed so it rebuilds the ui
+            __instance.arm.material = UnityEngine.Object.Instantiate(__instance.arm.material);
+        }
+    }
+
     private struct AnimatedSleeve(List<Texture2D> frames, int fps = 6)
     {
         public List<Texture2D> frames = frames;
@@ -149,56 +199,6 @@ public class AnimatedSleeves
                 ];
                 LoadAnimatedSleeves();
             }
-        }
-    }
-
-    private class AnimateSleevePatch
-    {
-        // why ???
-        public static List<List<int>> rdarmFrameCount = [
-            [0, 0, 0],
-            [0, 0, 0]
-        ];
-
-        static void animateSleeve(Material mat, int player, int slot, bool continueAnimation = true)
-        {
-            AnimatedSleeve animatedSleeve = SleeveData.animatedSleeves[player][slot];
-            double currentFrame = animatedSleeve.currentFrame;
-            if (animatedSleeve.frames.Count <= 0)
-                return;
-
-            mat.SetTexture("_Drawing", animatedSleeve.frames[(int)Math.Floor(currentFrame)]);
-            if (continueAnimation)
-            {
-                double elapsed = Time.deltaTime;
-                if (consistentFPS.Value && Time.timeScale != 0)
-                    elapsed /= Time.timeScale;
-                animatedSleeve.currentFrame = (currentFrame + elapsed * animatedSleeve.fps) % animatedSleeve.frames.Count;
-                SleeveData.animatedSleeves[player][slot] = animatedSleeve;
-            }
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(RDArm), "Update")]
-        public static void RDArmPostfix(RDArm __instance)
-        {
-            if ((!__instance.playerCanUse && __instance.cpuCanUse) || __instance.cpuOwner != Character.Otto || __instance.player >= RDPlayer.CPU)
-                return;
-
-            int player = (int)__instance.player;
-            int slot = Persistence.currentSlotIndex;
-
-            animateSleeve(__instance.drawing.material, player, slot, rdarmFrameCount[player][slot] != Time.frameCount);
-            rdarmFrameCount[player][slot] = Time.frameCount;
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(SlotUI), "Update")]
-        public static void SlotUIPostfix(SlotUI __instance)
-        {
-            animateSleeve(__instance.arm.material, (int)RDPlayer.P1, __instance.slot);
-            // update material, needed so it rebuilds the ui
-            __instance.arm.material = UnityEngine.Object.Instantiate(__instance.arm.material);
         }
     }
 }

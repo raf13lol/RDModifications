@@ -19,6 +19,7 @@ List of modifications available with a simple summary:
 - CustomDiscordRichPresence -> Allows for customising the discord rich presence, including the presence id
 - CustomIceChiliSpeeds -> Allows for having a custom speed on ice/chili speeds instead of 0.75x/1.5x
 - CustomSamuraiMode -> Allows for setting the `Samurai.` from Samurai. mode to any string
+- DailyBlend -> Adds in-game handling for the daily blend(s), meaning you don't have to download them yourself
 - DoctorMode -> Removes the `Rhythm` from `Rhythm Doctor` (destroys the rhythm engine)
 - EditorPatches -> Some patches to extend editor features or to improve editor [(see the section for more info)](#editorpatches)
 - ExtraLevelEndDetails -> Provides extra details at the end of a level, e.g. previous best

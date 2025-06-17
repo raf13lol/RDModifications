@@ -34,8 +34,7 @@ public class RDModificationsEntry : BaseUnityPlugin
             // we send the patcher/config to each class so they can all handle their own logic independant of the main class
             // (i'm making it sound really fancy)
             PatchUtils.PatchAllWithAttribute<ModificationAttribute>(patcher, Config, Logger, ref anyEnabled);
-            if (enabledEditor.Value)
-                PatchUtils.PatchAllWithAttribute<EditorModificationAttribute>(patcher, Config, Logger, ref anyEnabled);
+            PatchUtils.PatchAllWithAttribute<EditorModificationAttribute>(patcher, Config, Logger, ref anyEnabled, !enabledEditor.Value);
 
             if (anyEnabled)
                 Logger.LogMessage("Any modifications that have been enabled have been loaded. See individual messages for any info on issues.");
@@ -67,9 +66,13 @@ public class RDModificationsEntry : BaseUnityPlugin
             int currentPatch = int.Parse(currentVersion[2]); 
 
             int serverVersionNum = serverMajor * 10000 + serverMinor * 100 + serverPatch; 
-            int currentVersionNum = currentMajor * 10000 + currentMinor * 100 + currentPatch; 
+            int currentVersionNum = currentMajor * 10000 + currentMinor * 100 + currentPatch;
             if (serverVersionNum <= currentVersionNum)
+            {
+                if (serverVersionNum < currentVersionNum)
+                    Logger.LogMessage("dev build 👍");
                 return;
+            }
 
             HttpResponseMessage file = await client.GetAsync($"https://github.com/raf13lol/RDModifications/releases/download/{content}/com.rhythmdr.randommodifications.dll");
             if (file.StatusCode != HttpStatusCode.OK)

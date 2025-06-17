@@ -68,7 +68,6 @@ public class DoctorMode
             // twice?! ... okay then :pensive:
             return new CodeMatcher(instructions)
                 // need to Ignore the first two `mul`'s so
-
                 // sets it to the max via the Idiotproofing (oob)
                 .Advance(500000)
                 // goes backwards to the last one before ret
