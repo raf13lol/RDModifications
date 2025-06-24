@@ -15,12 +15,15 @@ namespace RDModifications;
 public class RDModificationsEntry : BaseUnityPlugin
 {
     public static new ConfigEntry<bool> enabled;
+    public static ConfigEntry<bool> autoUpdateEnabled;
     public static ConfigEntry<bool> enabledEditor;
 
     public void Awake()
     {
         enabled = Config.Bind("", "Enabled", true, 
         "Whether any of the available modifications should be loaded at all.");
+        enabled = Config.Bind("", "AutoUpdateEnabled", true, 
+        "Whether RDModifications should auto-update. Only disable this in specific cases.");
         enabledEditor = Config.Bind("EditorPatches", "Enabled", false,
         "If any of the editor patches should be enabled.");
         
