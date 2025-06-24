@@ -248,14 +248,13 @@ public class ExtraLevelEndDetails
 
             if (!customLevel)
                 return;
-            Level_Custom custom = game.currentLevel as Level_Custom;
             // local function :grin:
             static string notDefined(string thing)
                 => (thing == null || thing.Length <= 0) ? "Not Defined" : thing;   
 
-            songName = notDefined(custom.data.settings.song);
-            songArtist = notDefined(custom.data.settings.artist);
-            levelAuthor = notDefined(custom.data.settings.author);
+            songName = notDefined(game.currentLevel.data.settings.song);
+            songArtist = notDefined(game.currentLevel.data.settings.artist);
+            levelAuthor = notDefined(game.currentLevel.data.settings.author);
             if (!isEditor) // hash will be exists! -- unless legacy
             {
                 // og hashing system;

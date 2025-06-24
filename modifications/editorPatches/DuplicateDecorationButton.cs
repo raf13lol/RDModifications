@@ -131,7 +131,8 @@ public class DuplicateDecorationButton
         public static void Postfix(LevelEvent_Base __instance, ref bool __result)
         {
             if ((__instance.type == LevelEventType.Comment && __instance.tab == Tab.Sprites)
-            || __instance.type == LevelEventType.Tile)
+            || __instance.type == LevelEventType.Tile || __instance.type == LevelEventType.Blend
+            || __instance.type == LevelEventType.ReorderSprite)
                 __result = true;
         }
     }
