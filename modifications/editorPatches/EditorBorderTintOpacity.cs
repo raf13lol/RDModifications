@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using UnityEngine;
 using System.Reflection.Emit;
+using UnityEngine.UI;
 
 namespace RDModifications;
 
@@ -34,8 +35,7 @@ public class EditorBorderTintOpacity
     {
         // heh heh, important shit for my horribleness later on
         [JsonProperty("___borderOpacity", "", null, "", false, true, nameof(EnableBorderColorIf))]
-        [SliderAlpha(false, null)]
-        [IntInfo(0, 100)]
+        [InputField("%", InputField.LineType.SingleLine, 40, 14, false, false, null)]
         public static int borderOpacity
         {
             get => (int)(trueBorderOpacity * 100d);
@@ -43,8 +43,7 @@ public class EditorBorderTintOpacity
         }
 
         [JsonProperty("___tintOpacity", "", null, "", false, true, nameof(EnableTintColorIf))]
-        [SliderAlpha(false, null)]
-        [IntInfo(0, 100)]
+        [InputField("%", InputField.LineType.SingleLine, 40, 14, false, false, null)]
         public static int tintOpacity
         {
             get => (int)(trueTintOpacity * 100);
@@ -54,20 +53,16 @@ public class EditorBorderTintOpacity
         public static double trueBorderOpacity = 1d;
         public static double trueTintOpacity = 1d;
 
-        public static object eventToUse;
+        public static LevelEvent_Tint eventToUse;
 
         private static BorderType GetBorder()
         {
-            if (eventToUse is LevelEvent_Tint tint)
-                return tint.border;
-            return ((LevelEvent_TintRows)eventToUse).border;
+            return eventToUse.border;
         }
 
         private static bool GetTint()
         {
-            if (eventToUse is LevelEvent_Tint tint)
-                return tint.tint;
-            return ((LevelEvent_TintRows)eventToUse).tint;
+            return eventToUse.tint;
         }
 
         public static bool stuffBeingEncoded = false;
@@ -112,31 +107,19 @@ public class EditorBorderTintOpacity
     {
         public static void Prefix(LevelEventControl_Base levelEventControl)
         {
-            if (levelEventControl.levelEvent is LevelEvent_Tint __tintEvent
-            || levelEventControl.levelEvent is LevelEvent_TintRows __tintRowsEvent)
+            if (levelEventControl.levelEvent is LevelEvent_Tint tintEvent)
             {
-                var levelEvent = levelEventControl.levelEvent;
-                VariablesNeeded.eventToUse = levelEvent;
+                VariablesNeeded.eventToUse = tintEvent;
 
-                ColorOrPalette borderCol = Color.white;
-                ColorOrPalette tintCol = Color.white;
-                if (levelEvent is LevelEvent_TintRows tintRowsEvent)
-                {
-                    borderCol = tintRowsEvent.borderColor;
-                    tintCol = tintRowsEvent.tintColor;
-                }
-                else if (levelEvent is LevelEvent_Tint tintEvent)
-                {
-                    borderCol = tintEvent.borderColor;
-                    tintCol = tintEvent.tintColor;
-                }
+                ColorOrPalette borderCol = tintEvent.borderColor;
+                ColorOrPalette tintCol = tintEvent.tintColor;
 
                 VariablesNeeded.trueBorderOpacity = Math.Round((double)(borderCol.alpha ?? 1f), 2);
                 VariablesNeeded.trueTintOpacity = Math.Round((double)(tintCol.alpha ?? 1f), 2);
 
-                PropertyControl_Color colorControlBorder = (PropertyControl_Color)levelEvent.inspectorPanel.properties
+                PropertyControl_Color colorControlBorder = (PropertyControl_Color)tintEvent.inspectorPanel.properties
                     .Find((p) => p.name.StartsWith("borderColor")).control;
-                PropertyControl_Color colorControlTint = (PropertyControl_Color)levelEvent.inspectorPanel.properties
+                PropertyControl_Color colorControlTint = (PropertyControl_Color)tintEvent.inspectorPanel.properties
                     .Find((p) => p.name.StartsWith("tintColor")).control;
                 colorControlBorder.colorPicker.storesAlpha = false;
                 colorControlTint.colorPicker.storesAlpha = false;
@@ -150,7 +133,7 @@ public class EditorBorderTintOpacity
     private class PreventDuplicatedKeysPatch
     {
         public static void Prefix(LevelEvent_Base __instance)
-            => VariablesNeeded.stuffBeingEncoded = __instance is LevelEvent_Tint || __instance is LevelEvent_TintRows;
+            => VariablesNeeded.stuffBeingEncoded = __instance is LevelEvent_Tint;
             
         public static void Postfix()
             => VariablesNeeded.stuffBeingEncoded = false;
@@ -168,8 +151,7 @@ public class EditorBorderTintOpacity
                 .GetMethod("get_propertyInfo", BindingFlags.NonPublic | BindingFlags.Instance)
                 .Invoke(__instance, []);
 
-            if (levelEvent is LevelEvent_TintRows __tintRowsEvent
-            || levelEvent is LevelEvent_Tint __tintEvent)
+            if (levelEvent is LevelEvent_Tint tintEvent)
             {   
                 void setColorAlpha(LevelEvent_Base levelEvent, string name, ColorOrPalette baseColor, double newAlpha)
                 {
@@ -193,18 +175,8 @@ public class EditorBorderTintOpacity
 
                 if (propertyInfo.name == "opacity")
                 {
-                    ColorOrPalette borderCol = Color.white;
-                    ColorOrPalette tintCol = Color.white;
-                    if (levelEvent is LevelEvent_TintRows tintRowsEvent)
-                    {
-                        borderCol = tintRowsEvent.borderColor;
-                        tintCol = tintRowsEvent.tintColor;
-                    }
-                    else if (levelEvent is LevelEvent_Tint tintEvent)
-                    {
-                        borderCol = tintEvent.borderColor;
-                        tintCol = tintEvent.tintColor;
-                    }
+                    ColorOrPalette borderCol = tintEvent.borderColor;
+                    ColorOrPalette tintCol = tintEvent.tintColor;
 
                     setColorAlpha(levelEvent, "borderOpacity", borderCol, VariablesNeeded.trueBorderOpacity);
                     setColorAlpha(levelEvent, "tintOpacity", tintCol, VariablesNeeded.trueTintOpacity);
@@ -218,7 +190,7 @@ public class EditorBorderTintOpacity
     {
         public static void Postfix(LevelEventInfo __instance, Type eventType)
         {
-            if (!eventType.Name.Contains("LevelEvent_Tint"))
+            if (eventType.Name != "LevelEvent_Tint")
                 return;
 
             BindingFlags flags = BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public;
@@ -232,7 +204,7 @@ public class EditorBorderTintOpacity
             {
                 if (propsList[i].name == "borderColor")
                 {
-                    propsList.Insert(i, BasePropertyInfo.FromProperty(typeof(VariablesNeeded).GetProperty("borderOpacity")));
+                    propsList.Insert(i+1, BasePropertyInfo.FromProperty(typeof(VariablesNeeded).GetProperty("borderOpacity")));
                     break;
                 }
             }
@@ -240,7 +212,7 @@ public class EditorBorderTintOpacity
             {
                 if (propsList[i].name == "tintColor")
                 {
-                    propsList.Insert(i, BasePropertyInfo.FromProperty(typeof(VariablesNeeded).GetProperty("tintOpacity")));
+                    propsList.Insert(i+1, BasePropertyInfo.FromProperty(typeof(VariablesNeeded).GetProperty("tintOpacity")));
                     break;
                 }
             }
