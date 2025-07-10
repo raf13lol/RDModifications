@@ -31,6 +31,25 @@ public class EditorBorderTintOpacity
         return DisableSliderLimits.enabled.Value && enabled.Value;
     }
 
+    private class TintRowsPatch
+    {
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(LevelEvent_TintRows), nameof(LevelEvent_TintRows.EnableBorderOpacityIf))]
+        public static bool BorderPrefix(LevelEvent_TintRows __instance, ref bool __result)
+        {
+            __result = __instance.EnableBorderColorIf();
+            return false;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(LevelEvent_TintRows), nameof(LevelEvent_TintRows.EnableTintOpacityIf))]
+        public static bool TintPrefix(LevelEvent_TintRows __instance, ref bool __result)
+        {
+            __result = __instance.EnableTintColorIf();
+            return false;
+        }
+    }
+
     private class VariablesNeeded
     {
         // heh heh, important shit for my horribleness later on
