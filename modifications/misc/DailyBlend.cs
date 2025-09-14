@@ -76,8 +76,7 @@ public class DailyBlend
             int index = 0;
             foreach (CustomLevelData customLevelData in __instance.levelsData)
             {
-                logger.LogInfo(LevelUtils.GetLevelID(customLevelData));
-                if (RecentBlends.BlendIDs.Contains(LevelUtils.GetLevelID(customLevelData)))
+                if (RecentBlends.BlendIDs.Contains(LevelUtils.GetLevelFolderName(customLevelData)))
                     __instance.searchLevelsDataIndex.Add(index);
                 index++;
             }
@@ -89,7 +88,7 @@ public class DailyBlend
     {
         public static void Postfix(CustomLevel __instance, CustomLevelData data)
         {
-            bool isDailyBlend = RecentBlends.BlendIDs.Contains(LevelUtils.GetLevelID(data));
+            bool isDailyBlend = RecentBlends.BlendIDs.Contains(LevelUtils.GetLevelFolderName(data));
             Image liquid = __instance.liquidRect.gameObject.GetComponent<Image>();
             if (isDailyBlend)
                 liquid.color = new(205f / 156f, 127f / 148f, 50f / 241f);

@@ -50,7 +50,7 @@ public class APNGPreviewImage
             string imageName = __instance.CurrentLevelData.settings.previewImageName;
 
             string imagePath = DesktopLevelLoader.GetValidImageInPath(levelPath, imageName);
-            currentID = LevelUtils.GetLevelID(__instance.CurrentLevelData);
+            currentID = LevelUtils.GetLevelFolderName(__instance.CurrentLevelData);
 
             if (string.IsNullOrEmpty(imagePath) || !File.Exists(imagePath) 
             || currentID == "" || apngFrames.ContainsKey(currentID))

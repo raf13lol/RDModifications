@@ -5,7 +5,7 @@ namespace RDModifications;
 
 public class LevelUtils
 {
-    public static string GetLevelID(CustomLevelData data)
+    public static string GetLevelFolderName(CustomLevelData data)
     {
         if (data == null)
             return "";

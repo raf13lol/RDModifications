@@ -40,7 +40,10 @@ public class LevelPRStatus
     {
         public static void Postfix(CustomLevel __instance, CustomLevelData data)
         {
-            int status = PRLevels.Get(LevelUtils.GetLevelID(data));
+            int status = PRLevels.Get(LevelUtils.GetLevelFolderName(data));
+            if (status == -127) // check if the level was downloaded from rdcafe v2
+                                // NOTE: i hope rdcafe v2 uses the same database, but i don't think it will due to alternate naming :(
+                status = PRLevels.Get(LevelUtils.GetLevelFolderName(data), true);
 
             if (status == -127)
             {
@@ -63,10 +66,14 @@ public class LevelPRStatus
     private class PRLevels
     {
         public static Dictionary<string, sbyte> levelStatuses = [];
+        public static Dictionary<string, sbyte> levelV2Statuses = [];
 
-        public static sbyte Get(string id)
+        public static sbyte Get(string id, bool checkIfFromV2 = false)
         {
-            if (levelStatuses.TryGetValue(id, out sbyte val))
+            Dictionary<string, sbyte> dictToCheck = levelStatuses;
+            if (checkIfFromV2)
+                dictToCheck = levelV2Statuses;
+            if (dictToCheck.TryGetValue(id, out sbyte val))
                 return val;
             return -127; // means no entry (not on rdcafe or not all data got yet)
         }
@@ -99,7 +106,10 @@ public class LevelPRStatus
                     gotAllSongs = true;
 
                 foreach (TypeSenseResponse.Hit hit in hits)
+                {
                     levelStatuses.Add(hit.document.id, (sbyte)hit.document.approval);
+                    levelV2Statuses.Add(hit.document.sha1[3..], (sbyte)hit.document.approval);
+                }
             }
 
             logger.LogMessage("LevelPRStatus: PR statuses obtained!");
@@ -119,6 +129,7 @@ public class LevelPRStatus
             public class Document
             {
                 public string id { get; set; }
+                public string sha1 { get; set; }
                 public int approval { get; set; }
             }
         }
