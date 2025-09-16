@@ -93,7 +93,7 @@ public class LevelPRStatus
             {
                 HttpRequestMessage request = new(HttpMethod.Get,
                 new Uri("https://orchardb.fly.dev/typesense/collections/levels/documents/search/"
-                    + "?q=*&per_page=250&include_fields=id, approval&highlight_fields=none&highlight_full_fields=none"
+                    + "?q=*&per_page=250&include_fields=id, approval, sha1&highlight_fields=none&highlight_full_fields=none"
                     + "&page=" + page++));
                 request.Headers.Add("x-typesense-api-key", "nicolebestgirl");
 
