@@ -41,9 +41,12 @@ public class LevelPRStatus
         public static void Postfix(CustomLevel __instance, CustomLevelData data)
         {
             int status = PRLevels.Get(LevelUtils.GetLevelFolderName(data));
-            if (status == -127) // check if the level was downloaded from rdcafe v2
-                                // NOTE: i hope rdcafe v2 uses the same database, but i don't think it will due to alternate naming :(
-                status = PRLevels.Get(LevelUtils.GetLevelFolderName(data), true);
+            if (status == -127)
+            { 
+                // check if the level was downloaded from rdcafe v2
+                // NOTE: i hope rdcafe v2 uses the same database, but i don't think it will due to alternate naming :(
+                status = PRLevels.Get(LevelUtils.GetLevelFolderName(data), true); 
+            }
 
             if (status == -127)
             {
