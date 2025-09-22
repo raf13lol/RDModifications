@@ -82,9 +82,10 @@ public class DuplicateDecorationButton
                 // err the events themselves i think
                 List<LevelEventControl_Base> spriteEventControls = editor.eventControls_sprites[spriteDataIndex];
                 List<LevelEventControl_Base> newSpriteEventControls = [];
-
+                
                 editor.spritesData.Insert(newSpriteDataIndex, newSpriteData);
                 editor.eventControls_sprites.Insert(newSpriteDataIndex, newSpriteEventControls);
+                
                 foreach (LevelEventControl_Base spriteEventControl in spriteEventControls)
                 {
                     if (spriteEventControl.levelEvent.target == spriteData.spriteId)
@@ -97,20 +98,20 @@ public class DuplicateDecorationButton
                         // LevelEventControl_Sprite newSpriteEventControl = (LevelEventControl_Sprite)editor.CreateEventControl(newSpriteEvent, Tab.Sprites, true);
                     }
                 }
-
+                
                 int index = 0;
                 int[] indexRooms = [0, 0, 0, 0];
                 foreach (LevelEventControl_Base spriteEventControl in editor.eventControls)
                 {
-                    if (spriteEventControl.levelEvent.isSpriteTabEvent)
+                    if (spriteEventControl.levelEvent.isSpriteTabEvent 
+                    && (spriteEventControl.levelEvent.type != LevelEventType.Comment || (spriteEventControl.levelEvent as LevelEvent_Comment).tab == Tab.Sprites))
                     {
                         spriteEventControl.levelEvent.row = index++;
                         spriteEventControl.levelEvent.y = indexRooms[SpriteHeader.GetSpriteData(spriteEventControl.levelEvent.target).room]++;
-
                         spriteEventControl.UpdateUI();
                     }
                 }
-
+                
                 editor.selectedSprite = newSpriteData.spriteId;
                 editor.UpdateUI_AllTabSections();
             }
