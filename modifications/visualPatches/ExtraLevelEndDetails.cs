@@ -119,8 +119,6 @@ public class ExtraLevelEndDetails
                 baseMods.Add($"CD ({CustomDifficulty.hitMargin.Value}ms)");
             if (RDTime.speed != 1.0f)
                 baseMods.Add($"{RDTime.speed}x");
-            if (WindowTransparency.enabled.Value && WindowTransparency.opacity.Value <= 192)
-                baseMods.Add($"WT ({Mathf.Round(WindowTransparency.opacity.Value / 2.56f * 3f) / 3f}%)"); // prevents too much precision
 
             // if (PretendFOnMistake.enabled.Value)
             //     baseMods.Add($"PFOM ({PretendFOnMistake.rankToDisplayAndSay.Value})");

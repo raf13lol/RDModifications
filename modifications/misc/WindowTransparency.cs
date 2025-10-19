@@ -10,6 +10,8 @@ namespace RDModifications;
 [Modification]
 public class WindowTransparency
 {
+    public static bool properEnabled => enabled != null && enabled.Value;
+
     public static ConfigEntry<bool> enabled;
     public static ConfigEntry<byte> opacity;
 
@@ -22,7 +24,7 @@ public class WindowTransparency
             return false;
 
         enabled = config.Bind("WindowTransparency", "Enabled", false,
-        "If you should be able to control the window's opacity. (only works on Windows)");
+        "If you should be able to control the window's opacity.");
 
         opacity = config.Bind("WindowTransparency", "Opacity", (byte)128,
         "What the window's opacity should be. (0-255)");
