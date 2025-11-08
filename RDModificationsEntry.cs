@@ -80,10 +80,9 @@ public class RDModificationsEntry : BaseUnityPlugin
             HttpResponseMessage file = await client.GetAsync($"https://github.com/raf13lol/RDModifications/releases/download/{content}/com.rhythmdr.randommodifications.dll");
             if (file.StatusCode != HttpStatusCode.OK)
                 return;
-            byte[] fileData = await file.Content.ReadAsByteArrayAsync();
 
-            char slash = Path.DirectorySeparatorChar;
-            File.WriteAllBytes(AppDomain.CurrentDomain.BaseDirectory + $@"{slash}BepInEx{slash}plugins{slash}com.rhythmdr.randommodifications.dll", fileData);
+            byte[] fileData = await file.Content.ReadAsByteArrayAsync();
+            File.WriteAllBytes(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "BepInEx", "plugins", "com.rhythmdr.randommodifications.dll"), fileData);
             Logger.LogWarning($"RDModifications was outdated ({content} > {MyPluginInfo.PLUGIN_VERSION}), please restart to apply the updated version of the mod.");
         }
         catch

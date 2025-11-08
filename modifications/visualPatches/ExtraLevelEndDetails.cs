@@ -8,9 +8,9 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Reflection;
-using System.Linq;
 using System.Reflection.Emit;
 using System.IO;
+using System.Linq;
 
 namespace RDModifications;
 
@@ -37,31 +37,34 @@ public class ExtraLevelEndDetails
     public static ConfigEntry<bool> includeHits;
     public static ConfigEntry<string> hitsPart;
 
+    public static ConfigEntry<bool> includeMisses;
+    public static ConfigEntry<string> missesPart;
+
     public static ConfigEntry<bool> includeBestPrev;
     public static ConfigEntry<string> bestPrevPart;
 
     public static ConfigEntry<bool> includeModifications;
     public static ConfigEntry<string> modificationsPart;
-    
+
     public static ManualLogSource logger;
 
     public static bool Init(ConfigFile config, ManualLogSource logging)
     {
         logger = logging;
-        enabled = config.Bind("ExtraLevelEndDetails", "Enabled", false, 
+        enabled = config.Bind("ExtraLevelEndDetails", "Enabled", false,
         "Whether extra information should be displayed on the rank screen.");
 
-        samuraiModeAffects = config.Bind("ExtraLevelEndDetails", "SamuraiModeAffects", false, 
+        samuraiModeAffects = config.Bind("ExtraLevelEndDetails", "SamuraiModeAffects", false,
         "Whether Samurai mode should affect the text.");
 
         lineSeperator = config.Bind("ExtraLevelEndDetails", "LineSeperator", "\\n",
         "What each line should be seperated by.\n" +
         "(\\n is a new line.)");
 
-        textAlignment = config.Bind("ExtraLevelEndDetails", "TextAlignment", TextAnchor.UpperLeft, 
+        textAlignment = config.Bind("ExtraLevelEndDetails", "TextAlignment", TextAnchor.UpperLeft,
         "How the text should be aligned.");
 
-        textSize = config.Bind("ExtraLevelEndDetails", "TextSize", 6, 
+        textSize = config.Bind("ExtraLevelEndDetails", "TextSize", 6,
         "How big the text should be.");
 
         maxLineLength = config.Bind("ExtraLevelEndDetails", "MaxLineLength", 60,
@@ -80,6 +83,9 @@ public class ExtraLevelEndDetails
 
         includeHits = config.Bind("ExtraLevelEndDetails", "IncludeHits", true, "If the amount of hits that the player has hit should be displayed.");
         hitsPart = config.Bind("ExtraLevelEndDetails", "HitsPart", "Hits:", "What the prefix to the hit count should be.");
+
+        includeMisses = config.Bind("ExtraLevelEndDetails", "IncludeMisses", true, "If the amount of misses (not mistakes) should be displayed.");
+        missesPart = config.Bind("ExtraLevelEndDetails", "MissesPart", "Misses:", "What the prefix to the miss count should be.");
 
         includeBestPrev = config.Bind("ExtraLevelEndDetails", "IncludeBestPrev", true, "If the (previous) best rank should be displayed.");
         bestPrevPart = config.Bind("ExtraLevelEndDetails", "BestPrevPart", "Previous Best:", "What the prefix to the (previous) best rank should be.");
@@ -109,7 +115,8 @@ public class ExtraLevelEndDetails
             string songName = LevelStatsPatch.songName;
             string songArtist = LevelStatsPatch.songArtist;
             string levelAuthor = LevelStatsPatch.levelAuthor;
-            string hits = (scnGame.instance.currentLevel.numPerfectHits + LevelStatsPatch.storedPerfects).ToString();
+            int hits = LevelStatsPatch.storedHitInfos.Values.Count((type) => type == OffsetType.Perfect);
+            int misses = (LevelStatsPatch.storedHitInfos.Count - hits);
             string bestPrev = LevelStatsPatch.bestPrev.ToString();
             List<string> baseMods = [];
 
@@ -147,14 +154,17 @@ public class ExtraLevelEndDetails
             text.horizontalOverflow = HorizontalWrapMode.Overflow;
             text.fontSize = textSize.Value;
             // is there a way to modify this better? i'm too lazy to figure out how to though 😁😁 for now atleast
+            // raf from the future: one day i say one day but i'm working on bigger things
             text.gameObject.transform.position = new(141, 174, __instance.description.transform.position.z);
             text.transform.SetParent(__instance.description.transform.parent.transform.parent);
 
-            List<object[]> fields = [ // the fourth bool is if it should exist in story mode
+            List<object[]> fields = [
+                // pretext -- value -- should exist -- should exist in story mode
                 [songPart.Value, songName, includeSong.Value, true],
                 [artistPart.Value, songArtist, includeArtist.Value, false],
                 [authorPart.Value, levelAuthor, includeAuthor.Value, false],
-                [hitsPart.Value, hits, includeHits.Value, true],
+                [hitsPart.Value, hits.ToString(), includeHits.Value, true],
+                [missesPart.Value, misses.ToString(), includeMisses.Value, true],
                 [bestPrevPart.Value, bestPrev, includeBestPrev.Value, true],
                 [modificationsPart.Value, modifications, includeModifications.Value, true]
             ];
@@ -189,7 +199,7 @@ public class ExtraLevelEndDetails
 
                 string toAdd = prefix + value;
                 if (maxLineLength.Value > 0 && toAdd.Length > maxLineLength.Value)
-                    toAdd = toAdd[..49] + "...";
+                    toAdd = toAdd[..(maxLineLength.Value - 1)] + "...";
 
                 textStr += toAdd;
             }
@@ -206,36 +216,22 @@ public class ExtraLevelEndDetails
         public static string levelAuthor = "";
         public static Rank bestPrev;
         public static bool isEditor = false;
-        public static float storedPerfects = 0;
+        public static Dictionary<double, OffsetType> storedHitInfos = [];
 
-        public static IEnumerable<MethodInfo> TargetMethods()
-        {
-            List<MethodInfo> levelBaseMethods = AccessTools.GetDeclaredMethods(typeof(LevelBase));
-            List<MethodInfo> methods = [];
-            foreach (MethodInfo method in levelBaseMethods)
-            {
-                if (method.Name.StartsWith("ResetHitHistory"))
-                    methods.Add(method);
-            }
-            methods.Add(AccessUtils.GetMethodCalled(typeof(scnGame), "Start"));
-            return methods.AsEnumerable();
-        }
-
-        // Patches for storedPerfects
-        public static void Prefix(object __instance)
-        {
-            if (__instance is scnGame)
-                return;
-            storedPerfects += ((LevelBase)__instance).numPerfectHits;
-        }
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(scnGame), nameof(scnGame.AddHitOffset))]
+        public static void TrackHitInfo(scnGame __instance, OffsetType offsetType)
+            => storedHitInfos[__instance.conductor.audioPos] = offsetType;
 
         // rest of info
-        public static void Postfix(object __instance)
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(scnGame), "Start")]
+        public static void ResetOnStart(scnGame __instance)
         {
-            if (__instance is not scnGame game)
-                return;
+            scnGame game = __instance;
+
             // init
-            storedPerfects = 0;
+            storedHitInfos.Clear();
             songName = "";
             songArtist = "";
             levelAuthor = "";
@@ -248,7 +244,7 @@ public class ExtraLevelEndDetails
                 return;
             // local function :grin:
             static string notDefined(string thing)
-                => (thing == null || thing.Length <= 0) ? "Not Defined" : thing;   
+                => (thing == null || thing.Length <= 0) ? "Not Defined" : thing;
 
             songName = notDefined(game.currentLevel.data.settings.song);
             songArtist = notDefined(game.currentLevel.data.settings.artist);

@@ -75,11 +75,12 @@ public class CustomSamuraiMode
 
         [HarmonyTranspiler]
         public static IEnumerable<CodeInstruction> SamuraiTranspiler(IEnumerable<CodeInstruction> instructions)
-        { 
+        {
             // This is actually quite useful !
             return TranspilerUtils.ReplaceString(instructions, "Samurai.", samuraiReplacement.Value);
         }
     }
+    
     private class DoubleSamuraiPatch
     {
         public static MethodInfo TargetMethod()
@@ -130,8 +131,9 @@ public class CustomSamuraiMode
                 {"-", "Minus"}, {"_", "Minus"},
                 {"=", "Equals"}, {"+", "Equals"},
                 // number shifts
-                {"!", "Alpha1"}, {"$", "Alpha4"}, {"%", "Alpha5"}, {"^", "Alpha6"},
-                {"&", "Alpha7"}, {"*", "Alpha8"}, {"(", "Alpha9"}, {")", "Alpha0"},
+                {"!", "Alpha1"}, {"£", "Alpha3"}, {"$", "Alpha4"},
+                {"%", "Alpha5"}, {"^", "Alpha6"}, {"&", "Alpha7"},
+                {"*", "Alpha8"}, {"(", "Alpha9"}, {")", "Alpha0"},
                 // singles mostly due to american vs uk (i'm uk but obviously others aren't)
                 // one due to no shift for it
                 {"`", "BackQuote"}, {"'", "Quote"}, {" ", "Space"}
