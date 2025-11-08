@@ -152,6 +152,7 @@ public class ExtraLevelEndDetails
             // unfortunately doesn't make sense without positioning
             text.alignment = TextAnchor.UpperLeft;//textAlignment.Value;
             text.horizontalOverflow = HorizontalWrapMode.Overflow;
+            text.verticalOverflow = VerticalWrapMode.Overflow;
             text.fontSize = textSize.Value;
             // is there a way to modify this better? i'm too lazy to figure out how to though 😁😁 for now atleast
             // raf from the future: one day i say one day but i'm working on bigger things
