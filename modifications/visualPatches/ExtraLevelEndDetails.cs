@@ -115,8 +115,8 @@ public class ExtraLevelEndDetails
             string songName = LevelStatsPatch.songName;
             string songArtist = LevelStatsPatch.songArtist;
             string levelAuthor = LevelStatsPatch.levelAuthor;
-            int hits = LevelStatsPatch.storedHitInfos.Values.Count((type) => type == OffsetType.Perfect);
-            int misses = (LevelStatsPatch.storedHitInfos.Count - hits);
+            int hits = LevelStatsPatch.storedIfHits.Count((hit) => hit);
+            int misses = LevelStatsPatch.storedIfHits.Count - hits;
             string bestPrev = LevelStatsPatch.bestPrev.ToString();
             List<string> baseMods = [];
 
@@ -217,12 +217,16 @@ public class ExtraLevelEndDetails
         public static string levelAuthor = "";
         public static Rank bestPrev;
         public static bool isEditor = false;
-        public static Dictionary<double, OffsetType> storedHitInfos = [];
+        public static List<bool> storedIfHits = [];
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(scnGame), nameof(scnGame.AddHitOffset))]
-        public static void TrackHitInfo(scnGame __instance, OffsetType offsetType)
-            => storedHitInfos[__instance.conductor.audioPos] = offsetType;
+        public static void TrackHitInfo(scnGame __instance, int rowID, OffsetType offsetType)
+        {
+            if (__instance.rows[rowID].cpuControlled)
+                return;
+            storedIfHits.Add(offsetType == OffsetType.Perfect);
+        }
 
         // rest of info
         [HarmonyPostfix]
@@ -232,7 +236,7 @@ public class ExtraLevelEndDetails
             scnGame game = __instance;
 
             // init
-            storedHitInfos.Clear();
+            storedIfHits.Clear();
             songName = "";
             songArtist = "";
             levelAuthor = "";
