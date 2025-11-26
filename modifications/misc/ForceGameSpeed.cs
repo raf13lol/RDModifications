@@ -41,6 +41,8 @@ public class ForceGameSpeed
             RDTime.speed = gameSpeed.Value;
             Time.timeScale = gameSpeed.Value;
             DOTween.timeScale = gameSpeed.Value;
+            if (__instance is scnGame game)
+                game.visualSpeed = gameSpeed.Value;
         }
     }
 }

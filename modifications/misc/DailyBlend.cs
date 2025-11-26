@@ -86,7 +86,7 @@ public class DailyBlend
         {
             bool isDailyBlend = RecentBlends.BlendIDs.Contains(LevelUtils.GetLevelFolderName(data));
             Image liquid = __instance.liquidRect.gameObject.GetComponent<Image>();
-            if (isDailyBlend)
+            if (isDailyBlend) // Like coffee. Do you get it? It's like coffee. Like daily blend. Blend of coffee beans. Come on now. 
                 liquid.color = new(205f / 156f, 127f / 148f, 50f / 241f);
             else
                 liquid.color = Color.white;
@@ -98,7 +98,7 @@ public class DailyBlend
     {
         public const string DAILY_BLEND_CHANNEL_ID = "517144327734951936";
         public const string BARISTA_ID = "517141120837222410";
-        public const long FIFTEEN_MINUTES = 10 * 60 * 1000;
+        public const long TEN_MINUTES = 10 * 60 * 1000; // Maybe rename this one day.
         // RDSRT3 at home and maybe future events who knows
         public static List<string> BlendIDs = [];
         public static string BlendURLTextList = "";
@@ -141,7 +141,7 @@ public class DailyBlend
                     long epochMilliseconds = long.Parse(message.id) >> 22;
                     string levelURL = "";
 
-                    gotBlends = gotABlendYet && (messageCountBetweenBlends++ >= 5 || epochMilliseconds - lastBlendEpoch >= FIFTEEN_MINUTES);
+                    gotBlends = gotABlendYet && (messageCountBetweenBlends++ >= 5 || epochMilliseconds - lastBlendEpoch >= TEN_MINUTES);
                     if (gotBlends)
                         break;
 

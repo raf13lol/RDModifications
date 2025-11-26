@@ -20,6 +20,7 @@ List of modifications available with a simple summary:
 - CustomIceChiliSpeeds -> Allows for having a custom speed on ice/chili speeds instead of 0.75x/1.5x
 - CustomSamuraiMode -> Allows for setting the `Samurai.` from Samurai. mode to any string
 - DailyBlend -> Adds in-game handling for the daily blend(s), meaning you don't have to download them yourself
+- DieOnMS -> Allows you to force a game over if you hit a beat with a certain millisecond offset
 - DoctorMode -> Removes the `Rhythm` from `Rhythm Doctor` (destroys the rhythm engine)
 - EditorPatches -> Some patches to extend editor features or to improve editor [(see the section for more info)](#editorpatches)
 - ExtraLevelEndDetails -> Provides extra details at the end of a level, e.g. previous best
@@ -68,7 +69,7 @@ each image should have the suffix of `_frameX` where X is a number starting from
 
 - DisableSliderLimits -> numerical slider limits are disabled (albeit you must use the input field)
 - DuplicateDecorationButton -> adds a button to duplicate a deco, above the delete button for the deco
-- EditorBorderTintOpacity -> (will only work with DisableSliderLimits enabled) adds a slider for border/tint opacity, meant for under/overtinting (hence why slider limits need to be disabled)
+- EditorBorderTintOpacity -> enables/adds the built-in border/tint opacity field to paint events
 - InsertDeleteBars -> Alt + left click inserts a bar, alt + right click deletes the bar clicked (hard to explain shortly)
 
 # Create a github issue for suggestions/bugs or just ping me if you're in a server i'm in
