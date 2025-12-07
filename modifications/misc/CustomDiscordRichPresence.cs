@@ -33,7 +33,7 @@ public class CustomDiscordRichPresence
     }
 
     // easy !
-    [HarmonyPatch(typeof(RDRichPresence_Discord), nameof(RDRichPresence_Discord.Setup))]
+    [HarmonyPatch(typeof(RDRichPresence_Discord), "TryInitDiscord")]
     private class IDPatch
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
