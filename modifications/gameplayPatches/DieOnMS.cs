@@ -48,7 +48,7 @@ public class DieOnMS
     {
         public static void Postfix(scrPlayerbox __instance, RDPlayer player, bool cpuTriggered)
         {
-            if (player != __instance.ent.row.playerProp.GetCurrentPlayer() || cpuTriggered || !__instance.currentHoldBeat)
+            if (player != __instance.ent.row.GetCurrentPlayer() || cpuTriggered || !__instance.currentHoldBeat)
                 return;
             int ms = (int)((__instance.conductor.audioPos - __instance.currentHoldBeat.releaseTime) * 1000.0);
             if (absolute.Value)

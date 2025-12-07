@@ -76,15 +76,15 @@ public class PretendFOnMistake
         [HarmonyPatch(typeof(scnGame), nameof(scnGame.OnMistakeOrHeal))]
         public static void ShowFPostfix(float weight)
         {
-            static bool isInOver(FieldInfo field, HUD hud)
+            static bool isInOver(FieldInfo field, Rankscreen hud)
                 => (int)field.GetValue(hud) > 0;
 
             if (weight <= 0.0f)
                 return;
-            HUD hud = scnGame.instance.hud;
-            FieldInfo field = typeof(HUD).GetField("trueGameover", BindingFlags.NonPublic | BindingFlags.Instance);
+            Rankscreen rankscreen = scnGame.instance.rankscreen;
+            FieldInfo field = typeof(Rankscreen).GetField("trueGameover", BindingFlags.NonPublic | BindingFlags.Instance);
 
-            if (isInOver(field, hud))
+            if (isInOver(field, rankscreen))
                 return;
 
             if (say.Value)
@@ -93,7 +93,7 @@ public class PretendFOnMistake
             if (!display.Value)
                 return;
             // F
-            hud.UpdateFontSizes();
+            rankscreen.UpdateFontSizes();
             if (rankscreenTween != null)
                 rankscreenTween.Complete();
             if (rankTween != null)
@@ -101,49 +101,49 @@ public class PretendFOnMistake
             if (headerTween != null)
                 headerTween.Complete();
 
-            Image img = hud.rankscreen.GetComponent<Image>();
-            hud.rankscreen.SetActive(true);
-            hud.header.gameObject.SetActive(true);
-            hud.rank.gameObject.SetActive(true);
-            hud.rank.text = soundName;
+            Image img = rankscreen.rankscreen.GetComponent<Image>();
+            rankscreen.rankscreen.SetActive(true);
+            rankscreen.header.gameObject.SetActive(true);
+            rankscreen.rank.gameObject.SetActive(true);
+            rankscreen.rank.text = soundName;
             float duration = 0.5f;
             if (baseAlpha == 0.0f)
                 baseAlpha = img.color.a;
 
             rankscreenTween = img.DOFade(0f, duration).SetEase(Ease.Linear).SetUpdate(true).OnComplete(delegate
             {
-                if (!isInOver(field, hud))
-                    hud.rankscreen.gameObject.SetActive(false);
+                if (!isInOver(field, rankscreen))
+                    rankscreen.rankscreen.gameObject.SetActive(false);
                 img.DOFade(baseAlpha, 0.0f).SetEase(Ease.Linear).SetUpdate(true);
                 rankscreenTween = null;
             });
-            rankTween = hud.rank.DOFade(0f, duration).SetEase(Ease.Linear).SetUpdate(true).OnComplete(delegate
+            rankTween = rankscreen.rank.DOFade(0f, duration).SetEase(Ease.Linear).SetUpdate(true).OnComplete(delegate
             {
-                if (!isInOver(field, hud))
-                    hud.rank.gameObject.SetActive(false);
-                hud.rank.DOFade(1f, 0.0f).SetEase(Ease.Linear).SetUpdate(true);
+                if (!isInOver(field, rankscreen))
+                    rankscreen.rank.gameObject.SetActive(false);
+                rankscreen.rank.DOFade(1f, 0.0f).SetEase(Ease.Linear).SetUpdate(true);
                 rankTween = null;
             });
-            headerTween = hud.header.DOFade(0f, duration).SetEase(Ease.Linear).SetUpdate(true).OnComplete(delegate
+            headerTween = rankscreen.header.DOFade(0f, duration).SetEase(Ease.Linear).SetUpdate(true).OnComplete(delegate
             {
-                if (!isInOver(field, hud))
-                    hud.header.gameObject.SetActive(false);
-                hud.header.DOFade(1f, 0.0f).SetEase(Ease.Linear).SetUpdate(true);
+                if (!isInOver(field, rankscreen))
+                    rankscreen.header.gameObject.SetActive(false);
+                rankscreen.header.DOFade(1f, 0.0f).SetEase(Ease.Linear).SetUpdate(true);
                 headerTween = null;
             });
 
             // just in case so
-            hud.description.gameObject.SetActive(false);
+            rankscreen.description.gameObject.SetActive(false);
             // hud.statusText.gameObject.SetActive(false);
-            hud.descriptionLayoutGroup.gameObject.SetActive(false);
-            hud.multiplayerResultsLayoutGroup.gameObject.SetActive(false);
-            hud.resultsSingleplayer.gameObject.SetActive(false);
-            hud.resultsP1.gameObject.SetActive(false);
-            hud.resultsP2.gameObject.SetActive(false);
+            rankscreen.descriptionLayoutGroup.gameObject.SetActive(false);
+            rankscreen.multiplayerResultsLayoutGroup.gameObject.SetActive(false);
+            rankscreen.resultsSingleplayer.gameObject.SetActive(false);
+            rankscreen.resultsP1.gameObject.SetActive(false);
+            rankscreen.resultsP2.gameObject.SetActive(false);
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(HUD), nameof(HUD.AdvanceGameover))]
+        [HarmonyPatch(typeof(Rankscreen), nameof(Rankscreen.AdvanceGameover))]
         public static void PreventFadeOutRank()
         {
             if (rankscreenTween != null)

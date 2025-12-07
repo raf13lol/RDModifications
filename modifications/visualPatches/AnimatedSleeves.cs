@@ -101,6 +101,7 @@ public class AnimatedSleeves
             animateSleeve(__instance.arm.material, (int)RDPlayer.P1, __instance.slot);
             // update material, needed so it rebuilds the ui
             __instance.arm.material = UnityEngine.Object.Instantiate(__instance.arm.material);
+            animateSleeve(__instance.arm.material, (int)RDPlayer.P1, __instance.slot);
         }
     }
 
@@ -177,8 +178,8 @@ public class AnimatedSleeves
         public static void LoadAnimatedSleeves()
         {
             RDStartup.DetermineAppLocation();
-            
-            string baseFilePath = Persistence.GetSaveFileFolderPath() + Path.DirectorySeparatorChar + "scribble";
+            // try ask a dev about this. i shouldn't have to do this weirdness, if it even works
+            string baseFilePath = Path.Combine(Application.dataPath.Replace("Rhythm Doctor_Data", ""), "User", "scribble");
             for (int playerIndex = 0; playerIndex < 2; playerIndex++)
                 for (int slot = 0; slot < 3; slot++)
                     LoadAnimatedSleeve(baseFilePath + $"P{playerIndex + 1}_{slot}", playerIndex, slot);

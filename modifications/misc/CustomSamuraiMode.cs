@@ -100,10 +100,10 @@ public class CustomSamuraiMode
         }
     }
 
-    [HarmonyPatch(typeof(HUD), nameof(HUD.ShowAndSaveRank))]
+    [HarmonyPatch(typeof(Rankscreen), nameof(Rankscreen.ShowAndSaveRank))]
     private class SamuraiRankPatch
     {
-        public static void Postfix(HUD __instance)
+        public static void Postfix(Rankscreen __instance)
         {
             if (RDString.samuraiMode && replaceRank.Value)
                 __instance.rank.text = samuraiReplacement.Value;

@@ -25,7 +25,7 @@ public class ZeroOffsetSign
         return enabled.Value;
     }
 
-    [HarmonyPatch(typeof(HUD), nameof(HUD.status), MethodType.Setter)]
+    [HarmonyPatch(typeof(LEDSign), nameof(LEDSign.status), MethodType.Setter)]
     private class GreenRedSignPatch
     {
         public static void Prefix(ref string value)

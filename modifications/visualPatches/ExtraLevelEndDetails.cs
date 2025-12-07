@@ -101,10 +101,10 @@ public class ExtraLevelEndDetails
         return enabled.Value;
     }
 
-    [HarmonyPatch(typeof(HUD), nameof(HUD.ShowRankDescription))]
+    [HarmonyPatch(typeof(Rankscreen), nameof(Rankscreen.ShowRankDescription))]
     private class LevelDetailsPatch
     {
-        public static void Postfix(HUD __instance)
+        public static void Postfix(Rankscreen __instance)
         {
             bool storyLevel = scnGame.levelToLoadSource != LevelSource.ExternalPath;
             string samuraiText = RDString.SamuraiModeText;

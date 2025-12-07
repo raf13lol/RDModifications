@@ -33,7 +33,7 @@ public class CustomDiscordRichPresence
     }
 
     // easy !
-    [HarmonyPatch(typeof(DiscordController), "OnEnable")]
+    [HarmonyPatch(typeof(RDRichPresence_Discord), nameof(RDRichPresence_Discord.Setup))]
     private class IDPatch
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -45,7 +45,7 @@ public class CustomDiscordRichPresence
         }
     }
 
-    [HarmonyPatch(typeof(DiscordController), nameof(DiscordController.UpdatePresence))]
+    [HarmonyPatch(typeof(RDRichPresence_Discord), nameof(RDRichPresence_Discord.SetPresence))]
     private class ImagePatch
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -54,7 +54,7 @@ public class CustomDiscordRichPresence
         }
     }
 
-    [HarmonyPatch(typeof(DiscordController), nameof(DiscordController.UpdatePresence))]
+    [HarmonyPatch(typeof(RDRichPresence_Discord), nameof(RDRichPresence_Discord.SetPresence))]
     private class TextPatch
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)

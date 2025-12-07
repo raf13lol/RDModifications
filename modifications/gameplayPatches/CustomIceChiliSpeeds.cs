@@ -79,10 +79,10 @@ public class CustomIceChiliSpeeds
         }
     }
 
-    [HarmonyPatch(typeof(HUD), nameof(HUD.ShowAndSaveRank))]
+    [HarmonyPatch(typeof(Rankscreen), nameof(Rankscreen.ShowAndSaveRank))]
     private static class RankScreenPatch
     {
-        public static void Postfix(HUD __instance)
+        public static void Postfix(Rankscreen __instance)
         {
             if (RDTime.speed == 1f || !enabledRankScr.Value)
                 return;

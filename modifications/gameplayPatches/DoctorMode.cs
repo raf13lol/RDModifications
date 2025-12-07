@@ -105,8 +105,8 @@ public class DoctorMode
             => __result = auto.Value;
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(HUD), nameof(HUD.ShowAndSaveRank))]
-        public static void HUDPostfix(HUD __instance)
+        [HarmonyPatch(typeof(Rankscreen), nameof(Rankscreen.ShowAndSaveRank))]
+        public static void RankscreenPostfix(Rankscreen __instance)
         {
             if (!auto.Value)
                 return;
