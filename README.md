@@ -68,9 +68,10 @@ each image should have the suffix of `_frameX` where X is a number starting from
 
 ## EditorPatches
 
-- DisableSliderLimits -> numerical slider limits are disabled (albeit you must use the input field)
+- DisableInputFieldLimits -> numerical input field limits are disabled
 - DuplicateDecorationButton -> adds a button to duplicate a deco, above the delete button for the deco
 - EditorBorderTintOpacity -> enables/adds the built-in border/tint opacity field to paint events
 - InsertDeleteBars -> Alt + left click inserts a bar, alt + right click deletes the bar clicked (hard to explain shortly)
+- ShowMoreEventProperties -> More properties of events are now visible
 
 # Create a github issue for suggestions/bugs or just ping me if you're in a server i'm in

@@ -5,6 +5,7 @@ using System.Reflection;
 using BepInEx.Logging;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 
 namespace RDModifications;
 
@@ -22,7 +23,7 @@ public class CustomIceChiliSpeeds
     {
         logger = logging;
         enabled = config.Bind("CustomSpeeds", "Enabled", false, 
-        "Whether to use the custom defined ice/chili speeds.");
+        "Whether to use the custom defined ice/chili speeds, also allows using custom speeds on any level.");
 
         iceSpeed = config.Bind("CustomSpeeds", "IceSpeed", 0.75f, 
         "The speed multiplier to use for ice speeds.");
@@ -36,7 +37,7 @@ public class CustomIceChiliSpeeds
         if (enabled.Value && iceSpeed.Value == 0.75f && chiliSpeed.Value == 1.5f)
         {
             logger.LogMessage("CustomSpeeds: All values are default. No differences from base game.");
-            return false;
+            // return false;
         }
         if (iceSpeed.Value <= 0.00f || iceSpeed.Value >= 1.00f)
         {
@@ -49,6 +50,19 @@ public class CustomIceChiliSpeeds
             logger.LogWarning("CustomSpeeds: Invalid ChiliSpeed, value is reset to 1.5x");
         }
         return enabled.Value;
+    }
+
+    [HarmonyPatch(typeof(HeartMonitor), nameof(HeartMonitor.Show))]
+    private class SpeedAnyPatch
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return new CodeMatcher(instructions)
+                .MatchForward(false, new CodeMatch(OpCodes.Ldc_I4_S, (sbyte)Level.Montage))
+                .Advance(-2)
+                .RemoveInstructions(6)
+                .InstructionEnumeration();
+        }
     }
 
     [HarmonyPatch(typeof(scnGame), nameof(scnGame.StartTheGame))]

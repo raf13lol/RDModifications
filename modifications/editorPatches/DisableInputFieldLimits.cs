@@ -8,7 +8,7 @@ using RDLevelEditor;
 namespace RDModifications;
 
 [EditorModification]
-public class DisableSliderLimits
+public class DisableInputFieldLimits
 {
     public static ManualLogSource logger;
 
@@ -17,10 +17,43 @@ public class DisableSliderLimits
     public static bool Init(ConfigFile config, ManualLogSource logging)
     {
         logger = logging;
-        enabled = config.Bind("EditorPatches", "DisableSliderLimits", false, 
-        "If input boxes next to sliders in the editor shouldn't be limited.");
+        enabled = config.Bind("EditorPatches", "DisableInputFieldLimits", false,
+        "If input fields (next to sliders or not) in the editor shouldn't be limited.\nDo note that it may break some events horribly.");
 
         return enabled.Value;
+    }
+
+    [HarmonyPatch(typeof(PropertyControl_InputField), nameof(PropertyControl_InputField.Save))]
+    private class RegularInputFieldsPatch
+    {
+        public static bool Prefix(PropertyControl_InputField __instance, LevelEvent_Base levelEvent)
+        {
+            FieldInfo alreadyUpdating = typeof(PropertyControl_InputField).GetField("alreadyUpdating", BindingFlags.NonPublic | BindingFlags.Instance);
+            Property parentProperty = (Property)typeof(PropertyControl).GetProperty("parentProperty", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(__instance);
+            alreadyUpdating.SetValue(__instance, true);
+            BasePropertyInfo nullableUnderlying = parentProperty.propertyInfo.NullableUnderlying;
+
+            object obj;
+
+            if (nullableUnderlying is StringPropertyInfo)
+                obj = __instance.inputField.text;
+            if (nullableUnderlying is FloatExpressionPropertyInfo)
+                obj = FloatExpression.FromString(__instance.inputField.text);
+            if (nullableUnderlying is FloatPropertyInfo)
+                obj = float.Parse(__instance.inputField.text);
+            if (nullableUnderlying is IntPropertyInfo)
+                obj = int.Parse(__instance.inputField.text);
+            else
+            {
+                alreadyUpdating.SetValue(__instance, false);
+                return false;
+            }
+
+            __instance.inputField.text = obj?.ToString();
+            parentProperty.propertyInfo.propertyInfo.SetValue(levelEvent, obj);
+            alreadyUpdating.SetValue(__instance, false);
+            return false;
+        }
     }
 
     // we need to use this because of the delegation
@@ -51,7 +84,7 @@ public class DisableSliderLimits
         {
             if (!__instance.inputField.gameObject.activeInHierarchy || __instance.inputField == null)
                 return;
-            
+
             object value = typeof(PropertyControl)
                 .GetMethod("GetEventValue", BindingFlags.NonPublic | BindingFlags.Instance)
                 .Invoke(__instance, [levelEvent]);

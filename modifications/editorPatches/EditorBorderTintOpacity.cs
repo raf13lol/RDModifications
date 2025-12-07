@@ -24,11 +24,10 @@ public class EditorBorderTintOpacity
     {
         logger = logging;
         enabled = config.Bind("EditorPatches", "EditorBorderTintOpacity", false,
-        "If there should be a slider for the border/tint opacity in Paint Rows.\n" +
-        "Meant to simplify under/overtinting.\n" +
-        "(Will only show if DisableSliderLimits is enabled as otherwise it would be useless.)");
+        "If there should be the built-in input field for the border/tint opacity in Paint Rows/Sprite, no matter what.\n" +
+        "Meant to simplify under/overtinting.");
 
-        return DisableSliderLimits.enabled.Value && enabled.Value;
+        return enabled.Value;
     }
 
     private class TintRowsPatch
