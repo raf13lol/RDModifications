@@ -1,9 +1,0 @@
-{
-    "files.exclude": {
-        "bin/**": true,
-        "lib/**": true,
-        "obj/**": true,
-        "*.sln": true,
-        "*.editorconfig": true,
-    }
-}
