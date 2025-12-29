@@ -2,3 +2,7 @@ bin/*
 obj/*
 
 lib/*.dll
+
+.vscode/*
+.idea/*
+.vs/*

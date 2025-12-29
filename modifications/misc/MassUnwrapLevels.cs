@@ -1,6 +1,5 @@
 using System;
 using BepInEx.Configuration;
-using BepInEx.Logging;
 using DG.Tweening;
 using HarmonyLib;
 using RDLevelEditor;
@@ -9,55 +8,47 @@ using static scnCLS;
 
 namespace RDModifications;
 
-[Modification]
-public class MassUnwrapLevels
+[Modification(
+	"If pressing a certain key combination in the custom level select screen should unwrap all wrapped levels.\n" + 
+	"Depending on the amount of wrapped levels, this could cause severe lag."
+)]
+public class MassUnwrapLevels : Modification
 {
-    public static ManualLogSource logger;
-
-    public static ConfigEntry<bool> enabled;
-    public static ConfigEntry<string> holdKey;
-    public static ConfigEntry<string> pressKey;
-
-    public static KeyCode holdKeyCode = KeyCode.None;
-    public static KeyCode pressKeyCode = KeyCode.None;
-
-    // err this code isn't the best 
-    public static bool Init(ConfigFile config, ManualLogSource logging)
-    {
-        logger = logging;
-        enabled = config.Bind("MassUnwrapLevels", "Enabled", false,
-        "If enabled, pressing a certain key combination in the custom level select screen will unwrap all wrapped levels.\n" + 
-        "Depending on the amount of wrapped levels, this could cause severe lag.");
-
-        holdKey = config.Bind("MassUnwrapLevels", "HoldKey", "LeftControl",
-        "The key that should be held in combination with PressKey being pressed to unwrap all wrapped levels.\n" +
+	[Configuration<string>("LeftControl", 
+		"The key that should be held in combination with PressKey being pressed to unwrap all wrapped levels.\n" +
         "Set this to 'None' to disable needing to hold an extra key.\n" +
-        "(list of acceptable values: https://docs.unity3d.com/ScriptReference/KeyCode.html)");
+        "(list of acceptable values: https://docs.unity3d.com/ScriptReference/KeyCode.html)"
+	)]
+    public static ConfigEntry<string> HoldKey;
 
-        pressKey = config.Bind("MassUnwrapLevels", "PressKey", "Return",
-        "The key that should be pressed in combination with HoldKey being held to unwrap all wrapped levels.\n" +
-        "(list of acceptable values: https://docs.unity3d.com/ScriptReference/KeyCode.html)");
+	[Configuration<string>("Return", 
+		"The key that should be pressed in combination with HoldKey being held to unwrap all wrapped levels.\n" +
+        "(list of acceptable values: https://docs.unity3d.com/ScriptReference/KeyCode.html)"
+	)]
+    public static ConfigEntry<string> PressKey;
 
-        // specifically this part
-        if (Enum.TryParse(typeof(KeyCode), holdKey.Value, out object keyCodeHold))
-            holdKeyCode = (KeyCode)keyCodeHold;
+    public static KeyCode HoldKeyCode = KeyCode.None;
+    public static KeyCode PressKeyCode = KeyCode.None;
+
+    public static void Init()
+    {   
+        if (Enum.TryParse(typeof(KeyCode), HoldKey.Value, out object keyCodeHold))
+            HoldKeyCode = (KeyCode)keyCodeHold;
         else
         {
-            logger.LogWarning("MassUnwrapLevels: The value of HoldKey is not a valid key. Resetting to LeftControl...");
-            holdKey.Value = (string)holdKey.DefaultValue;
-            holdKeyCode = KeyCode.LeftControl;
+            Log.LogWarning("MassUnwrapLevels: The value of HoldKey is not a valid key. Resetting to LeftControl...");
+            HoldKey.Value = (string)HoldKey.DefaultValue;
+            HoldKeyCode = KeyCode.LeftControl;
         }
 
-        if (Enum.TryParse(typeof(KeyCode), pressKey.Value, out object keyCodePress))
-            pressKeyCode = (KeyCode)keyCodePress;
+        if (Enum.TryParse(typeof(KeyCode), PressKey.Value, out object keyCodePress) || (KeyCode)keyCodePress == KeyCode.None)
+            PressKeyCode = (KeyCode)keyCodePress;
         else
         {
-            logger.LogWarning("MassUnwrapLevels: The value of PressKey is not a valid key. Resetting to Return (also known as the Enter key)...");
-            pressKey.Value = (string)pressKey.DefaultValue;
-            pressKeyCode = KeyCode.Return;
+            Log.LogWarning("MassUnwrapLevels: The value of PressKey is not a valid key. Resetting to Return (also known as the Enter key)...");
+            PressKey.Value = (string)PressKey.DefaultValue;
+            PressKeyCode = KeyCode.Return;
         }
-
-        return enabled.Value && pressKeyCode != KeyCode.None;
     }
 
     [HarmonyPatch(typeof(scnCLS), "Update")]
@@ -65,7 +56,7 @@ public class MassUnwrapLevels
     {
         public static bool Prefix(scnCLS __instance)
         {
-            if ((holdKeyCode == KeyCode.None || Input.GetKey(holdKeyCode)) && Input.GetKeyDown(pressKeyCode))
+            if ((HoldKeyCode == KeyCode.None || Input.GetKey(HoldKeyCode)) && Input.GetKeyDown(PressKeyCode))
             {
                 bool unwrapSound = false;
                 foreach (CustomLevelData data in __instance.levelsData)

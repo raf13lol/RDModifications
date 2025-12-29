@@ -1,41 +1,21 @@
-using BepInEx.Configuration;
 using HarmonyLib;
-using BepInEx.Logging;
-using System.Reflection;
 using RDLevelEditor;
 using UnityEngine.EventSystems;
 using UnityEngine;
 
 namespace RDModifications;
 
-[EditorModification]
-public class InsertDeleteBars
+[Modification("If you can insert a bar (Alt+Left Click) or delete a bar (Alt+Right Click) when clicking on the timeline to normally scrub to a position.", true)]
+public class InsertDeleteBars : Modification
 {
-    public static ManualLogSource logger;
-
-    public static ConfigEntry<bool> enabled;
-
-    public static bool Init(ConfigFile config, ManualLogSource logging)
-    {
-        logger = logging;
-        enabled = config.Bind("EditorPatches", "InsertDeleteBars", false,
-        "Allows you to insert a bar (Alt+Left Click) or delete a bar (Alt+Right Click) when clicking on the timeline to normally scrub to a position.");
-
-        return enabled.Value;
-    }
-
     [HarmonyPatch(typeof(TimelineEventTrigger), nameof(TimelineEventTrigger.OnPointerClick))]
     private class TimelineClickPatch
     {
-        public static bool Prefix(TimelineEventTrigger __instance, PointerEventData data)
+        public static bool Prefix(TimelineEventTrigger __instance, PointerEventData data, bool ___isDragging)
         {
-            if (data.button == PointerEventData.InputButton.Middle)
+            if (data.button == PointerEventData.InputButton.Middle || ___isDragging)
                 return false;
-
-            FieldInfo isDragging = typeof(RDEventTrigger).GetField("isDragging", BindingFlags.NonPublic | BindingFlags.Instance);
-            if ((bool)isDragging.GetValue(__instance))
-                return false;
-
+                
             if (!Input.GetKey(KeyCode.LeftAlt) && !Input.GetKey(KeyCode.RightAlt))
                 return true;
             
@@ -83,6 +63,7 @@ public class InsertDeleteBars
                     levelEventControl.bar--;
             }
             editor.timeline.UpdateUI(true);
+            // LevelEvent_PlaySong
         }
     }
 }

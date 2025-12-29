@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
-using UnityEngine;
 
-namespace APNGP;
+namespace APNG;
 
 class Utils
 {

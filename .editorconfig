@@ -14,3 +14,6 @@ dotnet_diagnostic.IDE1006.severity = silent
 
 # CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
 dotnet_diagnostic.CS8632.severity = silent
+
+indent_style = tab
+indent_size = 4

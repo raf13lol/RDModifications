@@ -2,7 +2,6 @@
 
 using BepInEx.Configuration;
 using HarmonyLib;
-using BepInEx.Logging;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,44 +12,29 @@ using System.Text.RegularExpressions;
 
 namespace RDModifications;
 
-[Modification]
-public class CustomSamuraiMode
+[Modification("If Samurai. mode to have your own custom text.")]
+public class CustomSamuraiMode : Modification
 {
-    public static ConfigEntry<bool> enabled;
-    public static ConfigEntry<bool> modeEnabledAtStart;
-    public static ConfigEntry<bool> replaceRank;
-    public static ConfigEntry<string> samuraiReplacement;
-    public static ConfigEntry<string> samuraiInputReplacement;
+	[Configuration<bool>(false, "If Samurai. mode should be enabled by default when playing the game.")]
+    public static ConfigEntry<bool> ModeEnabledAtStart;
+	
+	[Configuration<bool>(false, "If Samurai. mode should replace the rank text.")]
+    public static ConfigEntry<bool> ReplaceRank;
 
-    public static ManualLogSource logger;
+	[Configuration<string>("Insomniac.", "What 'Samurai.' should be replaced with.")]
+    public static ConfigEntry<string> SamuraiReplacement;
 
-    public static bool Init(ConfigFile config, ManualLogSource logging)
-    {
-        logger = logging;
-        enabled = config.Bind("CustomSamuraiMode", "Enabled", false, 
-        "This will change Samurai mode to have your own custom text.");
-
-        modeEnabledAtStart = config.Bind("CustomSamuraiMode", "ModeEnabledAtStart", false, 
-        "If Samurai mode should be enabled by default when playing the game.");
-
-        replaceRank = config.Bind("CustomSamuraiMode", "ReplaceRank", false, 
-        "If Samurai mode should replace the rank text.");
-
-        samuraiReplacement = config.Bind("CustomSamuraiMode", "SamuraiReplacement", "Insomniac.", 
-        "What 'Samurai.' should be replaced with.");
-
-        samuraiInputReplacement = config.Bind("CustomSamuraiMode", "SamuraiInputReplacement", "Insomniac.",
-        "What you need to input for Samurai to be toggled.\n" +
-        "The BepinEx console (may only apply to BepinEx 6, unsure) will output the inputs needed, as it may not be obvious at times.");
-
-        return enabled.Value;
-    }
+	[Configuration<string>("Insomniac.", 
+		"What you need to input for Samurai. mode to be toggled.\n" +
+        "The BepinEx console (may only apply to BepinEx 6, unsure) will output the inputs needed, as it may not be obvious at times."
+	)]
+    public static ConfigEntry<string> SamuraiInputReplacement;
 
     [HarmonyPatch(typeof(RDString), nameof(RDString.Setup))]
     private class SamuraiModeStartPatch
     {
         public static void Postfix()
-            => RDString.samuraiMode = modeEnabledAtStart.Value;
+            => RDString.samuraiMode = ModeEnabledAtStart.Value;
     }
 
     private class SamuraiTextPatch
@@ -59,54 +43,35 @@ public class CustomSamuraiMode
         {
             List<MethodInfo> methods = [];
             // This sucks
-            Type[] makeLyricsTypes = [typeof(string), typeof(Vector2), typeof(int), typeof(float), typeof(Color),
+            Type[] makeLyricsTypes = [typeof(string), typeof(TextFont), typeof(Vector2), typeof(int), typeof(float), typeof(Color),
             typeof(int), typeof(int), typeof(float), typeof(bool), typeof(Color), typeof(TextAnchor), typeof(bool), typeof(bool)];
 
-            methods.Add(AccessUtils.GetMethodCalled(typeof(RDString), nameof(RDString.Get)));
-            methods.Add(AccessUtils.GetMethodCalled(typeof(LyricsGame), nameof(LyricsGame.AdvanceText)));
+            methods.Add(AccessTools.Method(typeof(RDString), nameof(RDString.Get)));
+            methods.Add(AccessTools.Method(typeof(LyricsGame), nameof(LyricsGame.AdvanceText)));
 
             // compiler generated
-            methods.Add(AccessUtils.GetMethodContains(typeof(LevelEvent_TextExplosion), "<Run>"));
+            methods.Add(AccessUtils.GetFirstMethodContains(typeof(LevelEvent_TextExplosion), "<Run>"));
+
             // two functions with same name so we need to get this really specific one
-            methods.Add(typeof(scrVfxControl).GetMethod(nameof(scrVfxControl.MakeLyrics), BindingFlags.Public | BindingFlags.Instance, null, makeLyricsTypes, null));
+            methods.Add(AccessTools.Method(typeof(scrVfxControl), nameof(scrVfxControl.MakeLyrics), makeLyricsTypes));
+			 // due to compiled IEnumerable
+            methods.Add(AccessUtils.GetFirstInnerMethodContains(typeof(RDInk), "<Say>", "MoveNext"));
 
             return methods.AsEnumerable();
         }
 
         [HarmonyTranspiler]
         public static IEnumerable<CodeInstruction> SamuraiTranspiler(IEnumerable<CodeInstruction> instructions)
-        {
             // This is actually quite useful !
-            return TranspilerUtils.ReplaceString(instructions, "Samurai.", samuraiReplacement.Value);
-        }
+            => TranspilerUtils.ReplaceString(instructions, "Samurai.", SamuraiReplacement.Value);
     }
-    
-    private class DoubleSamuraiPatch
-    {
-        public static MethodInfo TargetMethod()
-        {
-            // This is Stupid
-            // i believe it's due to compiled IEnumerable ?
-            // the IL code looks like it
-            Type type = AccessTools.FirstInner(typeof(RDInk), t => t.Name.Contains("<Say>"));
-            return AccessUtils.GetInnerMethodContains(typeof(RDInk), "<Say>", "MoveNext");
-        }
-
-        [HarmonyTranspiler]
-        public static IEnumerable<CodeInstruction> DoubleSamuraiTranspiler(IEnumerable<CodeInstruction> instructions)
-        {
-            // This is actually quite useful !
-            return TranspilerUtils.ReplaceString(instructions, "Samurai.", samuraiReplacement.Value, 2);
-        }
-    }
-
     [HarmonyPatch(typeof(Rankscreen), nameof(Rankscreen.ShowAndSaveRank))]
     private class SamuraiRankPatch
     {
         public static void Postfix(Rankscreen __instance)
         {
-            if (RDString.samuraiMode && replaceRank.Value)
-                __instance.rank.text = samuraiReplacement.Value;
+            if (RDString.samuraiMode && ReplaceRank.Value)
+                __instance.rank.text = SamuraiReplacement.Value;
         }
     }
 
@@ -115,7 +80,7 @@ public class CustomSamuraiMode
     {
         public static bool hasLogged = false;
 
-        public static void Postfix(scnBase __instance)
+        public static void Postfix(ref RDCheatCode.CheatCode ___samuraiModeCheat)
         {
             List<KeyCode> inputs = [];
             string symbolsNeedingShift = ":<>?@{}!$%^&*()_+|";
@@ -139,7 +104,7 @@ public class CustomSamuraiMode
                 {"`", "BackQuote"}, {"'", "Quote"}, {" ", "Space"}
             };
 
-            string input = samuraiInputReplacement.Value;
+            string input = SamuraiInputReplacement.Value;
             string upperInput = input.ToUpper();
             string lowerInput = input.ToLower();
             string logOutput = "";
@@ -188,19 +153,17 @@ public class CustomSamuraiMode
             if (inputs.Count > 0)
             {
                 if (inputs.Count <= 2)
-                    logger.LogWarning("CustomSamuraiMode: The input length for toggling Samurai mode is quite short, this may lead to slip-ups.");
+                    Log.LogWarning("CustomSamuraiMode: The input length for toggling Samurai mode is quite short, this may lead to slip-ups.");
                 RDCheatCode.CheatCode newCheatCode = new(inputs.ToArray());
-                // private reflection stuff... whatever
-                typeof(scnBase).GetField("samuraiModeCheat", BindingFlags.NonPublic | BindingFlags.Instance)
-                .SetValue(__instance, newCheatCode);
+                ___samuraiModeCheat = newCheatCode;
             }
             if (hasLogged)
                 return;
 
             if (logOutput.Length > 0)
-                logger.LogMessage($"CustomSamuraiMode: Input '{logOutput}' to toggle Samurai mode.");
+                Log.LogMessage($"CustomSamuraiMode: Input '{logOutput}' to toggle Samurai mode.");
             else if (!hasLogged)
-                logger.LogWarning("CustomSamuraiMode: SamuraiInputReplacement as KeyCode[] is empty, 'Samurai.' is still needed to be inputted.");
+                Log.LogWarning("CustomSamuraiMode: SamuraiInputReplacement as KeyCode[] is empty, 'Samurai.' is still needed to be inputted.");
 
             hasLogged = true;
         }

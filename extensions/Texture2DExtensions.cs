@@ -5,8 +5,8 @@ public static class Texture2DExtensions
 {
     public static void CopyPixels(this Texture2D dest, Texture2D src, int srcX, int srcY, int srcWidth, int srcHeight, int destX, int destY, bool removeCPUCopy = false)
     {
-        NativeArray<Color32ARGB> srcPixels = src.GetPixelData<Color32ARGB>(0);
-        NativeArray<Color32ARGB> destPixels = dest.GetPixelData<Color32ARGB>(0);
+        NativeArray<uint> srcPixels = src.GetPixelData<uint>(0);
+        NativeArray<uint> destPixels = dest.GetPixelData<uint>(0);
 
         int srcTexWidth = src.width;
         int destTexWidth = dest.width;
@@ -26,10 +26,13 @@ public static class Texture2DExtensions
         dest.Apply(false, removeCPUCopy);
     }
 
-    public static void CopyPixelsEqual(this Texture2D dest, Texture2D src, int x, int y, int width, int height, bool removeCPUCopy = false)
+	/// <summary>
+	/// Requires the textures to be the same size
+	/// </summary>
+	public static void CopyPixelsQuick(this Texture2D dest, Texture2D src, int x, int y, int width, int height, bool removeCPUCopy = false)
     {
-        NativeArray<Color32ARGB> srcPixels = src.GetPixelData<Color32ARGB>(0);
-        NativeArray<Color32ARGB> destPixels = dest.GetPixelData<Color32ARGB>(0);
+        NativeArray<uint> srcPixels = src.GetPixelData<uint>(0);
+        NativeArray<uint> destPixels = dest.GetPixelData<uint>(0);
 
         int texWidth = src.width;
         int pixelsToCopy = width * height;
@@ -47,14 +50,14 @@ public static class Texture2DExtensions
 
     public static void CopyPixelsRaw(this Texture2D dest, Texture2D src, bool removeCPUCopy = false)
     {
-        dest.SetPixelData(src.GetPixelData<Color32>(0), 0);
+        dest.SetPixelData(src.GetPixelData<uint>(0), 0);
         dest.Apply(false, removeCPUCopy);
     }
 
     public static void MergePixels(this Texture2D dest, Texture2D src, int srcX, int srcY, int srcWidth, int srcHeight, int destX, int destY, bool removeCPUCopy = false)
     {
-        NativeArray<Color32ARGB> srcPixels = src.GetPixelData<Color32ARGB>(0);
-        NativeArray<Color32ARGB> destPixels = dest.GetPixelData<Color32ARGB>(0);
+        NativeArray<ARGB32> srcPixels = src.GetPixelData<ARGB32>(0);
+        NativeArray<ARGB32> destPixels = dest.GetPixelData<ARGB32>(0);
 
         int srcTexWidth = src.width;
         int destTexWidth = dest.width;
@@ -68,10 +71,10 @@ public static class Texture2DExtensions
             int srcPixelIndex = srcX + relativeX + (srcY + relativeY) * srcTexWidth;
             int destPixelIndex = destX + relativeX + (destY + relativeY) * destTexWidth;
 
-            Color32ARGB foreground = srcPixels[srcPixelIndex];
+            ARGB32 foreground = srcPixels[srcPixelIndex];
             if (foreground.a != 255 && foreground.a != 0)
             {
-                Color32ARGB background = destPixels[destPixelIndex];      
+                ARGB32 background = destPixels[destPixelIndex];      
                 double foregroundMult = foreground.a / 255d; 
                 double backgroundMult = 1d - foregroundMult;
 
@@ -93,12 +96,30 @@ public static class Texture2DExtensions
 
     public static void ClearTexture(this Texture2D texture)
     {
-        NativeArray<Color32> pixels = texture.GetPixelData<Color32>(0);
+        NativeArray<uint> pixels = texture.GetPixelData<uint>(0);
 
         int pixelBytes = texture.width * texture.height;
         for (int i = 0; i < pixelBytes; i++)
-            pixels[i] = new(0, 0, 0, 0);
+            pixels[i] = 0;
 
         texture.Apply(false, false);
+    }
+
+	public static void ClearTextureArea(this Texture2D texture, int x, int y, int width, int height, bool removeCPUCopy = false)
+    {
+        NativeArray<uint> pixels = texture.GetPixelData<uint>(0);
+
+        int texWidth = texture.width;
+        int pixelsToCopy = width * height;
+        for (int i = 0; i < pixelsToCopy; i++)
+        {
+            int relativeX = i % width;    
+            int relativeY = i / width; // int division automatically floors    
+            int pixelIndex = x + relativeX + (y + relativeY) * texWidth;
+
+			pixels[pixelIndex] = 0;
+        }
+
+        texture.Apply(false, removeCPUCopy);
     }
 }

@@ -1,66 +1,49 @@
 using BepInEx.Configuration;
 using HarmonyLib;
-using BepInEx.Logging;
 using System.Reflection;
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace RDModifications;
 
-[Modification]
-public class CustomDifficulty
+[Modification("If the hit margins for P1/P2 should be customisable.")]
+public class CustomDifficulty : Modification 
 {
-    public static ManualLogSource logger;
+	[Configuration<bool>(false, "If P1 should use the custom hit margin defined.")]
+    public static ConfigEntry<bool> P1Enabled;
+	[Configuration<bool>(false, "If P2 should use the custom hit margin defined.")]
+    public static ConfigEntry<bool> P2Enabled;
 
-    public static ConfigEntry<bool> p1Enabled;
-    public static ConfigEntry<bool> p2Enabled;
-    public static ConfigEntry<float> hitMargin;
-    public static ConfigEntry<string> name;
-    public static ConfigEntry<bool> hitStripWidthLimiting;
+	[Configuration<float>(25f, "How many milliseconds wide the hit margin should be. (e.g. -25ms to +25ms)")]
+    public static ConfigEntry<float> HitMargin;
 
-    public static bool Init(ConfigFile config, ManualLogSource logging)
-    {
-        logger = logging;
-        p1Enabled = config.Bind("CustomDifficulty", "P1Enabled", false, 
-        "Enabling this will make P1 use the custom hit margin defined.");
-        p2Enabled = config.Bind("CustomDifficulty", "P2Enabled", false, 
-        "Enabling this will make P2 use the custom hit margin defined.");
+	[Configuration<string>("Very Hard", "What the difficulty should be called in the options menu.")]
+    public static ConfigEntry<string> Name;
 
-        hitMargin = config.Bind("CustomDifficulty", "HitMargin", 25f, 
-        "How many milliseconds there should be to hit. (e.g. -25ms to +25ms)");
+	[Configuration<bool>(true, "If the width of the hit strip should be limited.")]
+    public static ConfigEntry<bool> HitStripWidthLimiting;
 
-        name = config.Bind("CustomDifficulty", "Name", "Custom", 
-        "What the difficulty should be called in the options menu.");
-
-        hitStripWidthLimiting = config.Bind("CustomDifficulty", "HitStripWidthLimiting", true,
-        "If the Hit Strip width should be limited.");
-
-        if (hitMargin.Value <= 0f)
-        {
-            hitMargin.Value = 25f;
-            logger.LogWarning("CustomDifficulty: Invalid value for HitMargin, resetted back to 25ms.");
-        }
-        return p1Enabled.Value || p2Enabled.Value;
-    }
+	public static bool Init()
+		=> P1Enabled.Value || P2Enabled.Value;
 
     private class DifficultyPatch
     {
         public static IEnumerable<MethodInfo> TargetMethods()
         {
             List<MethodInfo> methods = [];
-            methods.Add(AccessUtils.GetMethodCalled(typeof(scnGame), nameof(scnGame.GetHitMargin)));
-            methods.Add(AccessUtils.GetMethodCalled(typeof(scnGame), nameof(scnGame.GetReleaseMargin)));
+            methods.Add(AccessTools.Method(typeof(scnGame), nameof(scnGame.GetHitMargin)));
+            methods.Add(AccessTools.Method(typeof(scnGame), nameof(scnGame.GetReleaseMargin)));
             return methods.AsEnumerable();
         }
 
         [HarmonyPrefix]
-        public static bool HitRleasePrefix(ref float __result, RDPlayer player)
+        public static bool HitReleasePrefix(ref float __result, RDPlayer player)
         {
-            if ((player != RDPlayer.P2 && p1Enabled.Value)
-            || (player == RDPlayer.P2 && p2Enabled.Value))
+            if ((player != RDPlayer.P2 && P1Enabled.Value)
+            || (player == RDPlayer.P2 && P2Enabled.Value))
             {
-                __result = marginMult(hitMargin.Value / 1000);
+                __result = marginMult(HitMargin.Value / 1000);
                 return false;
             }
             return true;
@@ -85,21 +68,28 @@ public class CustomDifficulty
         [HarmonyPatch(typeof(scnGame), "Awake")]
         public static void GameAwakePostfix()
         {
-            if (p1Enabled.Value)
+            if (P1Enabled.Value)
                 scnGame.p1DefibMode = defibViaHitMargins();
-            if (p2Enabled.Value)
+            if (P2Enabled.Value)
                 scnGame.p2DefibMode = defibViaHitMargins();
         }
 
+        public static RDPlayer player = RDPlayer.CPU;
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(RDHitStrip), nameof(RDHitStrip.SetPlayer))]
+        public static void HitstripPlayerDetect(RDPlayer player)
+            => ButtonHitStripPatch.player = player;
+
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(RDHitStrip), "Setup")]
-        public static void HitstripSetup(ref RDHitStrip __result, RDPlayer player)
+        [HarmonyPatch(typeof(RDHitStrip), nameof(RDHitStrip.SetWidth))]
+        public static void HitstripSetup(ref float ___width)
         {
-            if (!(player == RDPlayer.P1 && p1Enabled.Value)
-            && !(player == RDPlayer.P2 && p2Enabled.Value))
+            if (!(player == RDPlayer.P1 && P1Enabled.Value)
+            && !(player == RDPlayer.P2 && P2Enabled.Value))
                 return;
 
-            float hitmar = hitMargin.Value;
+            float hitmar = HitMargin.Value;
             float width;
             if (hitmar >= 80f)
             {
@@ -112,21 +102,18 @@ public class CustomDifficulty
                 width = 11f + (13f * ((hitmar - 40f) / 40f));
             else
             {
-                float baseVal = hitStripWidthLimiting.Value ? 8f : 1f;
+                float baseVal = HitStripWidthLimiting.Value ? 8f : 1f;
                 width = baseVal + ((11f - baseVal) * (hitmar / 40f));
             }
-            if (hitStripWidthLimiting.Value && width > 50f)
-                width = 50f;
 
-            // stupid reflection shit for private var
-            __result.GetType()
-            .GetField("width", BindingFlags.Instance | BindingFlags.NonPublic)
-            .SetValue(__result, (int)Math.Round(width));
+			width = Mathf.Clamp(width, 1f, 50f);
+            ___width = Mathf.Round(width);
+            player = RDPlayer.CPU;
         }
 
         private static DefibMode defibViaHitMargins()
         {
-            float hitmar = hitMargin.Value;
+            float hitmar = HitMargin.Value;
             if (hitmar <= 40f)
                 return DefibMode.Hard;
             if (hitmar <= 80f)
@@ -145,8 +132,8 @@ public class CustomDifficulty
         [HarmonyPatch(typeof(PauseModeContentArrows), nameof(PauseModeContentArrows.ChangeContentValue))]
         public static bool ContentValuePrefix(PauseModeContentArrows __instance)
         {
-            if ((__instance.contentData.name == PauseContentName.DefibrillatorP1 && p1Enabled.Value)
-            || (__instance.contentData.name == PauseContentName.DefibrillatorP2 && p2Enabled.Value))
+            if ((__instance.contentData.name == PauseContentName.DefibrillatorP1 && P1Enabled.Value)
+            || (__instance.contentData.name == PauseContentName.DefibrillatorP2 && P2Enabled.Value))
                 return false;
             return true;
         }
@@ -155,10 +142,10 @@ public class CustomDifficulty
         [HarmonyPatch(typeof(PauseModeContentArrows), nameof(PauseModeContentArrows.UpdateValue))]
         public static bool UpdateValuePrefix(PauseModeContentArrows __instance)
         {
-            if ((__instance.contentData.name == PauseContentName.DefibrillatorP1 && p1Enabled.Value)
-            || (__instance.contentData.name == PauseContentName.DefibrillatorP2 && p2Enabled.Value))
+            if ((__instance.contentData.name == PauseContentName.DefibrillatorP1 && P1Enabled.Value)
+            || (__instance.contentData.name == PauseContentName.DefibrillatorP2 && P2Enabled.Value))
             {
-                __instance.valueText.text = name.Value;
+                __instance.valueText.text = Name.Value;
 
                 // misc stuff
                 PauseMenuMode.CheckCJKText(__instance.valueText);

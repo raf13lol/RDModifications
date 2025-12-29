@@ -1,31 +1,16 @@
 using System.Text.RegularExpressions;
 using BepInEx.Configuration;
-using BepInEx.Logging;
 using HarmonyLib;
 
 namespace RDModifications;
 
-[Modification]
-public class ZeroOffsetSign
+[Modification("If the sign text should be green when a hit is within ±25ms and Numerical Hit Judgements are enabled.")]
+public class ZeroOffsetSign : Modification
 {
-    public static ManualLogSource logger;
+	[Configuration<bool>(true, "If the sign text should be red when a hit is not within ±25ms.")]
+    public static ConfigEntry<bool> RedMissOffset;
 
-    public static ConfigEntry<bool> enabled;
-    public static ConfigEntry<bool> redOffset;
-
-    public static bool Init(ConfigFile config, ManualLogSource logging)
-    {
-        logger = logging;
-        enabled = config.Bind("ZeroOffsetSign", "Enabled", false,
-        "If Numerical Hit Judgements are enabled, and if a hit is within the range that it would count as 'zero-offset', the sign text will be green.");
-
-        redOffset = config.Bind("ZeroOffsetSign", "RedOffset", false,
-        "If enabled and the hit is out of the range that it would count as 'zero-offset', the sign text will be red.");
-
-        return enabled.Value;
-    }
-
-    [HarmonyPatch(typeof(LEDSign), nameof(LEDSign.status), MethodType.Setter)]
+    [HarmonyPatch(typeof(LEDSign), "SetText")]
     private class GreenRedSignPatch
     {
         public static void Prefix(ref string value)
@@ -47,7 +32,7 @@ public class ZeroOffsetSign
             bool isNumber = int.TryParse(match.Value, out int number);
             if (!isNumber || number >= 25 || number <= -25)
             {
-                if (redOffset.Value)
+                if (RedMissOffset.Value)
                     addColorToSign(ref value, "#F00", "#A00");
                 return;
             }

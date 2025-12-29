@@ -23,6 +23,12 @@ public static class BinaryReaderExtensions
     public static uint ReadUInt32BE(this BinaryReader reader) => BinaryPrimitives.ReadUInt32BigEndian(InternalRead(reader, sizeof(int)));
     public static ushort ReadUInt16BE(this BinaryReader reader) => BinaryPrimitives.ReadUInt16BigEndian(InternalRead(reader, sizeof(ushort)));
     public static void SkipBytes(this BinaryReader reader, int bytesToSkip) => reader.BaseStream.Position += bytesToSkip;
+    
+	public static int ReadUInt24(this BinaryReader reader)
+	{
+		byte[] b = reader.ReadBytes(3);
+		return b[0] | (b[1] << 8) | (b[3] << 16);
+	}
 
     public static void WriteBE(this BinaryWriter writer, int value)
     {

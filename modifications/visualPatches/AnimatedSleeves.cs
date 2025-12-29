@@ -1,58 +1,36 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using APNGP;
+using APNG;
 using BepInEx.Configuration;
-using BepInEx.Logging;
 using HarmonyLib;
 using UnityEngine;
 
 namespace RDModifications;
 
-[Modification]
-public class AnimatedSleeves
+[Modification(
+	"If sleeves should be able to be animated. For more info on how to do this, consult the README.md on the github.\n" + 
+	"(WARNING: Do not attempt to load images that are quite big, as this may cause a crash.)"
+)]
+public class AnimatedSleeves : Modification
 {
-    public static ManualLogSource logger;
+	[Configuration<int>(6, "The FPS of the player 1 sleeve in slot 1.")]
+    public static ConfigEntry<int> P1Slot1FPS;
+	[Configuration<int>(6, "The FPS of the player 2 sleeve in slot 1.")]
+    public static ConfigEntry<int> P2Slot1FPS;
 
-    public static ConfigEntry<bool> enabled;
+    [Configuration<int>(6, "The FPS of the player 1 sleeve in slot 2.")]
+    public static ConfigEntry<int> P1Slot2FPS;
+	[Configuration<int>(6, "The FPS of the player 2 sleeve in slot 2.")]
+    public static ConfigEntry<int> P2Slot2FPS;
 
-    public static ConfigEntry<int> p1Slot1FPS;
-    public static ConfigEntry<int> p2Slot1FPS;
+	[Configuration<int>(6, "The FPS of the player 1 sleeve in slot 3.")]
+    public static ConfigEntry<int> P1Slot3FPS;
+	[Configuration<int>(6, "The FPS of the player 2 sleeve in slot 3.")]
+    public static ConfigEntry<int> P2Slot3FPS;
 
-    public static ConfigEntry<int> p1Slot2FPS;
-    public static ConfigEntry<int> p2Slot2FPS;
-
-    public static ConfigEntry<int> p1Slot3FPS;
-    public static ConfigEntry<int> p2Slot3FPS;
-
-    public static ConfigEntry<bool> consistentFPS;
-
-    public static bool Init(ConfigFile config, ManualLogSource logging)
-    {
-        logger = logging;
-        enabled = config.Bind("AnimatedSleeves", "Enabled", false,
-        "If sleeves should be able to be animated. For more info on how to do this, consult the README.md on the github.");
-
-        p1Slot1FPS = config.Bind("AnimatedSleeves", "P1Slot1FPS", 6,
-        "The fps of the player 1 sleeve in slot 1.");
-        p2Slot1FPS = config.Bind("AnimatedSleeves", "P2Slot1FPS", 6,
-        "The fps of the player 2 sleeve in slot 1.");
-
-        p1Slot2FPS = config.Bind("AnimatedSleeves", "P1Slot2FPS", 6,
-        "The fps of the player 1 sleeve in slot 2.");
-        p2Slot2FPS = config.Bind("AnimatedSleeves", "P2Slot2FPS", 6,
-        "The fps of the player 2 sleeve in slot 2.");
-
-        p1Slot3FPS = config.Bind("AnimatedSleeves", "P1Slot3FPS", 6,
-        "The fps of the player 1 sleeve in slot 3.");
-        p2Slot3FPS = config.Bind("AnimatedSleeves", "P2Slot3FPS", 6,
-        "The fps of the player 2 sleeve in slot 3.");
-
-        consistentFPS = config.Bind("AnimatedSleeves", "ConsistentFPS", false,
-        "If the fps of an animated sleeve shouldn't change with things like the Set Speed event.");
-
-        return enabled.Value;
-    }
+	[Configuration<bool>(false, "If the FPS of an animated sleeve shouldn't change with things like the Set Speed event.")]
+    public static ConfigEntry<bool> ConsistentFPS;
 
     private class AnimateSleevePatch
     {
@@ -73,7 +51,7 @@ public class AnimatedSleeves
             if (continueAnimation)
             {
                 double elapsed = Time.deltaTime;
-                if (consistentFPS.Value && Time.timeScale != 0)
+                if (ConsistentFPS.Value && Time.timeScale != 0)
                     elapsed /= Time.timeScale;
                 animatedSleeve.currentFrame = (currentFrame + elapsed * animatedSleeve.fps) % animatedSleeve.frames.Count;
                 SleeveData.animatedSleeves[player][slot] = animatedSleeve;
@@ -101,7 +79,7 @@ public class AnimatedSleeves
             animateSleeve(__instance.arm.material, (int)RDPlayer.P1, __instance.slot);
             // update material, needed so it rebuilds the ui
             __instance.arm.material = UnityEngine.Object.Instantiate(__instance.arm.material);
-            animateSleeve(__instance.arm.material, (int)RDPlayer.P1, __instance.slot);
+            // animateSleeve(__instance.arm.material, (int)RDPlayer.P1, __instance.slot);
         }
     }
 
@@ -139,7 +117,7 @@ public class AnimatedSleeves
             }
 
             using FileStream stream = File.Open(baseFilename + "_animated.png", FileMode.Open);
-            APNG apng = new(stream);
+            APNGFile apng = new(stream);
     
             if (apng.IsAnimated && apng.Width == 524 && apng.Height == 40) 
             {
@@ -152,10 +130,8 @@ public class AnimatedSleeves
                 return;
             }
 
-            Texture2D spritesheet = new(2, 2, TextureFormat.ARGB32, false, false, true);
-            spritesheet.LoadImage(File.ReadAllBytes(baseFilename + $"_animated.png"), false);
+            Texture2D spritesheet = apng.GetFrame().Texture;
             spritesheet.filterMode = FilterMode.Point;
-
             int framesAcross = spritesheet.width / 524;
             int framesDown = spritesheet.height / 40;
             int framesToAdd = framesAcross * framesDown;
@@ -195,8 +171,8 @@ public class AnimatedSleeves
 
                 // create here
                 animatedSleeves = [
-                    [new([], p1Slot1FPS.Value), new([], p1Slot2FPS.Value), new([], p1Slot3FPS.Value)],
-                    [new([], p2Slot1FPS.Value), new([], p2Slot2FPS.Value), new([], p2Slot3FPS.Value)]
+                    [new([], P1Slot1FPS.Value), new([], P1Slot2FPS.Value), new([], P1Slot3FPS.Value)],
+                    [new([], P2Slot1FPS.Value), new([], P2Slot2FPS.Value), new([], P2Slot3FPS.Value)]
                 ];
                 LoadAnimatedSleeves();
             }

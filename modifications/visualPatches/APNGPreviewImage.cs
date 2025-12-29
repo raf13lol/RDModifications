@@ -1,30 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using APNGP;
-using BepInEx.Configuration;
-using BepInEx.Logging;
+using APNG;
 using HarmonyLib;
 using UnityEngine;
 
 namespace RDModifications;
 
-[Modification]
-public class APNGPreviewImage
+[Modification("If custom levels that have an APNG as their preview image should have their preview image animated.")]
+public class APNGPreviewImage : Modification
 {
-    public static ManualLogSource logger;
-
-    public static ConfigEntry<bool> enabled;
-
-    public static bool Init(ConfigFile config, ManualLogSource logging)
-    {
-        logger = logging;
-        enabled = config.Bind("APNGPreviewImage", "Enabled", false,
-        "If enabled, custom levels that have an APNG as their preview image will have their preview image animated.");
-
-        return enabled.Value;
-    }
-
     private class PreviewAPNGImagePatch
     {
         public static Dictionary<string, APNGImage> apngFrames = [];
@@ -58,8 +43,8 @@ public class APNGPreviewImage
             apngFrames[currentID] = null;
 
             using FileStream stream = File.Open(imagePath, FileMode.Open);
-            APNG apng = new(stream);
-            if (!apng.IsAnimated)
+            APNGFile apng = new(stream);
+			if (!apng.IsAnimated)
                 return;
 
             apngFrames[currentID] = new(apng);
@@ -86,9 +71,9 @@ public class APNGPreviewImage
         }
     }
 
-    private class APNGImage(APNG apng) : IDisposable
+    private class APNGImage(IAnimatedImageFile apng) : IDisposable
     {
-        public APNG apng = apng;
+        public IAnimatedImageFile apng = apng;
         public int frameCount = apng.FrameCount;
         public List<OutputFrame> frames = [];
 
@@ -103,11 +88,8 @@ public class APNGPreviewImage
                     frames.Add(frame);
 
                     // garbage collector! more cleaning up please!
-                    if (apng.FrameCount == frames.Count)
-                    {
-                        apng = null;
+                    if (apng.FrameCount <= frames.Count)
                         break;
-                    }
                 }
             }
 

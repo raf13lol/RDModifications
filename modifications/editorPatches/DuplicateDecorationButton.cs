@@ -1,7 +1,4 @@
-using BepInEx.Configuration;
 using HarmonyLib;
-using BepInEx.Logging;
-using System.Reflection;
 using RDLevelEditor;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,22 +7,9 @@ using System.Collections.Generic;
 
 namespace RDModifications;
 
-[EditorModification]
-public class DuplicateDecorationButton
+[Modification("If there should be a button to duplicate decoration in the sprite settings panel.", true)]
+public class DuplicateDecorationButton : Modification
 {
-    public static ManualLogSource logger;
-
-    public static ConfigEntry<bool> enabled;
-
-    public static bool Init(ConfigFile config, ManualLogSource logging)
-    {
-        logger = logging;
-        enabled = config.Bind("EditorPatches", "DuplicateDecorationButton", false,
-        "If there should be a button to duplicate decoration in the Sprite Settings panel.");
-
-        return enabled.Value;
-    }
-
     [HarmonyPatch(typeof(InspectorPanel_MakeSprite), nameof(InspectorPanel_MakeSprite.Awake))]
     private class CreateDuplicateButtonPatch
     {
@@ -47,8 +31,8 @@ public class DuplicateDecorationButton
             // horrible code to remove the delete sprite callback
             Button button = duplicateButton.GetComponent<Button>();
             button.onClick.RemoveAllListeners();
-            typeof(UnityEventBase).GetMethod("DirtyPersistentCalls", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(button.onClick, []);
-            typeof(UnityEventBase).GetField("m_CallsDirty", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(button.onClick, false);
+            AccessTools.Method(typeof(UnityEventBase), "DirtyPersistentCalls").Invoke(button.onClick, []);
+            AccessTools.Field(typeof(UnityEventBase), "m_CallsDirty").SetValue(button.onClick, false);
 
             static Color createColor(float intensity) => new(intensity, intensity, intensity);
 
@@ -103,8 +87,8 @@ public class DuplicateDecorationButton
                 int[] indexRooms = [0, 0, 0, 0];
                 foreach (LevelEventControl_Base spriteEventControl in editor.eventControls)
                 {
-                    if (spriteEventControl.levelEvent.isSpriteTabEvent 
-                    && (spriteEventControl.levelEvent.type != LevelEventType.Comment || (spriteEventControl.levelEvent as LevelEvent_Comment).tab == Tab.Sprites))
+                    if (spriteEventControl.levelEvent.isSpriteTabEvent) 
+                    // && (spriteEventControl.levelEvent.type != LevelEventType.Comment || (spriteEventControl.levelEvent as LevelEvent_Comment).tab == Tab.Sprites))
                     {
                         spriteEventControl.levelEvent.row = index++;
                         spriteEventControl.levelEvent.y = indexRooms[SpriteHeader.GetSpriteData(spriteEventControl.levelEvent.target).room]++;

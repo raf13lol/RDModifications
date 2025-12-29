@@ -4,35 +4,22 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using BepInEx.Configuration;
-using BepInEx.Logging;
 using Newtonsoft.Json;
 using HarmonyLib;
-using System.IO;
-using System.Linq;
 using UnityEngine;
 
 namespace RDModifications;
 
-[Modification]
-public class LevelPRStatus
+[Modification("If the colour of the syringe body should change to display the peer-review status of a level (if it is on Rhythm Café) in the custom level select screen.")]
+public class LevelPRStatus : Modification
 {
-    public static ManualLogSource logger;
+	[Configuration<float>(1f, "How much more (or less) the colour of the syringe body should change depending on the PR status.")]
+    public static ConfigEntry<float> ColourAmplifier;
 
-    public static ConfigEntry<bool> enabled;
-    public static ConfigEntry<float> colorAmplifier;
-
-    public static bool Init(ConfigFile config, ManualLogSource logging)
+    public static void Init(bool enabled)
     {
-        logger = logging;
-        enabled = config.Bind("LevelPRStatus", "Enabled", false,
-        "If it should display the peer-review status of a level (if it is on Rhythm Café), by changing the color of the syringe body, in the custom level select screen.");
-        colorAmplifier = config.Bind("LevelPRStatus", "ColorAmplifier", 1f,
-        "How much more (or less) the color of the syringe body should change depending on the PR status.");
-
-        if (enabled.Value)
+        if (enabled)
             _ = PRLevels.Init();
-
-        return enabled.Value;
     }
 
     [HarmonyPatch(typeof(CustomLevel), nameof(CustomLevel.UpdateInfo))]
@@ -62,7 +49,7 @@ public class LevelPRStatus
                 _ => Color.white
             };
 
-            __instance.syringeBodyImage.color = Color.Lerp(Color.white, colToSet, Mathf.Min((status == 10 ? 0.325f : 0.5f) * colorAmplifier.Value, 1));
+            __instance.syringeBodyImage.color = Color.Lerp(Color.white, colToSet, Mathf.Min((status == 10 ? 0.325f : 0.5f) * ColourAmplifier.Value, 1));
         }
     }
     
@@ -83,11 +70,14 @@ public class LevelPRStatus
 
         public static async Task Init()
         {
-            HttpClient client = new();
-            bool gotAllSongs = false;
+			HttpClient client = new()
+			{
+				Timeout = TimeSpan.FromMinutes(30)
+			};
+			bool gotAllSongs = false;
             int page = 1;
 
-            logger.LogMessage("LevelPRStatus: Obtaining PR statuses...");
+            Log.LogMessage("LevelPRStatus: Obtaining PR statuses...");
 
             while (!gotAllSongs)
             {
@@ -97,7 +87,16 @@ public class LevelPRStatus
                     + "&page=" + page++));
                 request.Headers.Add("x-typesense-api-key", "nicolebestgirl");
 
-                HttpResponseMessage response = await client.SendAsync(request);
+				HttpResponseMessage response;
+				try
+				{
+                	response = await client.SendAsync(request);
+				}
+				catch (Exception exception)
+                {
+                    Log.LogMessage($"LevelPRStatus: Failed to get a page of levels. Error: {exception.Message}");
+					continue;
+                }
                 if (response.StatusCode != HttpStatusCode.OK)
                     return;
 
@@ -115,7 +114,7 @@ public class LevelPRStatus
                 }
             }
 
-            logger.LogMessage("LevelPRStatus: PR statuses obtained!");
+            Log.LogMessage("LevelPRStatus: PR statuses obtained!");
         }
 
         // needed

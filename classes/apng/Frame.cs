@@ -1,8 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace APNGP;
+namespace APNG;
 
 class Frame
 {
@@ -20,9 +19,9 @@ class Frame
 
     public List<Chunk> ImageDataChunks;
 
-    public Frame(APNG parent, Chunk frameInfoChunk, List<Chunk> imageChunks, bool staticIsAnimation = false)
+    public Frame(APNGFile parent, Chunk frameInfoChunk, List<Chunk> imageChunks, bool staticIsAnimation = false)
     {
-        using MemoryStream stream = new(frameInfoChunk.data);
+        using MemoryStream stream = new(frameInfoChunk.Data);
         using BinaryReader reader = new(stream);
         reader.SkipBytes(4); // skip sequence number
 
@@ -57,7 +56,7 @@ class Frame
         using MemoryStream stream = new();
         using BinaryWriter writer = new(stream);
         
-        writer.Write(APNG.PNGSignature);
+        writer.Write(APNGFile.PNGSignature);
 
         infoChunk.Width = Width;
         infoChunk.Height = Height;
@@ -68,7 +67,7 @@ class Frame
             chunk.WriteBytes(writer);
         writer.Write(postIDATChunks);
 
-        writer.Write(APNG.IENDChunk);
+        writer.Write(APNGFile.IENDChunk);
         return Utils.GetDataFromStream(stream);
     }
 }

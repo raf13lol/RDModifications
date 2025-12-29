@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace APNGP;
+namespace APNG;
 
 class IHDRChunk(BinaryReader? reader = null) : Chunk(reader)
 {
@@ -9,14 +9,14 @@ class IHDRChunk(BinaryReader? reader = null) : Chunk(reader)
         get
         {
             int val = GetInt32(0);
-            _width = val;
+            width = val;
             return val;
         }
         set
         {
-            if (_width != value)
+            if (width != value)
                 SetInt32(0, value);
-            _width = value;
+            width = value;
         }
     }
     public int Height 
@@ -24,39 +24,39 @@ class IHDRChunk(BinaryReader? reader = null) : Chunk(reader)
         get
         {
             int val = GetInt32(4);
-            _height = val;
+            height = val;
             return val;
         }
         set
         {
-            if (_height != value)
+            if (height != value)
                 SetInt32(4, value);
-            _height = value;
+            height = value;
         }
     }
 
-    private int _width;
-    private int _height;
+    private int width;
+    private int height;
 
     private int GetInt32(int pos, byte[]? readFrom = null)
     {
-        readFrom ??= data;
+        readFrom ??= Data;
 
         return (readFrom[pos] << 24) 
         | (readFrom[pos + 1] << 16) 
         | (readFrom[pos + 2] << 8) 
-        | (readFrom[pos + 3]); 
+        | readFrom[pos + 3]; 
     }
 
     private void SetInt32(int pos, int value, byte[]? writeInto = null)
     {
-        writeInto ??= data;
+        writeInto ??= Data;
         // simple i guess
         writeInto[pos] = (byte)((value >> 24) & 0xff);
         writeInto[pos + 1] = (byte)((value >> 16) & 0xff);
         writeInto[pos + 2] = (byte)((value >> 8) & 0xff);
         writeInto[pos + 3] = (byte)(value & 0xff);
 
-        crcDirty = true;
+        CrcDirty = true;
     }
 }

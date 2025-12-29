@@ -5,7 +5,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using BepInEx.Configuration;
-using BepInEx.Logging;
 using HarmonyLib;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -13,31 +12,24 @@ using UnityEngine.UI;
 
 namespace RDModifications;
 
-[Modification]
-public class DailyBlend
+[Modification(
+	"If enabled, and a valid Discord token is in put in DiscordToken that has access to the Rhythm Doctor Lounge channel, #daily-blend,\n" +
+	"pressing B in the ward screen of the Custom Levels scene will automatically open the URL downloader with the link of the daily blend(s).\n" +
+	"Having this enabled also makes the syringe liquid of the daily blend(s) brown, and searching 'daily-blend' will show the daily blend(s)."
+)]
+public class DailyBlend : Modification
 {
-    public static ManualLogSource logger;
-
-    public static ConfigEntry<bool> enabled;
-    public static ConfigEntry<string> token;
-
-    public static bool Init(ConfigFile config, ManualLogSource logging)
-    {
-        logger = logging;
-        enabled = config.Bind("DailyBlend", "Enabled", false,
-        "If enabled, and a valid Discord token in put in DiscordToken that has access to the Rhythm Doctor Lounge channel, #daily-blend,\n" +
-        "pressing B in the ward screen of the Custom Levels scene will automatically open the URL downloader with the link of the daily blend(s).\n" +
-        "Having this enabled also makes the syringe liquid of the daily blend(s) brown, and searching 'daily-blend' will show the daily blend(s).");
-
-        token = config.Bind("DailyBlend", "DiscordToken", "",
-        "Needs to be your Discord token. You can get it in many ways.\n" +
+	[Configuration<string>("", 
+		"Needs to be your Discord token. You can get it in many ways.\n" +
         "If you don't trust this, which is fair, you can check the source code of this patch at\n" +
-        "'https://github.com/raf13lol/RDModifications/blob/main/modifications/misc/DailyBlend.cs'.");
+        "'https://github.com/raf13lol/RDModifications/blob/main/modifications/misc/DailyBlend.cs'."
+	)]
+	public static ConfigEntry<string> Token;
 
-        if (enabled.Value && token.Value != (string)token.DefaultValue)
+    public static void Init(bool enabled)
+    {
+        if (enabled && Token.Value != (string)Token.DefaultValue)
             _ = RecentBlends.Init();
-
-        return enabled.Value;
     }
 
     [HarmonyPatch(typeof(scnCLS), "Update")]
@@ -45,20 +37,16 @@ public class DailyBlend
     {
         public static bool Prefix(scnCLS __instance)
         {
-            if (!__instance.ShowingWard || !__instance.CanReceiveInput || __instance.levelImporter.Showing)
+            if (!__instance.ShowingWard || !__instance.CanReceiveInput || __instance.levelImporter.Showing || !Input.GetKeyDown(KeyCode.B))
                 return true;
 
-            if (Input.GetKeyDown(KeyCode.B))
-            {
-                LevelImporter levelImporter = __instance.levelImporter;
-                levelImporter.Showing = true;
-				levelImporter.ToggleInsertUrlContainer(true, true, false);
-                levelImporter.urlInput.text = RecentBlends.BlendURLTextList;
-                levelImporter.ValidateUrl();
-                return false;
-            }
-            return true;
-        }
+			LevelImporter levelImporter = __instance.levelImporter;
+			levelImporter.Showing = true;
+			levelImporter.ToggleInsertUrlContainer(true, true, false);
+			levelImporter.urlInput.text = RecentBlends.BlendURLTextList;
+			levelImporter.ValidateUrl();
+			return false;
+		}
     }
 
     [HarmonyPatch(typeof(scnCLS), nameof(scnCLS.SetSearchData))]
@@ -89,7 +77,7 @@ public class DailyBlend
             if (isDailyBlend) // Like coffee. Do you get it? It's like coffee. Like daily blend. Blend of coffee beans. Come on now. 
                 liquid.color = new(205f / 156f, 127f / 148f, 50f / 241f);
             else
-                liquid.color = Color.white;
+				liquid.color = Color.white;
         }
     }
 
@@ -123,7 +111,7 @@ public class DailyBlend
                     url += $"&before={lastMessageID}";
 
                 HttpRequestMessage request = new(HttpMethod.Get, new Uri(url));
-                request.Headers.Add("Authorization", token.Value);
+                request.Headers.Add("Authorization", Token.Value);
 
                 HttpResponseMessage response = await client.SendAsync(request);
                 if (response.StatusCode != HttpStatusCode.OK)
@@ -175,9 +163,9 @@ public class DailyBlend
                 }
             }
             if (BlendIDs.Count > 0)
-                logger.LogMessage("DailyBlend: Obtained daily blend(s).");
+                Log.LogMessage("DailyBlend: Obtained daily blend(s).");
             else
-                logger.LogWarning("DailyBlend: No daily blend(s) obtained.");
+                Log.LogWarning("DailyBlend: No daily blend(s) obtained.");
         }
 
         public class Blend(string url)

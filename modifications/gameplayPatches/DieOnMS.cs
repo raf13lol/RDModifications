@@ -1,32 +1,17 @@
 using System;
 using BepInEx.Configuration;
-using BepInEx.Logging;
 using HarmonyLib;
-using UnityEngine;
 
 namespace RDModifications;
 
-[Modification]
-public class DieOnMS
+[Modification("If upon getting a certain millisecond timing on a hit, the player should instantly die.")]
+public class DieOnMS : Modification
 {
-    public static ManualLogSource logger;
+	[Configuration<int>(73, "The certain millisecond timing that would kill the player.")]
+    public static ConfigEntry<int> Millisecond;
 
-    public static ConfigEntry<bool> enabled;
-    public static ConfigEntry<int> millisecond;
-    public static ConfigEntry<bool> absolute;
-
-    public static bool Init(ConfigFile config, ManualLogSource logging)
-    {
-        logger = logging;
-        enabled = config.Bind("DieOnMS", "Enabled", false,
-        "If upon getting a certain millisecond timing on a hit, whether the player should instantly die.");
-
-        millisecond = config.Bind("DieOnMS", "Millisecond", 79, "The certain millisecond timing that would kill the player.");
-        
-        absolute = config.Bind("DieOnMS", "AbsoluteTiming", false, "Whether to use the absolute value of the timing.");
-
-        return enabled.Value;
-    }
+	[Configuration<bool>(false, "If it should uses the absolute value of the timing.")]
+    public static ConfigEntry<bool> AbsoluteTiming;
 
     [HarmonyPatch(typeof(scrPlayerbox), nameof(scrPlayerbox.Pulse))]
     private class HitMSPatch
@@ -36,9 +21,9 @@ public class DieOnMS
             if (CPUTriggered)
                 return;
             int ms = (int)(timeOffset * 1000f);
-            if (absolute.Value)
-                ms = Math.Abs(ms) * Math.Sign(millisecond.Value);
-            if (ms == millisecond.Value)
+            if (AbsoluteTiming.Value)
+                ms = Math.Abs(ms) * Math.Sign(Millisecond.Value);
+            if (ms == Millisecond.Value)
                 __instance.game.FailLevel(__instance.ent);
         }
     }
@@ -51,9 +36,9 @@ public class DieOnMS
             if (player != __instance.ent.row.GetCurrentPlayer() || cpuTriggered || !__instance.currentHoldBeat)
                 return;
             int ms = (int)((__instance.conductor.audioPos - __instance.currentHoldBeat.releaseTime) * 1000.0);
-            if (absolute.Value)
-                ms = Math.Abs(ms) * Math.Sign(millisecond.Value);
-            if (ms == millisecond.Value)
+            if (AbsoluteTiming.Value)
+                ms = Math.Abs(ms) * Math.Sign(Millisecond.Value);
+            if (ms == Millisecond.Value)
                 __instance.game.FailLevel(__instance.ent);
         }
     }

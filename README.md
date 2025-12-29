@@ -1,8 +1,10 @@
 # RDModifications
 
-## a bepinex 6 (mono) mod !! 
+## a bepinex 5/6 (mono) mod !! 
 
-Get bepinex 5 version via [a fork by jci](https://github.com/RandomGuyJCI/RDModifications)
+bepinex 6 version is the regularly named one
+
+Get bepinex 5 version via [the release called com.rhythmdr.bpe5randommodifications.dll](https://github.com/raf13lol/RDModifications/releases/download/3.0.0/com.rhythmdr.randommodifications.dll)
 
 some random modifications that some people could want and such so why not
 
@@ -25,12 +27,12 @@ List of modifications available with a simple summary:
 - DoctorMode -> Removes the `Rhythm` from `Rhythm Doctor` (destroys the rhythm engine)
 - EditorPatches -> Some patches to extend editor features or to improve editor [(see the section for more info)](#editorpatches)
 - ExtraLevelEndDetails -> Provides extra details at the end of a level, e.g. previous best
+- FakeRankOnMistake -> Allows for flashing a fake rank screen and a sound to play on each miss, with being able to choose the Rank shown/said
 - ForceGameSpeed -> Forces the game speed to a certain value (may cause a few issues due to how forceful it is)
-- LevelPRStatus -> Colors the syringe body of a custom level depending on the peer-review status of it on Rhythm Café
-- PretendFOnMistake -> Allows for flashing a fake rank screen and a sound to play on each miss, with being able to choose the Rank shown/said
+- LevelPRStatus -> Colours the syringe body of a custom level depending on the peer-review status of it on Rhythm Café
 - MassUnwrapLevels -> Allows for unwrapped all currently wrapped levels with a simple key combination
 - WindowTransparency (WINDOWS ONLY) -> Allows for setting how transparent the game window is
-- ZeroOffsetSign -> Makes the Numerical Hit Judgement sign colored based on the hit's ""zero-offsetness""
+- ZeroOffsetSign -> Makes the Numerical Hit Judgement sign coloured based on the hit's ""zero-offsetness""
 
 ## AnimatedSleeves setup
 
@@ -68,9 +70,10 @@ each image should have the suffix of `_frameX` where X is a number starting from
 
 ## EditorPatches
 
-- DisableInputFieldLimits -> numerical input field limits are disabled
-- DuplicateDecorationButton -> adds a button to duplicate a deco, above the delete button for the deco
-- EditorBorderTintOpacity -> enables/adds the built-in border/tint opacity field to paint events
+- DisableInputFieldLimits -> Numerical input field limits are disabled
+- DuplicateDecorationButton -> Adds a button to duplicate a deco, above the delete button for the deco
+- EditorBorderTintOpacity -> Enables/adds the built-in border/tint opacity field to paint events
+- ImportAnimatedImages -> Allows the importing of APNGs/GIFs and them being converting to a valid format 
 - InsertDeleteBars -> Alt + left click inserts a bar, alt + right click deletes the bar clicked (hard to explain shortly)
 - ShowMoreEventProperties -> More properties of events are now visible
 

@@ -4,7 +4,7 @@
 // This has been heavily cut down to just the parts that are needed
 using System;
 
-namespace APNGP;
+namespace APNG;
 
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.

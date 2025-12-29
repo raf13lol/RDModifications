@@ -1,35 +1,20 @@
-using BepInEx.Configuration;
 using HarmonyLib;
-using BepInEx.Logging;
 using System;
 using System.Reflection;
 using RDLevelEditor;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using UnityEngine;
-using System.Reflection.Emit;
 using UnityEngine.UI;
 
 namespace RDModifications;
 
-[EditorModification]
-public class EditorBorderTintOpacity
+[Modification(
+	"If there should be the built-in input field for the border/tint opacity in Paint Rows/Sprite, no matter what.\n" +
+	"Meant to simplify under/overtinting."
+, true)]
+public class EditorBorderTintOpacity : Modification
 {
-    public static ManualLogSource logger;
-
-    public static ConfigEntry<bool> enabled;
-
-    public static bool Init(ConfigFile config, ManualLogSource logging)
-    {
-        logger = logging;
-        enabled = config.Bind("EditorPatches", "EditorBorderTintOpacity", false,
-        "If there should be the built-in input field for the border/tint opacity in Paint Rows/Sprite, no matter what.\n" +
-        "Meant to simplify under/overtinting.");
-
-        return enabled.Value;
-    }
-
     private class TintRowsPatch
     {
         [HarmonyPrefix]
@@ -105,7 +90,7 @@ public class EditorBorderTintOpacity
     [HarmonyPatch(typeof(InspectorPanel), nameof(InspectorPanel.GetLocalizedString))]
     private class AddStringsLocPatch
     {
-        public static void Postfix(string ___panelName, ref string __result, string key)
+        public static void Postfix(ref string __result, string key, string ___panelName)
         {
             if (RDString.samuraiMode)
                 return;
@@ -165,10 +150,8 @@ public class EditorBorderTintOpacity
         {
             if (levelEvent != VariablesNeeded.eventToUse)
                 return;
-            BasePropertyInfo propertyInfo = (BasePropertyInfo)typeof(PropertyControl)
-                .GetMethod("get_propertyInfo", BindingFlags.NonPublic | BindingFlags.Instance)
-                .Invoke(__instance, []);
-
+            BasePropertyInfo propertyInfo = (BasePropertyInfo)AccessTools.PropertyGetter(typeof(PropertyControl), "propertyInfo").Invoke(__instance, []);
+    
             if (levelEvent is LevelEvent_Tint tintEvent)
             {   
                 void setColorAlpha(LevelEvent_Base levelEvent, string name, ColorOrPalette baseColor, double newAlpha)
@@ -187,8 +170,7 @@ public class EditorBorderTintOpacity
                     Type type = typeof(LevelEvent_TintRows);
                     if (levelEvent is LevelEvent_Tint)
                         type = typeof(LevelEvent_Tint);
-                    type.GetProperty(propName, BindingFlags.Instance | BindingFlags.Public)
-                        .SetValue(levelEvent, baseColor);
+                    AccessTools.Property(type, propName).SetValue(levelEvent, baseColor);
                 }
 
                 if (propertyInfo.name == "opacity")
@@ -222,7 +204,7 @@ public class EditorBorderTintOpacity
             {
                 if (propsList[i].name == "borderColor")
                 {
-                    propsList.Insert(i+1, BasePropertyInfo.FromProperty(typeof(VariablesNeeded).GetProperty("borderOpacity")));
+                    propsList.Insert(i+1, BasePropertyInfo.FromProperty(AccessTools.Property(typeof(VariablesNeeded), "borderOpacity")));
                     break;
                 }
             }
@@ -230,14 +212,12 @@ public class EditorBorderTintOpacity
             {
                 if (propsList[i].name == "tintColor")
                 {
-                    propsList.Insert(i+1, BasePropertyInfo.FromProperty(typeof(VariablesNeeded).GetProperty("tintOpacity")));
+                    propsList.Insert(i+1, BasePropertyInfo.FromProperty(AccessTools.Property(typeof(VariablesNeeded), "tintOpacity")));
                     break;
                 }
             }
 
-            __instance.GetType()
-                .GetField(nameof(__instance.propertiesInfo), BindingFlags.Instance | BindingFlags.Public)
-                .SetValue(__instance, propsList.ToImmutableList());
+            AccessTools.Field(__instance.GetType(), nameof(__instance.propertiesInfo)).SetValue(__instance, propsList.ToImmutableList());
         }
     }
 

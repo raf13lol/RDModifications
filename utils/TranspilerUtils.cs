@@ -6,13 +6,13 @@ namespace RDModifications;
 
 public class TranspilerUtils
 {
-    public static IEnumerable<CodeInstruction> ReplaceString(IEnumerable<CodeInstruction> instructions, string oldValue, string newValue, int times = 1)
+    public static IEnumerable<CodeInstruction> ReplaceString(IEnumerable<CodeInstruction> instructions, string oldValue, string newValue)
     {
-        CodeMatcher matcher = new CodeMatcher(instructions);
-        for (int i = 0; i < times; i++)
-            matcher = matcher.MatchForward(false, new CodeMatch(OpCodes.Ldstr, oldValue))
-                             .SetOperandAndAdvance(newValue);
-
-        return matcher.InstructionEnumeration();
+		foreach (CodeInstruction instruction in instructions)
+        {
+            if (instruction.opcode == OpCodes.Ldstr && (string)instruction.operand == oldValue)
+				instruction.operand = newValue;
+			yield return instruction;
+        }
     }
 }

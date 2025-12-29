@@ -1,36 +1,16 @@
 using BepInEx.Configuration;
 using HarmonyLib;
-using BepInEx.Logging;
-using UnityEngine;
 using System;
 using System.Runtime.InteropServices;
+using UnityEngine;
 
 namespace RDModifications;
 
-[Modification]
-public class WindowTransparency
+[Modification("If the window's opacity should be able to be controlled.", false, (int)RuntimePlatform.WindowsPlayer)]
+public class WindowTransparency : Modification
 {
-    public static bool properEnabled => enabled != null && enabled.Value;
-
-    public static ConfigEntry<bool> enabled;
-    public static ConfigEntry<byte> opacity;
-
-    public static ManualLogSource logger;
-
-    public static bool Init(ConfigFile config, ManualLogSource logging)
-    {
-        logger = logging;
-        if (Application.platform != RuntimePlatform.WindowsPlayer)
-            return false;
-
-        enabled = config.Bind("WindowTransparency", "Enabled", false,
-        "If you should be able to control the window's opacity.");
-
-        opacity = config.Bind("WindowTransparency", "Opacity", (byte)128,
-        "What the window's opacity should be. (0-255)");
-
-        return enabled.Value;
-    }
+	[Configuration<byte>(128, "What the window's opacity should be. (0-255)")]
+    public static ConfigEntry<byte> Opacity;
 
     [HarmonyPatch(typeof(scnMenu), "Update")]
     private class DoTheCodeHerePatch
@@ -59,14 +39,12 @@ public class WindowTransparency
             const int WS_EX_LAYERED = 0x00080000;
             const int LWA_ALPHA = 0x00000002;
             IntPtr NULL = new(0);
-
-
             IntPtr win = FindWindowA(null, "Rhythm Doctor");
-            if (win == null || win.ToInt32() == 0)
+            if (win == null || win == NULL || win.ToInt32() == 0)
                 return;
 
             SetWindowLongA(win, GWL_EXSTYLE, GetWindowLongA(win, GWL_EXSTYLE) | WS_EX_LAYERED);
-            SetLayeredWindowAttributes(win, 0xFF000000, opacity.Value, LWA_ALPHA);
+            SetLayeredWindowAttributes(win, 0xFF000000, Opacity.Value, LWA_ALPHA);
 
             doneItYet = true;
         }

@@ -1,12 +1,14 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using BepInEx;
 using BepInEx.Configuration;
+#if !BPE5
 using BepInEx.Unity.Mono;
+#endif
 using HarmonyLib;
+
 
 namespace RDModifications;
 
@@ -14,39 +16,54 @@ namespace RDModifications;
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 public class RDModificationsEntry : BaseUnityPlugin
 {
-    public static new ConfigEntry<bool> enabled;
-    public static ConfigEntry<bool> autoUpdateEnabled;
-    public static ConfigEntry<bool> enabledEditor;
+	#if !BPE5
+		public const string DLLName = "randommodifications";
+	#else
+		public const string DLLName = "bpe5randommodifications";
+	#endif
+
+    public static ConfigEntry<bool> Enabled;
+    public static ConfigEntry<bool> AutoUpdateEnabled;
+    public static ConfigEntry<bool> EditorEnabled;
+
+	public static Harmony HarmonyPatcher;
+	public static ConfigFile Configuration;
+	public static PluginInfo PluginInfo;
 
     public void Awake()
     {
-        enabled = Config.Bind("", "Enabled", true, 
+        Enabled = Config.Bind("", "Enabled", true, 
         "Whether any of the available modifications should be loaded at all.");
-        enabled = Config.Bind("", "AutoUpdateEnabled", true, 
+        AutoUpdateEnabled = Config.Bind("", "AutoUpdateEnabled", true, 
         "Whether RDModifications should auto-update. Only disable this in specific cases.");
-        enabledEditor = Config.Bind("EditorPatches", "Enabled", false,
+        EditorEnabled = Config.Bind("EditorPatches", "Enabled", true,
         "If any of the editor patches should be enabled.");
         
-        _ = CheckUpdate();
+		if (AutoUpdateEnabled.Value)
+        	_ = CheckUpdate();
 
-        if (enabled.Value)
-        {
-            bool anyEnabled = false;
-            Harmony patcher = new("patcher");
+		if (!Enabled.Value)
+		{
+			Logger.LogMessage("All modifications have been disabled.");
+			return;
+		}
 
-            // we send the patcher/config to each class so they can all handle their own logic independant of the main class
-            // (i'm making it sound really fancy)
-            PatchUtils.PatchAllWithAttribute<ModificationAttribute>(patcher, Config, Logger, ref anyEnabled);
-            PatchUtils.PatchAllWithAttribute<EditorModificationAttribute>(patcher, Config, Logger, ref anyEnabled, !enabledEditor.Value);
+		HarmonyPatcher = new("patcher");
+		Configuration = Config;
+		PluginInfo = Info;
 
-            if (anyEnabled)
-                Logger.LogMessage("Any modifications that have been enabled have been loaded. See individual messages for any info on issues.");
-            else
-                Logger.LogMessage("No modifications are enabled, edit your config file to change ");
-        }
-        else
-            Logger.LogMessage("All modifications have been disabled.");
-    }
+		Modification.Log = Logger;
+		Modification.Enabled = [];
+
+		// we send the patcher/config to each class so they can all handle their own logic independent of the main class
+		// (i'm making it sound really fancy)
+		Patcher.PatchAllWithAttribute<ModificationAttribute>(out bool anyEnabled, !EditorEnabled.Value);
+
+		if (anyEnabled)
+			Logger.LogMessage("Any modifications that have been enabled have been loaded. See individual messages for any info on issues.");
+		else
+			Logger.LogMessage("No modifications are enabled, edit your config file to change your settings.");
+	}
 
     public async Task CheckUpdate()
     {
@@ -77,13 +94,20 @@ public class RDModificationsEntry : BaseUnityPlugin
                 return;
             }
 
-            HttpResponseMessage file = await client.GetAsync($"https://github.com/raf13lol/RDModifications/releases/download/{content}/com.rhythmdr.randommodifications.dll");
+            HttpResponseMessage file = await client.GetAsync($"https://github.com/raf13lol/RDModifications/releases/download/{content}/com.rhythmdr.{DLLName}.dll");
             if (file.StatusCode != HttpStatusCode.OK)
                 return;
 
             byte[] fileData = await file.Content.ReadAsByteArrayAsync();
-            File.WriteAllBytes(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "BepInEx", "plugins", "com.rhythmdr.randommodifications.dll"), fileData);
+            File.WriteAllBytes(PluginInfo.Location, fileData);
             Logger.LogWarning($"RDModifications was outdated ({content} > {MyPluginInfo.PLUGIN_VERSION}), please restart to apply the updated version of the mod.");
+
+			HttpResponseMessage response2 = await client.GetAsync("https://raw.githubusercontent.com/raf13lol/RDModifications/refs/heads/main/CHANGELOG.txt");
+            if (response.StatusCode != HttpStatusCode.OK)
+                return;
+				
+            string changelog = await response2.Content.ReadAsStringAsync();
+			Logger.LogWarning("Changelog: \n" + changelog);
         }
         catch
         {

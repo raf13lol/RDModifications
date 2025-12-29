@@ -1,36 +1,24 @@
-using BepInEx.Configuration;
 using HarmonyLib;
-using BepInEx.Logging;
 using System;
 using System.Reflection;
 using RDLevelEditor;
+using UnityEngine.UI;
 
 namespace RDModifications;
 
-[EditorModification]
-public class DisableInputFieldLimits
+[Modification(
+	"If input fields (next to sliders or not) in the editor shouldn't be limited.\n" + 
+	"Do note that it may break some events horribly by not abiding to their limits." 
+, true)]
+public class DisableInputFieldLimits : Modification
 {
-    public static ManualLogSource logger;
-
-    public static ConfigEntry<bool> enabled;
-
-    public static bool Init(ConfigFile config, ManualLogSource logging)
-    {
-        logger = logging;
-        enabled = config.Bind("EditorPatches", "DisableInputFieldLimits", false,
-        "If input fields (next to sliders or not) in the editor shouldn't be limited.\nDo note that it may break some events horribly.");
-
-        return enabled.Value;
-    }
-
     [HarmonyPatch(typeof(PropertyControl_InputField), nameof(PropertyControl_InputField.Save))]
     private class RegularInputFieldsPatch
     {
-        public static bool Prefix(PropertyControl_InputField __instance, LevelEvent_Base levelEvent)
+        public static bool Prefix(PropertyControl_InputField __instance, LevelEvent_Base levelEvent, ref bool ___alreadyUpdating)
         {
-            FieldInfo alreadyUpdating = typeof(PropertyControl_InputField).GetField("alreadyUpdating", BindingFlags.NonPublic | BindingFlags.Instance);
-            Property parentProperty = (Property)typeof(PropertyControl).GetProperty("parentProperty", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(__instance);
-            alreadyUpdating.SetValue(__instance, true);
+            ___alreadyUpdating = true;
+            Property parentProperty = (Property)AccessTools.Property(typeof(PropertyControl), "parentProperty").GetValue(__instance);
             BasePropertyInfo nullableUnderlying = parentProperty.propertyInfo.NullableUnderlying;
 
             object obj;
@@ -45,13 +33,13 @@ public class DisableInputFieldLimits
                 obj = int.Parse(__instance.inputField.text);
             else
             {
-                alreadyUpdating.SetValue(__instance, false);
+                ___alreadyUpdating = false;
                 return false;
             }
 
             __instance.inputField.text = obj?.ToString();
             parentProperty.propertyInfo.propertyInfo.SetValue(levelEvent, obj);
-            alreadyUpdating.SetValue(__instance, false);
+            ___alreadyUpdating = false;
             return false;
         }
     }
@@ -60,14 +48,12 @@ public class DisableInputFieldLimits
     private class SliderOnEndEditPatch
     {
         public static MethodInfo TargetMethod()
-        {
-            return AccessUtils.GetInnerMethodContainsWithArgs(typeof(PropertyControl_Slider), "<>c__", "<AddListeners>", [typeof(string)]);
-        }
+        	=> AccessUtils.GetInnerMethodContainsWithArgs(typeof(PropertyControl_Slider), "<>c__", "<AddListeners>", [typeof(string)]);
 
         [HarmonyPostfix]
         public static void ALPost(object __instance, string value)
         {
-            PropertyControl_Slider inst = (PropertyControl_Slider)AccessUtils.GetFieldContains(__instance.GetType(), "_this").GetValue(__instance);
+            PropertyControl_Slider inst = (PropertyControl_Slider)AccessUtils.GetFirstFieldContains(__instance.GetType(), "_this").GetValue(__instance);
             if (!inst.inputField.gameObject.activeInHierarchy)
                 return;
 
@@ -84,12 +70,7 @@ public class DisableInputFieldLimits
         {
             if (!__instance.inputField.gameObject.activeInHierarchy || __instance.inputField == null)
                 return;
-
-            object value = typeof(PropertyControl)
-                .GetMethod("GetEventValue", BindingFlags.NonPublic | BindingFlags.Instance)
-                .Invoke(__instance, [levelEvent]);
-
-            __instance.inputField.text = value.ToString();
+            __instance.inputField.text = AccessTools.Method(typeof(PropertyControl), "GetEventValue").Invoke(__instance, [levelEvent]).ToString();
         }
 
         [HarmonyPostfix]
@@ -98,96 +79,81 @@ public class DisableInputFieldLimits
         {
             if (!__instance.inputField.gameObject.activeInHierarchy || __instance.inputField == null)
                 return;
+
             object num;
             if (!__instance.slider.wholeNumbers)
                 num = float.Parse(__instance.inputField.text);
             else
                 num = Convert.ToInt32(__instance.inputField.text);
 
-            typeof(PropertyControl)
-                .GetMethod("SetEventValue", BindingFlags.NonPublic | BindingFlags.Instance)
-                .Invoke(__instance, [levelEvent, num]);
+            AccessTools.Method(typeof(PropertyControl), "SetEventValue").Invoke(__instance, [levelEvent, num]);
         }
     }
 
-    // i hate how i have to copy this horrible stuff
-    private class SliderAlphaPatch
+    private class OtherSlidersPatch
     {
         [HarmonyPrefix]
         [HarmonyPatch(typeof(PropertyControl_SliderAlpha), nameof(PropertyControl_SliderAlpha.UpdateSlider))]
-        public static void UpdateSliderPrefix(PropertyControl_SliderAlpha __instance, ref string __state)
-            => __state = __instance.inputField.text;
+		[HarmonyPatch(typeof(PropertyControl_SliderPercent), nameof(PropertyControl_SliderPercent.UpdateSlider))]
+        public static void UpdateSliderPrefix(out string __state, InputField ___inputField)
+            => __state = ___inputField.text;
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(PropertyControl_SliderAlpha), nameof(PropertyControl_SliderAlpha.UpdateSlider))]
-        public static void UpdateSliderPostfix(PropertyControl_SliderAlpha __instance, ref string __state)
+        [HarmonyPatch(typeof(PropertyControl_SliderPercent), nameof(PropertyControl_SliderPercent.UpdateSlider))]
+        public static void UpdateSliderPostfix(PropertyControl __instance, string __state, InputField ___inputField)
         {
-            __instance.inputField.text = __state;
+            ___inputField.text = __state;
             __instance.Save(__instance.editor.selectedControl.levelEvent);
         }
 
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(PropertyControl_SliderAlpha), nameof(PropertyControl_SliderAlpha.UpdateUI))]
-        public static void UpdateUIPostfix(PropertyControl_SliderAlpha __instance, LevelEvent_Base levelEvent)
+        [HarmonyPatch(typeof(PropertyControl_SliderPercent), nameof(PropertyControl_SliderPercent.UpdateUI))]
+        public static void UpdateUIPostfix(PropertyControl __instance, LevelEvent_Base levelEvent, InputField ___inputField)
         {
-            int value = (int)typeof(PropertyControl)
-                .GetMethod("GetEventValue", BindingFlags.NonPublic | BindingFlags.Instance)
-                .Invoke(__instance, [levelEvent]);
-            __instance.inputField.text = value.ToString();
-        }
-
+            float value = (float)AccessTools.Method(typeof(PropertyControl), "GetEventValue").Invoke(__instance, [levelEvent]);
+			if (__instance is PropertyControl_SliderPercent)
+				value *= 100;
+			___inputField.text = value.ToString();
+        } 
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(PropertyControl_SliderAlpha), nameof(PropertyControl_SliderAlpha.Save))]
-        public static void SavePropertyPostfix(PropertyControl_SliderAlpha __instance, LevelEvent_Base levelEvent)
-        {
-            int num = int.Parse(__instance.inputField.text);
-
-            typeof(PropertyControl)
-                .GetMethod("SetEventValue", BindingFlags.NonPublic | BindingFlags.Instance)
-                .Invoke(__instance, [levelEvent, num]);
-        }
-    }
-
-    private class SliderPercentPatch
-    {
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(PropertyControl_SliderPercent), nameof(PropertyControl_SliderPercent.UpdateSlider))]
-        public static void UpdateSliderPrefix(PropertyControl_SliderPercent __instance, ref string __state)
-            => __state = __instance.inputField.text;
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(PropertyControl_SliderPercent), nameof(PropertyControl_SliderPercent.UpdateSlider))]
-        public static void UpdateSliderPostfix(PropertyControl_SliderPercent __instance, ref string __state)
-        {
-            __instance.inputField.text = __state;
-            __instance.Save(__instance.editor.selectedControl.levelEvent);
-        }
-
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(PropertyControl_SliderPercent), nameof(PropertyControl_SliderPercent.UpdateUI))]
-        public static void UpdateUIPostfix(PropertyControl_SliderPercent __instance, LevelEvent_Base levelEvent)
-        {
-            float value = (float)typeof(PropertyControl)
-                .GetMethod("GetEventValue", BindingFlags.NonPublic | BindingFlags.Instance)
-                .Invoke(__instance, [levelEvent]);
-
-            __instance.inputField.text = (value * 100).ToString();
-        }
-
+        public static void SavePropertyAlphaPostfix(PropertyControl_SliderAlpha __instance, LevelEvent_Base levelEvent, InputField ___inputField)
+            => AccessTools.Method(typeof(PropertyControl), "SetEventValue").Invoke(__instance, [levelEvent, int.Parse(___inputField.text)]);
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(PropertyControl_SliderPercent), nameof(PropertyControl_SliderPercent.Save))]
-        public static void SavePropertyPostfix(PropertyControl_SliderPercent __instance, LevelEvent_Base levelEvent)
+        public static void SavePropertyPercentPostfix(PropertyControl_SliderPercent __instance, LevelEvent_Base levelEvent)
         {
             float num = float.Parse(__instance.inputField.text);
-
-            typeof(PropertyControl)
-                .GetMethod("SetEventValue", BindingFlags.NonPublic | BindingFlags.Instance)
-                .Invoke(__instance, [levelEvent, num / 100]);
+            AccessTools.Method(typeof(PropertyControl), "SetEventValue").Invoke(__instance, [levelEvent, num / 100]);
         }
     }
 
+	private class MakeRowPatch
+    {
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(InspectorPanel_MakeRow), "SaveInternal")]
+        public static void SavePrefix(InspectorPanel_MakeRow __instance, ref string __state)
+            => __state = __instance.length.text;
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(InspectorPanel_MakeRow), "SaveInternal")]
+        public static void SavePostfix(InspectorPanel_MakeRow __instance, ref string __state, LevelEvent_Base levelEvent)
+        {
+            if (!Enabled[typeof(DisableInputFieldLimits)].Value)
+                return;
+            LevelEvent_MakeRow data = (LevelEvent_MakeRow)levelEvent;
+            data.length = int.TryParse(__state, out int result) ? result : 7;
+            __instance.length.text = __state;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(InspectorPanel_MakeRow), nameof(InspectorPanel_MakeRow.Awake))]
+        public static void InspectorPanelPostfix(InspectorPanel_MakeRow __instance)
+            => __instance.length.characterLimit = 0;
+    }
 }
