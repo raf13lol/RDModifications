@@ -4,7 +4,7 @@
 
 bepinex 6 version is the regularly named one
 
-Get bepinex 5 version via [the release called com.rhythmdr.bpe5randommodifications.dll](https://github.com/raf13lol/RDModifications/releases/download/3.0.0/com.rhythmdr.randommodifications.dll)
+Get bepinex 5 version via [the release called com.rhythmdr.bpe5randommodifications.dll](https://github.com/raf13lol/RDModifications/releases/download/3.0.0/com.rhythmdr.bpe5randommodifications.dll)
 
 some random modifications that some people could want and such so why not
 
