@@ -144,8 +144,6 @@ public class DisableInputFieldLimits : Modification
         [HarmonyPatch(typeof(InspectorPanel_MakeRow), "SaveInternal")]
         public static void SavePostfix(InspectorPanel_MakeRow __instance, ref string __state, LevelEvent_Base levelEvent)
         {
-            if (!Enabled[typeof(DisableInputFieldLimits)].Value)
-                return;
             LevelEvent_MakeRow data = (LevelEvent_MakeRow)levelEvent;
             data.length = int.TryParse(__state, out int result) ? result : 7;
             __instance.length.text = __state;
