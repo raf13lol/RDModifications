@@ -20,16 +20,15 @@ public class DisableInputFieldLimits : Modification
             ___alreadyUpdating = true;
             Property parentProperty = (Property)AccessTools.Property(typeof(PropertyControl), "parentProperty").GetValue(__instance);
             BasePropertyInfo nullableUnderlying = parentProperty.propertyInfo.NullableUnderlying;
-
             object obj;
 
             if (nullableUnderlying is StringPropertyInfo)
                 obj = __instance.inputField.text;
-            if (nullableUnderlying is FloatExpressionPropertyInfo)
+            else if (nullableUnderlying is FloatExpressionPropertyInfo)
                 obj = FloatExpression.FromString(__instance.inputField.text);
-            if (nullableUnderlying is FloatPropertyInfo)
+            else if (nullableUnderlying is FloatPropertyInfo)
                 obj = float.Parse(__instance.inputField.text);
-            if (nullableUnderlying is IntPropertyInfo)
+            else if (nullableUnderlying is IntPropertyInfo)
                 obj = int.Parse(__instance.inputField.text);
             else
             {

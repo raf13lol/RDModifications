@@ -1,1 +1,1 @@
-Fix some major bullshit that was happening with apng preview image
+FIx disable input field limits
