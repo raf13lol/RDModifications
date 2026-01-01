@@ -13,11 +13,12 @@ public class Patcher
 {
 	public static void PatchAllWithAttribute<T>(out bool anyEnabled, bool forceEditorOff) where T : ModificationAttribute
 	{
-		Harmony patcher = RDModificationsEntry.HarmonyPatcher;
-		ConfigFile config = RDModificationsEntry.Configuration;
+		Harmony patcher = Entry.HarmonyPatcher;
+		ConfigFile config = Entry.Configuration;
 		ManualLogSource logger = Modification.Log;
 
-		Type[] potentialTypes = typeof(RDModificationsEntry).Assembly.GetTypes();
+		Type[] potentialTypes = typeof(Entry).Assembly.GetTypes();
+		Dictionary<Type, MethodInfo> getConfigs = [];
 
 		anyEnabled = false;
 		foreach (Type type in potentialTypes)
@@ -37,11 +38,18 @@ public class Patcher
 			Modification.Enabled[type] = enabled;
 			foreach (FieldInfo field in fields)
             {
-                Attribute configAttrib = field.GetCustomAttributes().ToList().Find(attrib => attrib.GetType().Name.StartsWith(nameof(ConfigurationAttribute<>)));
-				if (configAttrib == null)
+				Attribute[] attribs = [.. field.GetCustomAttributes()];
+                Attribute configAttrib = attribs.Length > 0 ? attribs[0] : null;
+				if (configAttrib == null || !configAttrib.GetType().IsGenericType) // may not work forever.... beware!
 					continue;
-				
-				field.SetValue(null, AccessTools.Method(configAttrib.GetType(), "GetConfig").Invoke(configAttrib, [config, sectionName, field.Name]));
+
+				Type configType = configAttrib.GetType().GetGenericArguments()[0];
+				if (!getConfigs.TryGetValue(configType, out MethodInfo getConfig))
+				{
+					getConfig = AccessTools.Method(configAttrib.GetType(), "GetConfig");
+					getConfigs[configType] = getConfig;	
+				}
+				field.SetValue(null, getConfig.Invoke(configAttrib, [config, sectionName, field.Name]));
             }
 
 			// should we actually patch + init

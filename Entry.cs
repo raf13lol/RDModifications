@@ -8,19 +8,22 @@ using BepInEx.Configuration;
 using BepInEx.Unity.Mono;
 #endif
 using HarmonyLib;
+using UnityEngine;
 
 
 namespace RDModifications;
 
 [BepInProcess("Rhythm Doctor.exe")]
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
-public class RDModificationsEntry : BaseUnityPlugin
+public class Entry : BaseUnityPlugin
 {
 	#if !BPE5
 		public const string DLLName = "randommodifications";
 	#else
 		public const string DLLName = "bpe5randommodifications";
 	#endif
+
+	public static string UserDataFolder = Path.Combine(Application.dataPath.Replace("Rhythm Doctor_Data", ""), "User");
 
     public static ConfigEntry<bool> Enabled;
     public static ConfigEntry<bool> AutoUpdateEnabled;

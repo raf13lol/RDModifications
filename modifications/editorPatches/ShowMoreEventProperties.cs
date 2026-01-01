@@ -14,7 +14,7 @@ public class ShowMoreEventProperties : Modification
 
 	public static bool Init(bool enabled)
     {
-		UnlockEditorExists = File.Exists(Path.Combine(Path.GetDirectoryName(RDModificationsEntry.PluginInfo.Location), "UnlockEditor.dll"));;
+		UnlockEditorExists = File.Exists(Path.Combine(Path.GetDirectoryName(Entry.PluginInfo.Location), "UnlockEditor.dll"));;
         if (!enabled)
 			return false;
 		// check for seq's mod and if it does exist don't do the EnableDevEventStuffPatch because it already does what we do

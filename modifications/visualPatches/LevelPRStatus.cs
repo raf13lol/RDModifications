@@ -7,6 +7,8 @@ using BepInEx.Configuration;
 using Newtonsoft.Json;
 using HarmonyLib;
 using UnityEngine;
+using System.Linq;
+using System.IO;
 
 namespace RDModifications;
 
@@ -15,6 +17,12 @@ public class LevelPRStatus : Modification
 {
 	[Configuration<float>(1f, "How much more (or less) the colour of the syringe body should change depending on the PR status.")]
     public static ConfigEntry<float> ColourAmplifier;
+
+	[Configuration<bool>(false, 
+		"If the PR statuses should be saved and refreshed on each load instead of fully reloading each time.\n" + 
+		"May take up some storage (~400KB+) and slow down the start-up sequence of Rhythm Doctor."
+	)]
+	public static ConfigEntry<bool> ShouldCache;
 
     public static void Init(bool enabled)
     {
@@ -55,14 +63,15 @@ public class LevelPRStatus : Modification
     
     private class PRLevels
     {
-        public static Dictionary<string, sbyte> levelStatuses = [];
-        public static Dictionary<string, sbyte> levelV2Statuses = [];
+        public static Dictionary<string, sbyte> LevelStatuses = [];
+        public static Dictionary<string, sbyte> LevelV2Statuses = [];
+		public static string Filename = Path.Combine(Entry.UserDataFolder, "__rdmodifications_prstatuses_cache.rdmf");
 
         public static sbyte Get(string id, bool checkIfFromV2 = false)
         {
-            Dictionary<string, sbyte> dictToCheck = levelStatuses;
+            Dictionary<string, sbyte> dictToCheck = LevelStatuses;
             if (checkIfFromV2)
-                dictToCheck = levelV2Statuses;
+                dictToCheck = LevelV2Statuses;
             if (dictToCheck.TryGetValue(id, out sbyte val))
                 return val;
             return -127; // means no entry (not on rdcafe or not all data got yet)
@@ -70,12 +79,25 @@ public class LevelPRStatus : Modification
 
         public static async Task Init()
         {
+			if (ShouldCache.Value && File.Exists(Filename))
+            {
+				string[] savedCache = File.ReadAllLines(Filename);
+				foreach (string str in savedCache)
+                {
+					string[] parts = str.Split(";");
+					sbyte approval = sbyte.Parse(parts[2]);
+                    LevelStatuses.Add(parts[0], approval);
+                    LevelV2Statuses.Add(parts[1], approval);
+                }
+            }
+
 			HttpClient client = new()
 			{
 				Timeout = TimeSpan.FromMinutes(30)
 			};
 			bool gotAllSongs = false;
             int page = 1;
+			string cache = "";
 
             Log.LogMessage("LevelPRStatus: Obtaining PR statuses...");
 
@@ -109,11 +131,19 @@ public class LevelPRStatus : Modification
 
                 foreach (TypeSenseResponse.Hit hit in hits)
                 {
-                    levelStatuses.Add(hit.document.id, (sbyte)hit.document.approval);
-                    levelV2Statuses.Add(hit.document.sha1[3..], (sbyte)hit.document.approval);
+					string sha = hit.document.sha1[3..];
+					sbyte approval = (sbyte)hit.document.approval;
+                    LevelStatuses.Add(hit.document.id, approval);
+                    LevelV2Statuses.Add(sha, approval);
+
+					if (cache != "")
+						cache += "\n";
+					cache += $"{hit.document.id};{sha};{approval}";
                 }
             }
 
+			if (ShouldCache.Value)
+                _ = File.WriteAllTextAsync(Filename, cache);
             Log.LogMessage("LevelPRStatus: PR statuses obtained!");
         }
 
