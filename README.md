@@ -2,9 +2,9 @@
 
 ## a bepinex 5/6 (mono) mod !! 
 
-bepinex 6 version is the regularly named one
+bepinex 6 version is the regularly named one (Doesn't include bpe5 in its filename)
 
-Get bepinex 5 version via [the release called com.rhythmdr.bpe5randommodifications.dll](https://github.com/raf13lol/RDModifications/releases/download/3.0.2/com.rhythmdr.bpe5randommodifications.dll)
+Get bepinex 5 version via the dll file called com.rhythmdr.bpe5randommodifications.dll in releases
 
 some random modifications that some people could want and such so why not
 
