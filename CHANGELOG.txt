@@ -1,1 +1,1 @@
-hello i'm gonna be honest 3.0.0 is such a big update that i can't be bothered with making a changelog here... sorry
+fix a mod on nonbeta branch
