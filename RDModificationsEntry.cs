@@ -63,6 +63,8 @@ public class RDModificationsEntry : BaseUnityPlugin
 			Logger.LogMessage("Any modifications that have been enabled have been loaded. See individual messages for any info on issues.");
 		else
 			Logger.LogMessage("No modifications are enabled, edit your config file to change your settings.");
+
+		
 	}
 
     public async Task CheckUpdate()

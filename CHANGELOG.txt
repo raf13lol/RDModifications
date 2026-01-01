@@ -1,1 +1,1 @@
-fix a mod on nonbeta branch
+Fix some major bullshit that was happening with apng preview image
