@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -58,7 +59,7 @@ public class Entry : BaseUnityPlugin
 		Modification.Log = Logger;
 		Modification.Enabled = [];
 
-		// we send the patcher/config to each class so they can all handle their own logic independent of the main class
+		// We do everything and we give nothing to the classes
 		// (i'm making it sound really fancy)
 		Patcher.PatchAllWithAttribute<ModificationAttribute>(out bool anyEnabled, !EditorEnabled.Value);
 
@@ -66,8 +67,6 @@ public class Entry : BaseUnityPlugin
 			Logger.LogMessage("Any modifications that have been enabled have been loaded. See individual messages for any info on issues.");
 		else
 			Logger.LogMessage("No modifications are enabled, edit your config file to change your settings.");
-
-		
 	}
 
     public async Task CheckUpdate()
@@ -114,8 +113,12 @@ public class Entry : BaseUnityPlugin
             string changelog = await response2.Content.ReadAsStringAsync();
 			Logger.LogWarning("Changelog: \n" + changelog);
         }
-        catch
+        catch //(Exception e)
         {
+			// Logger.LogMessage(e.Message);
+			// Logger.LogMessage(e.StackTrace);
+			// Logger.LogMessage(e.Source);
+			// Logger.LogMessage(e.GetType());
             // doesn't matter, prob just no wifi
         }
     }

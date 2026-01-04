@@ -6,3 +6,6 @@ lib/*.dll
 .vscode/*
 .idea/*
 .vs/*
+
+com.rhythmdr.randommodifications.dll
+com.rhythmdr.bpe5randommodifications.dll

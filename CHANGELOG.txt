@@ -1,1 +1,1 @@
-Add option to cache PR statuses
+Excessive logging can now be shot with firearms
