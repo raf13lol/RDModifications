@@ -73,8 +73,9 @@ each image should have the suffix of `_frameX` where X is a number starting from
 - DisableInputFieldLimits -> Numerical input field limits are disabled
 - DuplicateDecorationButton -> Adds a button to duplicate a deco, above the delete button for the deco
 - EditorBorderTintOpacity -> Enables/adds the built-in border/tint opacity field to paint events
-- ImportAnimatedImages -> Allows the importing of APNGs/GIFs and them being converting to a valid format 
+- ImportAnimatedImages -> Allows the importing of APNGs/GIFs and them being converting to a valid format for RD 
 - InsertDeleteBars -> Alt + left click inserts a bar, alt + right click deletes the bar clicked (hard to explain shortly)
+- ShowIDs -> Shows IDs of certain things via the title text
 - ShowMoreEventProperties -> More properties of events are now visible
 
 # Create a github issue for suggestions/bugs or just ping me if you're in a server i'm in

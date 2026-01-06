@@ -112,9 +112,9 @@ public class DisableInputFieldLimits : Modification
         [HarmonyPatch(typeof(PropertyControl_SliderPercent), nameof(PropertyControl_SliderPercent.UpdateUI))]
         public static void UpdateUIPostfix(PropertyControl __instance, LevelEvent_Base levelEvent, InputField ___inputField)
         {
-            float value = (float)AccessTools.Method(typeof(PropertyControl), "GetEventValue").Invoke(__instance, [levelEvent]);
+            object value = AccessTools.Method(typeof(PropertyControl), "GetEventValue").Invoke(__instance, [levelEvent]);
 			if (__instance is PropertyControl_SliderPercent)
-				value *= 100;
+				value = (float)value * 100;
 			___inputField.text = value.ToString();
         } 
 

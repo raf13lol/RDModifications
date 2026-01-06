@@ -1,1 +1,3 @@
-Excessive logging can now be shot with firearms
+ShowIDs editor patch
+Fixed bug in disable input field limits
+added an option to sync fps of animated sleeve with bpm of current song

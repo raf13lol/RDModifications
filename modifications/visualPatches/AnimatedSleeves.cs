@@ -32,6 +32,9 @@ public class AnimatedSleeves : Modification
 	[Configuration<bool>(false, "If the FPS of an animated sleeve shouldn't change with things like the Set Speed event.")]
     public static ConfigEntry<bool> ConsistentFPS;
 
+	[Configuration<bool>(false, "If the FPS should be linked with the current song's BPM.")]
+    public static ConfigEntry<bool> BPMFPS;
+
     private class AnimateSleevePatch
     {
         // why ???
@@ -53,6 +56,8 @@ public class AnimatedSleeves : Modification
                 double elapsed = Time.deltaTime;
                 if (ConsistentFPS.Value && Time.timeScale != 0)
                     elapsed /= Time.timeScale;
+				if (BPMFPS.Value)
+					elapsed /= scrConductor.instance.visualCrotchet;
                 animatedSleeve.currentFrame = (currentFrame + elapsed * animatedSleeve.fps) % animatedSleeve.frames.Count;
                 SleeveData.animatedSleeves[player][slot] = animatedSleeve;
             }
