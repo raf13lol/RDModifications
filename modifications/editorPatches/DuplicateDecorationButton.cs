@@ -16,7 +16,7 @@ public class DuplicateDecorationButton : Modification
         public static void Postfix(InspectorPanel_MakeSprite __instance)
         {
             GameObject deleteButton = __instance.container.Find("delete").gameObject;
-            GameObject duplicateButton = UnityEngine.Object.Instantiate(deleteButton, deleteButton.transform.parent);
+            GameObject duplicateButton = Object.Instantiate(deleteButton, deleteButton.transform.parent);
             duplicateButton.name = "duplicate";
 
             Text buttonText = duplicateButton.GetComponentInChildren<Text>();

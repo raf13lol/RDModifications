@@ -19,13 +19,14 @@ public class RemoveFourRowLimit : Modification
 
 	public static void SetMaxYUsed()
 	{
-		if (scnEditor.instance.currentTab != Tab.Rows)
+		scnEditor editor = scnEditor.instance;
+		if (editor.currentTab != Tab.Rows)
 			return;
 
-		int maxUsedY = scnEditor.instance.currentPageRowsData.Count - 1; ;
-		if (scnEditor.instance.rowsData.Count >= 16)
+		int maxUsedY = editor.currentPageRowsData.Count - 1;
+		if (editor.rowsData.Count >= 16)
 			maxUsedY--;
-		maxUsedYField.SetValue(scnEditor.instance.timeline, maxUsedY);
+		maxUsedYField.SetValue(editor.timeline, maxUsedY);
 	}
 
 	[HarmonyPatch(typeof(TabSection_Rows), nameof(TabSection_Rows.Setup))]
@@ -128,8 +129,8 @@ public class RemoveFourRowLimit : Modification
 				}
 				yield return __result.Current;
 			}
-			isUpdatingUI.SetValue(__instance, true);
-		
+			isUpdatingUI.SetValue(__instance, false);
+
 			__instance.tabSection_rows.rowsListRect = SavedRowsListRect;
 			RectTransform rectTransform = __instance.tabSection_rows.rowsListRect;
 
@@ -143,9 +144,7 @@ public class RemoveFourRowLimit : Modification
 			// add the new one
 			anchoredPosition = rectTransform.anchoredPosition;
 			anchoredPosition.y += __instance.scrollViewVertContent.anchoredPosition.y;
-			rectTransform.anchoredPosition = anchoredPosition;
-
-			isUpdatingUI.SetValue(__instance, false);
+			rectTransform.anchoredPosition = anchoredPosition;  
 		}
 	}
 
@@ -156,14 +155,32 @@ public class RemoveFourRowLimit : Modification
         	=> SetMaxYUsed();
 	}
 
+	[HarmonyPatch(typeof(Timeline), "LateUpdate")]
+	private class DisableRectPatch
+    {
+        public static void Postfix(Timeline __instance)
+        {
+			if (__instance.editor.currentTab != Tab.Rows)
+				return;
+
+            int maxHeight = __instance.scaledRowCellCount;
+			if (__instance.editor.rowsData.Count < 16)
+				maxHeight--;
+
+			int enabledRows = Mathf.Min(__instance.editor.currentPageRowsData.Count, maxHeight);
+			int height = (__instance.scaledRowCellCount - enabledRows) * __instance.cellHeight;
+			__instance.disabledRowsQuad.GetComponent<RectTransform>().sizeDelta = new Vector2(0f, height);
+        }
+	}
+
 	[HarmonyPatch(typeof(Timeline), nameof(Timeline.usedRowCount), MethodType.Getter)]
 	private class UsedRowCountPatch
     {
 		public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return new CodeMatcher(instructions)
-				.MatchForward(false, [new(OpCodes.Ldc_I4_1)])
-				.SetInstruction(new(OpCodes.Ldc_I4_3))
+				.MatchForward(false, [new(OpCodes.Ldc_I4_1)]) // Tab.Rows
+				.SetInstruction(new(OpCodes.Ldc_I4_3)) // Tab.Rooms
 				.InstructionEnumeration();
         }
 	}
@@ -174,8 +191,8 @@ public class RemoveFourRowLimit : Modification
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             return new CodeMatcher(instructions)
-				.MatchForward(false, [new(OpCodes.Ldc_I4_4)])
-				.SetInstruction(new(OpCodes.Ldc_I4, 16))
+				.MatchForward(false, [new(OpCodes.Ldc_I4_4)]) // loop 4
+				.SetInstruction(new(OpCodes.Ldc_I4, 16)) // loop 16
 				.InstructionEnumeration();
         }
 
@@ -202,8 +219,9 @@ public class RemoveFourRowLimit : Modification
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
+			// skip the return on "room full"
             return new CodeMatcher(instructions)
-				.MatchForward(false, [new(OpCodes.Bge)])
+				.MatchForward(false, [new(OpCodes.Bge)]) 
 				.Advance(-2) // skip the ldc.i4.4
 				.SetOpcodeAndAdvance(OpCodes.Ldc_I4_0) // 0 is not >= 4
 				.InstructionEnumeration();
@@ -220,11 +238,11 @@ public class RemoveFourRowLimit : Modification
             {
 				if (removeFullRoomSuffix)
                 {
-					yield return new(OpCodes.Nop);
-					yield return new(OpCodes.Nop);
-					yield return new(OpCodes.Nop);
-					yield return new(OpCodes.Nop);
-					yield return new(OpCodes.Nop);
+					yield return new(OpCodes.Nop); // call
+					yield return new(OpCodes.Nop); // pointer byte 1
+					yield return new(OpCodes.Nop); // pointer byte 2
+					yield return new(OpCodes.Nop); // pointer byte 3
+					yield return new(OpCodes.Nop); // pointer byte 4
                     removeFullRoomSuffix = false;
 					continue;
                 }

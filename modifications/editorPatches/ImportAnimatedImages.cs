@@ -45,7 +45,7 @@ public class ImportAnimatedImages : Modification
 				totalDelay += output.FrameDuration;
 
 				values.Add(Path.GetFileName(path));
-				UnityEngine.Object.Destroy(frame);
+				Object.Destroy(frame);
             }
 
 			AverageFPS = (float)(AnimatedImage.FrameCount / totalDelay);
@@ -173,7 +173,7 @@ public class ImportAnimatedImages : Modification
                 }
 
 				totalDelay += output.FrameDuration;
-				UnityEngine.Object.Destroy(frame);
+				Object.Destroy(frame);
 
 				if (i != 0)
 					frames += ", ";
@@ -194,7 +194,7 @@ public class ImportAnimatedImages : Modification
 			"}");
 
 			spritePath = pathJson;
-			UnityEngine.Object.Destroy(spritesheet);
+			Object.Destroy(spritesheet);
         }
     }	
 }

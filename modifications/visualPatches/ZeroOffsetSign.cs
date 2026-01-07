@@ -15,7 +15,7 @@ public class ZeroOffsetSign : Modification
     {
         public static void Prefix(ref string value)
         {
-            void addColorToSign(ref string value, string color = "#0F0", string darkenedColor = "#0A0")
+			static void addColorToSign(ref string value, string color = "#0F0", string darkenedColor = "#0A0")
             {
                 value = value.Replace("</color>", $"</color><color={color}>");
                 value = value.Replace("<color=#AAA>", $"</color><color={darkenedColor}>");
@@ -23,12 +23,13 @@ public class ZeroOffsetSign : Modification
             }
 
             string val = value.Replace("<color=#AAA>", "").Replace("</color>", "");
-
             if (!val.StartsWith("[ ") || !val.EndsWith(RDString.Get("editor.unit.ms") + " ]"))
                 return;
+				
             Match match = new Regex(@"(-)?[0-9]{1,}").Match(val);
             if (!match.Success || match.Captures.Count > 1)
                 return;
+
             bool isNumber = int.TryParse(match.Value, out int number);
             if (!isNumber || number >= 25 || number <= -25)
             {
