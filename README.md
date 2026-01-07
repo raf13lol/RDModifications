@@ -76,6 +76,6 @@ each image should have the suffix of `_frameX` where X is a number starting from
 - InsertDeleteBars -> Alt + left click inserts a bar, alt + right click deletes the bar clicked (hard to explain shortly)
 - RemoveFourRowLimit -> Allows up to 16 rows in total placed in any room without limits
 - ShowIDs -> Shows IDs of certain things via the title text
-- ShowMoreEventProperties -> More properties of events are now visible
+- UnlockEditor -> Developer-exclusive functions of the editor unlocked (ported from [UnlockEditor](https://gist.github.com/lithiumjs/847ce77f3888585ad2d7c0fcd5041b83) by Seq... thanks for letting me port it)
 
 # Create a github issue for suggestions/bugs or just ping me if you're in a server i'm in

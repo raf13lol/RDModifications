@@ -32,10 +32,12 @@ public class RemoveFourRowLimit : Modification
 				holder.transform.position = baseHolder.transform.position;
 				rowHeader.GetComponent<RowHeader>().index = rowHeaders.Count;
 
+				holder.SetActive(true);
+				rowHeader.SetActive(true);
 				rowHeaders.Add(rowHeader);
             }
 			GameObject rowsList = baseHolder.transform.parent.gameObject;
-			GameObject spritesList = GameObject.Find("Sprites_List");
+			GameObject spritesList = __instance.editor.tabSection_sprites.headersListRect.parent.gameObject;
 			RectTransform spritesListRectTransform = spritesList.GetComponent<RectTransform>();
 			
 			GameObject maskObject = new()
@@ -66,7 +68,8 @@ public class RemoveFourRowLimit : Modification
 	[HarmonyPatch(typeof(TabSection), nameof(TabSection.LateUpdate))]
 	private class ScrollSidePatch
     {
-		private static float verticalScrollRectLastY = float.NaN;
+		private static float verticalScrollRectLastY = 0;
+		public static float ScrollbarOffset = 0;
 
         public static void Postfix(TabSection __instance)
         {
@@ -75,8 +78,11 @@ public class RemoveFourRowLimit : Modification
 			float y = __instance.timeline.scrollViewVertContent.anchoredPosition.y;
 			if (verticalScrollRectLastY != y)
 			{
+				Vector2 anchoredPosition = ((TabSection_Rows)__instance).rowsListRect.anchoredPosition;
+				anchoredPosition.y += y - verticalScrollRectLastY;
+				ScrollbarOffset += y - verticalScrollRectLastY;
+				((TabSection_Rows)__instance).rowsListRect.anchoredPosition = anchoredPosition;
 				verticalScrollRectLastY = y;
-				((TabSection_Rows)__instance).rowsListRect.AnchorPosY(y - __instance.editor.timeline.cellHeight * 4);
 			}
         }
     }
@@ -84,20 +90,43 @@ public class RemoveFourRowLimit : Modification
 	[HarmonyPatch(typeof(Timeline), "UpdateUIInternalCo")]
 	private class SideSizePatch
     {   
+		public static float SavedScrollbarOffset;
+		public static RectTransform SavedRowsListRect = null;
+
+		public static void Prefix(Timeline __instance)
+        {
+			SavedScrollbarOffset = ScrollSidePatch.ScrollbarOffset;
+
+			// if (SavedRowsListRect == null)
+            	SavedRowsListRect = __instance.tabSection_rows.rowsListRect;
+			__instance.tabSection_rows.rowsListRect = __instance.tabSection_rooms.listRect;
+		}
+
 		public static IEnumerator Postfix(IEnumerator __result, Timeline __instance)
 		{
+			FieldInfo isUpdatingUI = AccessTools.Field(typeof(Timeline), "isUpdatingUI");
 			// Run original enumerator code
 			while (__result.MoveNext())
+			{
+				isUpdatingUI.SetValue(__instance, true);
 				yield return __result.Current;
+			}
+			isUpdatingUI.SetValue(__instance, true);
+		
+			__instance.tabSection_rows.rowsListRect = SavedRowsListRect;
 
 			RectTransform rectTransform = __instance.tabSection_rows.rowsListRect;
 			rectTransform.offsetMin = rectTransform.offsetMin.WithY(__instance.height - __instance.cellHeight * 16f);
+			Vector2 anchoredPosition = rectTransform.anchoredPosition;
+			anchoredPosition.y -= SavedScrollbarOffset;
+			rectTransform.anchoredPosition = anchoredPosition;
+
 			if (__instance.editor.currentTab == Tab.Rows)
             {
-				FieldInfo maxUsedY = AccessTools.Field(typeof(Timeline), "maxUsedY");
-				maxUsedY.SetValue(__instance, __instance.editor.currentPageRowsData.Count - 1);
+				__instance.editor.timeline.UpdateMaxUsedY();
                 __instance.scrollViewVertContent.SizeDeltaY((__instance.usedRowCount - __instance.scaledRowCellCount) * __instance.cellHeight);
             }			
+			isUpdatingUI.SetValue(__instance, false);
 		}
 	}
 
@@ -107,7 +136,7 @@ public class RemoveFourRowLimit : Modification
         public static void Prefix(Timeline __instance, ref int ___maxUsedY)
         {
             if (__instance.editor.currentTab == Tab.Rows)
-                ___maxUsedY = __instance.editor.currentPageRowsData.Count - 1;
+                ___maxUsedY = Mathf.Min(__instance.editor.currentPageRowsData.Count - 1, 14);
         }
 	}
 

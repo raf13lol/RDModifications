@@ -3,7 +3,6 @@ using HarmonyLib;
 using UnityEngine;
 using System.Reflection;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection.Emit;
 
 namespace RDModifications;
@@ -121,10 +120,8 @@ public class CustomIceChiliSpeeds : Modification
 	{
 		public static IEnumerable<MethodInfo> TargetMethods()
 		{
-			List<MethodInfo> methods = [];
-			methods.Add(AccessTools.Method(typeof(LevelDetail), "Start"));
-			methods.Add(AccessTools.Method(typeof(LevelDetail), "ChangeLevelSpeed"));
-			return methods.AsEnumerable();
+			yield return AccessTools.Method(typeof(LevelDetail), "Start");
+			yield return AccessTools.Method(typeof(LevelDetail), "ChangeLevelSpeed");
 		}
 
 		[HarmonyPostfix]

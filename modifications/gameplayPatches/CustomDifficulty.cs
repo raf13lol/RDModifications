@@ -2,7 +2,6 @@ using BepInEx.Configuration;
 using HarmonyLib;
 using System.Reflection;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace RDModifications;
@@ -31,10 +30,8 @@ public class CustomDifficulty : Modification
     {
         public static IEnumerable<MethodInfo> TargetMethods()
         {
-            List<MethodInfo> methods = [];
-            methods.Add(AccessTools.Method(typeof(scnGame), nameof(scnGame.GetHitMargin)));
-            methods.Add(AccessTools.Method(typeof(scnGame), nameof(scnGame.GetReleaseMargin)));
-            return methods.AsEnumerable();
+            yield return AccessTools.Method(typeof(scnGame), nameof(scnGame.GetHitMargin));
+            yield return AccessTools.Method(typeof(scnGame), nameof(scnGame.GetReleaseMargin));
         }
 
         [HarmonyPrefix]

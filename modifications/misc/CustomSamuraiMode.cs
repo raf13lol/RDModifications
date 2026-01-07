@@ -48,21 +48,19 @@ public class CustomSamuraiMode : Modification
             Type[] makeLyricsTypesNonBeta = [typeof(string), typeof(Vector2), typeof(int), typeof(float), typeof(Color),
             typeof(int), typeof(int), typeof(float), typeof(bool), typeof(Color), typeof(TextAnchor), typeof(bool), typeof(bool)];
 
-            methods.Add(AccessTools.Method(typeof(RDString), nameof(RDString.Get)));
-            methods.Add(AccessTools.Method(typeof(LyricsGame), nameof(LyricsGame.AdvanceText)));
+            yield return AccessTools.Method(typeof(RDString), nameof(RDString.Get));
+            yield return AccessTools.Method(typeof(LyricsGame), nameof(LyricsGame.AdvanceText));
 
             // compiler generated
-            methods.Add(AccessUtils.GetFirstMethodContains(typeof(LevelEvent_TextExplosion), "<Run>"));
+            yield return AccessUtils.GetFirstMethodContains(typeof(LevelEvent_TextExplosion), "<Run>");
 
             // two functions with same name so we need to get this really specific one
 			MethodInfo makeLyrics = AccessTools.Method(typeof(scrVfxControl), nameof(scrVfxControl.MakeLyrics), makeLyricsTypes);
 			if (makeLyrics == null)
 				makeLyrics = AccessTools.Method(typeof(scrVfxControl), nameof(scrVfxControl.MakeLyrics), makeLyricsTypesNonBeta);
-            methods.Add(makeLyrics);
+            yield return makeLyrics;
 			 // due to compiled IEnumerable
-            methods.Add(AccessUtils.GetFirstInnerMethodContains(typeof(RDInk), "<Say>", "MoveNext"));
-
-            return methods.AsEnumerable();
+            yield return AccessUtils.GetFirstInnerMethodContains(typeof(RDInk), "<Say>", "MoveNext");
         }
 
         [HarmonyTranspiler]
