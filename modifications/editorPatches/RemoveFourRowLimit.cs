@@ -15,6 +15,19 @@ namespace RDModifications;
 , true)]
 public class RemoveFourRowLimit : Modification
 {
+ 	static readonly FieldInfo maxUsedYField = AccessTools.Field(typeof(Timeline), "maxUsedY");
+
+	public static void SetMaxYUsed()
+	{
+		if (scnEditor.instance.currentTab != Tab.Rows)
+			return;
+
+		int maxUsedY = scnEditor.instance.currentPageRowsData.Count - 1; ;
+		if (scnEditor.instance.rowsData.Count >= 16)
+			maxUsedY--;
+		maxUsedYField.SetValue(scnEditor.instance.timeline, maxUsedY);
+	}
+
 	[HarmonyPatch(typeof(TabSection_Rows), nameof(TabSection_Rows.Setup))]
 	private class CreateRowHeadersPatch
     {
@@ -92,14 +105,10 @@ public class RemoveFourRowLimit : Modification
 	[HarmonyPatch(typeof(Timeline), "UpdateUIInternalCo")]
 	private class SideSizePatch
     {   
-		public static float SavedScrollbarOffset;
 		public static RectTransform SavedRowsListRect = null;
 
 		public static void Prefix(Timeline __instance)
         {
-			SavedScrollbarOffset = ScrollSidePatch.ScrollbarOffset;
-
-			// if (SavedRowsListRect == null)
 			SavedRowsListRect = __instance.tabSection_rows.rowsListRect;
 			__instance.tabSection_rows.rowsListRect = __instance.tabSection_rooms.listRect;
 		}
@@ -107,27 +116,35 @@ public class RemoveFourRowLimit : Modification
 		public static IEnumerator Postfix(IEnumerator __result, Timeline __instance)
 		{
 			FieldInfo isUpdatingUI = AccessTools.Field(typeof(Timeline), "isUpdatingUI");
+			float offset = ScrollSidePatch.ScrollbarOffset;
 			// Run original enumerator code
 			while (__result.MoveNext())
 			{
 				isUpdatingUI.SetValue(__instance, true);
+				if (__instance.editor.currentTab == Tab.Rows && (int)maxUsedYField.GetValue(__instance) == 0)
+				{
+					SetMaxYUsed();
+        	        __instance.scrollViewVertContent.SizeDeltaY((__instance.usedRowCount - __instance.scaledRowCellCount) * __instance.cellHeight);
+				}
 				yield return __result.Current;
 			}
 			isUpdatingUI.SetValue(__instance, true);
 		
 			__instance.tabSection_rows.rowsListRect = SavedRowsListRect;
-
 			RectTransform rectTransform = __instance.tabSection_rows.rowsListRect;
-			rectTransform.offsetMin = rectTransform.offsetMin.WithY(__instance.height - __instance.cellHeight * 16f + SavedScrollbarOffset);
+
+			// remove old scroll offset
 			Vector2 anchoredPosition = rectTransform.anchoredPosition;
-			anchoredPosition.y -= SavedScrollbarOffset;
+			anchoredPosition.y -= offset;
 			rectTransform.anchoredPosition = anchoredPosition;
 
-			if (__instance.editor.currentTab == Tab.Rows)
-            {
-				__instance.editor.timeline.UpdateMaxUsedY();
-                __instance.scrollViewVertContent.SizeDeltaY((__instance.usedRowCount - __instance.scaledRowCellCount) * __instance.cellHeight);
-            }			
+			rectTransform.offsetMin = rectTransform.offsetMin.WithY(__instance.height - __instance.cellHeight * 16f);
+			
+			// add the new one
+			anchoredPosition = rectTransform.anchoredPosition;
+			anchoredPosition.y += __instance.scrollViewVertContent.anchoredPosition.y;
+			rectTransform.anchoredPosition = anchoredPosition;
+
 			isUpdatingUI.SetValue(__instance, false);
 		}
 	}
@@ -135,15 +152,8 @@ public class RemoveFourRowLimit : Modification
 	[HarmonyPatch(typeof(Timeline), "ApplyNewMaxUsedY")]
 	private class ApplyNewMaxUsedYPatch
     {
-        public static void Prefix(Timeline __instance, ref int ___maxUsedY)
-        {
-            if (__instance.editor.currentTab == Tab.Rows)
-			{
-                ___maxUsedY = __instance.editor.currentPageRowsData.Count - 1;
-				if (scnEditor.instance.rowsData.Count >= 16)
-					___maxUsedY--;
-			}
-		}
+        public static void Prefix()
+        	=> SetMaxYUsed();
 	}
 
 	[HarmonyPatch(typeof(Timeline), nameof(Timeline.usedRowCount), MethodType.Getter)]
@@ -170,7 +180,7 @@ public class RemoveFourRowLimit : Modification
         }
 
 		public static void Postfix(RowHeader __instance)
-			=> __instance.editor.timeline.UpdateMaxUsedY();
+			=> __instance.timeline.UpdateMaxUsedY();
     }
 
 	[HarmonyPatch(typeof(RowHeader), nameof(RowHeader.UpdateUI))]
@@ -184,7 +194,7 @@ public class RemoveFourRowLimit : Modification
 	private class RowHeaderUpdateScrollbarAddPatch
     {
         public static void Postfix(RowHeader __instance)
-			=> __instance.editor.timeline.UpdateMaxUsedY();
+			=> __instance.timeline.UpdateMaxUsedY();
 	}
 
 	[HarmonyPatch(typeof(InspectorPanel_MakeRow), nameof(InspectorPanel_MakeRow.RoomDropdownWasUpdated))]
