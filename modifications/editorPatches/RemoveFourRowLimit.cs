@@ -89,17 +89,17 @@ public class RemoveFourRowLimit : Modification
 
         public static void Postfix(TabSection __instance)
         {
-			if (__instance.tab != Tab.Rows)
-				return;
 			float y = __instance.timeline.scrollViewVertContent.anchoredPosition.y;
-			if (VerticalScrollRectLastY != y)
-			{
-				Vector2 anchoredPosition = ((TabSection_Rows)__instance).rowsListRect.anchoredPosition;
-				anchoredPosition.y += y - VerticalScrollRectLastY;
-				ScrollbarOffset += y - VerticalScrollRectLastY;
-				((TabSection_Rows)__instance).rowsListRect.anchoredPosition = anchoredPosition;
-				VerticalScrollRectLastY = y;
-			}
+			if (VerticalScrollRectLastY == y)
+				return;
+
+			Vector2 anchoredPosition = __instance.tabSection_rows.rowsListRect.anchoredPosition;
+
+			ScrollbarOffset += y - VerticalScrollRectLastY;
+			anchoredPosition.y += y - VerticalScrollRectLastY;
+
+			__instance.tabSection_rows.rowsListRect.anchoredPosition = anchoredPosition;
+			VerticalScrollRectLastY = y;
         }
     }
 
@@ -107,11 +107,20 @@ public class RemoveFourRowLimit : Modification
 	private class SideSizePatch
     {   
 		public static RectTransform SavedRowsListRect = null;
+		public static RectTransform DummyRectTransform = null;
 
 		public static void Prefix(Timeline __instance)
         {
-			SavedRowsListRect = __instance.tabSection_rows.rowsListRect;
-			__instance.tabSection_rows.rowsListRect = __instance.tabSection_rooms.listRect;
+			if (GameObject.Find("DummyRectTransform") == null)
+			{
+				GameObject dummy = new()
+                {
+                    name = "DummyRectTransform"
+                };
+				DummyRectTransform = dummy.AddComponent<RectTransform>();
+				SavedRowsListRect = __instance.tabSection_rows.rowsListRect;
+			}
+			__instance.tabSection_rows.rowsListRect = DummyRectTransform;
 		}
 
 		public static IEnumerator Postfix(IEnumerator __result, Timeline __instance)
@@ -133,6 +142,7 @@ public class RemoveFourRowLimit : Modification
 
 			__instance.tabSection_rows.rowsListRect = SavedRowsListRect;
 			RectTransform rectTransform = __instance.tabSection_rows.rowsListRect;
+			Log.LogMessage($"BEFORE ap: {rectTransform.anchoredPosition} sd: {rectTransform.sizeDelta} h: {__instance.height} ch: {__instance.cellHeight} final {__instance.height - __instance.cellHeight * 16f}");
 
 			// remove old scroll offset
 			Vector2 anchoredPosition = rectTransform.anchoredPosition;
@@ -140,11 +150,13 @@ public class RemoveFourRowLimit : Modification
 			rectTransform.anchoredPosition = anchoredPosition;
 
 			rectTransform.offsetMin = rectTransform.offsetMin.WithY(__instance.height - __instance.cellHeight * 16f);
-			
+
 			// add the new one
 			anchoredPosition = rectTransform.anchoredPosition;
 			anchoredPosition.y += __instance.scrollViewVertContent.anchoredPosition.y;
 			rectTransform.anchoredPosition = anchoredPosition;  
+
+			Log.LogMessage($"AFTER ap: {rectTransform.anchoredPosition} sd: {rectTransform.sizeDelta} h: {__instance.height} ch: {__instance.cellHeight} final {__instance.height - __instance.cellHeight * 16f}");
 		}
 	}
 
