@@ -31,7 +31,6 @@ List of modifications available with a simple summary:
 - ForceGameSpeed -> Forces the game speed to a certain value (may cause a few issues due to how forceful it is)
 - LevelPRStatus -> Colours the syringe body of a custom level depending on the peer-review status of it on Rhythm Café
 - MassUnwrapLevels -> Allows for unwrapped all currently wrapped levels with a simple key combination
-- WindowTransparency (WINDOWS ONLY) -> Allows for setting how transparent the game window is
 - ZeroOffsetSign -> Makes the Numerical Hit Judgement sign coloured based on the hit's ""zero-offsetness""
 
 ## AnimatedSleeves setup
@@ -75,6 +74,7 @@ each image should have the suffix of `_frameX` where X is a number starting from
 - EditorBorderTintOpacity -> Enables/adds the built-in border/tint opacity field to paint events
 - ImportAnimatedImages -> Allows the importing of APNGs/GIFs and them being converting to a valid format for RD 
 - InsertDeleteBars -> Alt + left click inserts a bar, alt + right click deletes the bar clicked (hard to explain shortly)
+- RemoveFourRowLimit -> Allows up to 16 rows in total placed in any room without limits
 - ShowIDs -> Shows IDs of certain things via the title text
 - ShowMoreEventProperties -> More properties of events are now visible
 

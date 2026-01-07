@@ -31,11 +31,6 @@ public class ShowIDs : Modification
 				DoText(spriteData);
 		}
 
-		[HarmonyPostfix]
-		[HarmonyPatch(typeof(Conditionals), nameof(Conditionals.Edit))]
-		public static void ConditionalPostfix(int id)
-			=> scnEditor.instance.inspectorTitle.text = $"{RDString.Get("editor.Conditionals.editCondition")}\n(#{id})";
-
 		public static void DoText(LevelEvent_Base levelEvent)
         {
 			string text = string.Empty;
@@ -55,4 +50,11 @@ public class ShowIDs : Modification
 			scnEditor.instance.inspectorTitle.text += $"(#{text})";
         }
 	}
+
+	[HarmonyPatch(typeof(Conditionals), nameof(Conditionals.Edit))]
+	private class ConditionalTextPatch
+    {
+		public static void Postfix(int id)
+			=> scnEditor.instance.inspectorTitle.text = $"{RDString.Get("editor.Conditionals.editCondition")}\n(#{id})";
+    }
 }

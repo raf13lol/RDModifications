@@ -17,13 +17,13 @@ public class MassUnwrapLevels : Modification
 	[Configuration<string>("LeftControl", 
 		"The key that should be held in combination with PressKey being pressed to unwrap all wrapped levels.\n" +
         "Set this to 'None' to disable needing to hold an extra key.\n" +
-        "(list of acceptable values: https://docs.unity3d.com/ScriptReference/KeyCode.html)"
+        "(List of acceptable values: https://docs.unity3d.com/ScriptReference/KeyCode.html)"
 	)]
     public static ConfigEntry<string> HoldKey;
 
 	[Configuration<string>("Return", 
 		"The key that should be pressed in combination with HoldKey being held to unwrap all wrapped levels.\n" +
-        "(list of acceptable values: https://docs.unity3d.com/ScriptReference/KeyCode.html)"
+        "(List of acceptable values: https://docs.unity3d.com/ScriptReference/KeyCode.html)"
 	)]
     public static ConfigEntry<string> PressKey;
 
