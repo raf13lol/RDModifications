@@ -62,13 +62,15 @@ public class RemoveFourRowLimit : Modification
 			mask.showMaskGraphic = false;
 
 			rowsList.transform.SetParent(maskObject.transform);
+
+			ScrollSidePatch.VerticalScrollRectLastY = ScrollSidePatch.ScrollbarOffset = 0;
         }
     }
 
 	[HarmonyPatch(typeof(TabSection), nameof(TabSection.LateUpdate))]
 	private class ScrollSidePatch
     {
-		private static float verticalScrollRectLastY = 0;
+		public static float VerticalScrollRectLastY = 0;
 		public static float ScrollbarOffset = 0;
 
         public static void Postfix(TabSection __instance)
@@ -76,13 +78,13 @@ public class RemoveFourRowLimit : Modification
 			if (__instance.tab != Tab.Rows)
 				return;
 			float y = __instance.timeline.scrollViewVertContent.anchoredPosition.y;
-			if (verticalScrollRectLastY != y)
+			if (VerticalScrollRectLastY != y)
 			{
 				Vector2 anchoredPosition = ((TabSection_Rows)__instance).rowsListRect.anchoredPosition;
-				anchoredPosition.y += y - verticalScrollRectLastY;
-				ScrollbarOffset += y - verticalScrollRectLastY;
+				anchoredPosition.y += y - VerticalScrollRectLastY;
+				ScrollbarOffset += y - VerticalScrollRectLastY;
 				((TabSection_Rows)__instance).rowsListRect.anchoredPosition = anchoredPosition;
-				verticalScrollRectLastY = y;
+				VerticalScrollRectLastY = y;
 			}
         }
     }
@@ -98,7 +100,7 @@ public class RemoveFourRowLimit : Modification
 			SavedScrollbarOffset = ScrollSidePatch.ScrollbarOffset;
 
 			// if (SavedRowsListRect == null)
-            	SavedRowsListRect = __instance.tabSection_rows.rowsListRect;
+			SavedRowsListRect = __instance.tabSection_rows.rowsListRect;
 			__instance.tabSection_rows.rowsListRect = __instance.tabSection_rooms.listRect;
 		}
 
@@ -116,7 +118,7 @@ public class RemoveFourRowLimit : Modification
 			__instance.tabSection_rows.rowsListRect = SavedRowsListRect;
 
 			RectTransform rectTransform = __instance.tabSection_rows.rowsListRect;
-			rectTransform.offsetMin = rectTransform.offsetMin.WithY(__instance.height - __instance.cellHeight * 16f);
+			rectTransform.offsetMin = rectTransform.offsetMin.WithY(__instance.height - __instance.cellHeight * 16f + SavedScrollbarOffset);
 			Vector2 anchoredPosition = rectTransform.anchoredPosition;
 			anchoredPosition.y -= SavedScrollbarOffset;
 			rectTransform.anchoredPosition = anchoredPosition;
@@ -136,8 +138,12 @@ public class RemoveFourRowLimit : Modification
         public static void Prefix(Timeline __instance, ref int ___maxUsedY)
         {
             if (__instance.editor.currentTab == Tab.Rows)
-                ___maxUsedY = Mathf.Min(__instance.editor.currentPageRowsData.Count - 1, 14);
-        }
+			{
+                ___maxUsedY = __instance.editor.currentPageRowsData.Count - 1;
+				if (scnEditor.instance.rowsData.Count >= 16)
+					___maxUsedY--;
+			}
+		}
 	}
 
 	[HarmonyPatch(typeof(Timeline), nameof(Timeline.usedRowCount), MethodType.Getter)]
