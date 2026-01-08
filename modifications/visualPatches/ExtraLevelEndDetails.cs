@@ -26,7 +26,14 @@ public class ExtraLevelEndDetails : Modification
 	public static ConfigEntry<string> LineSeparator;
 
 	[Configuration<TextAnchor>(TextAnchor.UpperLeft, "How the text should be aligned.")]
-    public static ConfigEntry<TextAnchor> textAlignment;
+    public static ConfigEntry<TextAnchor> TextAlignment;
+
+	[Configuration<float>(0, "How much the text should be moved to the right (in pixels).")]
+    public static ConfigEntry<float> TextOffsetX;
+
+	[Configuration<float>(0, "How much the text should be moved down (in pixels).")]
+    public static ConfigEntry<float> TextOffsetY;
+
 	[Configuration<int>(6, "How big the text should be.")]
     public static ConfigEntry<int> TextSize;
 
@@ -124,13 +131,16 @@ public class ExtraLevelEndDetails : Modification
             // this is er hm
             Text text = Object.Instantiate(__instance.description, __instance.description.gameObject.transform.position, Quaternion.identity);
             // unfortunately doesn't make sense without positioning
-            text.alignment = TextAnchor.UpperLeft;//textAlignment.Value;
+            text.alignment = TextAlignment.Value;
             text.horizontalOverflow = HorizontalWrapMode.Overflow;
             text.verticalOverflow = VerticalWrapMode.Overflow;
             text.fontSize = TextSize.Value;
             // is there a way to modify this better? i'm too lazy to figure out how to though 😁😁 for now atleast
             // raf from the future: one day i say one day but i'm working on bigger things
-            text.gameObject.transform.position = new(141, 174, __instance.description.transform.position.z);
+			// raf from the future squared: today is that day !
+            RectTransform rectTransform = text.GetComponent<RectTransform>();
+			rectTransform.anchoredPosition = new(352 / 2 + TextOffsetX.Value, 198 / 2 - TextOffsetY.Value);
+			rectTransform.sizeDelta = new(350, 196);
             text.transform.SetParent(__instance.description.transform.parent.transform.parent);
 
             List<object[]> fields = [

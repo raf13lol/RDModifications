@@ -1,2 +1,6 @@
-Fix RemoveFourRowLimit again again again again...
-Fuck. Fuck. Fuck. Fuck.
+Fix UnlockEditor
+Remove debug logs from remove four row limit
+FakeRankOnMistake no longer blows out ear drums sometimes
+ExtraLevelEndDetails now has positional options
+NumericalHitJudgementAdjuments to replace zero offset sign
+StatusSignOpacity exists

@@ -31,7 +31,8 @@ List of modifications available with a simple summary:
 - ForceGameSpeed -> Forces the game speed to a certain value (may cause a few issues due to how forceful it is)
 - LevelPRStatus -> Colours the syringe body of a custom level depending on the peer-review status of it on Rhythm Café
 - MassUnwrapLevels -> Allows for unwrapped all currently wrapped levels with a simple key combination
-- ZeroOffsetSign -> Makes the Numerical Hit Judgement sign coloured based on the hit's ""zero-offsetness""
+- NumericalHitJudgementAdjuments -> Adjusts the Numerical Hit Judgement sign depending on judgement display and colour styling
+- StatusSignOpacity -> Allows for changing the opacity of some of the status sign's elements
 
 ## AnimatedSleeves setup
 

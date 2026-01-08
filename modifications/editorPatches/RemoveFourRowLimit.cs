@@ -142,7 +142,6 @@ public class RemoveFourRowLimit : Modification
 
 			__instance.tabSection_rows.rowsListRect = SavedRowsListRect;
 			RectTransform rectTransform = __instance.tabSection_rows.rowsListRect;
-			Log.LogMessage($"BEFORE ap: {rectTransform.anchoredPosition} sd: {rectTransform.sizeDelta} h: {__instance.height} ch: {__instance.cellHeight} final {__instance.height - __instance.cellHeight * 16f}");
 
 			// remove old scroll offset
 			Vector2 anchoredPosition = rectTransform.anchoredPosition;
@@ -155,8 +154,6 @@ public class RemoveFourRowLimit : Modification
 			anchoredPosition = rectTransform.anchoredPosition;
 			anchoredPosition.y += __instance.scrollViewVertContent.anchoredPosition.y;
 			rectTransform.anchoredPosition = anchoredPosition;  
-
-			Log.LogMessage($"AFTER ap: {rectTransform.anchoredPosition} sd: {rectTransform.sizeDelta} h: {__instance.height} ch: {__instance.cellHeight} final {__instance.height - __instance.cellHeight * 16f}");
 		}
 	}
 

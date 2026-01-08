@@ -32,7 +32,7 @@ public class UnlockEditor : Modification
 	// THANK YOU SEQ FOR ALLOWING ME TO PORT UNLOCKEDITOR ! https://gist.github.com/lithiumjs/847ce77f3888585ad2d7c0fcd5041b83
 
 	[HarmonyPatch(typeof(RDBase), nameof(RDBase.isDev), MethodType.Getter)]
-    public static class DevPatch
+    private class DevPatch
     {
         public static int OverrideDev = 0;
 
@@ -47,8 +47,7 @@ public class UnlockEditor : Modification
         }
     }
 
-    [HarmonyPatch]
-    public static class FunctionsPatch
+    private class FunctionsPatch
     {
         public static IEnumerable<MethodBase> TargetMethods()
         {
@@ -67,9 +66,11 @@ public class UnlockEditor : Modification
             yield return AccessTools.Method(typeof(LevelEventControlEventTrigger), nameof(LevelEventControlEventTrigger.OnDrag));
         }
 
+		[HarmonyPrefix]
         public static void Prefix()
         	=> DevPatch.OverrideDev++;
 
+		[HarmonyFinalizer]
         public static void Finalizer()
             => DevPatch.OverrideDev--;
     }

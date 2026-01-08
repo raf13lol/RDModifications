@@ -53,6 +53,7 @@ public class FakeRankOnMistake : Modification
         private static TweenerCore<Color, Color, ColorOptions> HeaderTween = null;
 
         private static float BaseAlpha = 0.0f;
+		private static int LastFrame = -1;
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(scnGame), nameof(scnGame.OnMistakeOrHeal))]
@@ -61,7 +62,7 @@ public class FakeRankOnMistake : Modification
             static bool isInOver(FieldInfo field, Rankscreen hud)
                 => (int)field.GetValue(hud) > 0;
 
-            if (weight <= 0.0f)
+            if (weight <= 0.0f || LastFrame == Time.frameCount)
                 return;
             Rankscreen rankscreen = scnGame.instance.rankscreen;
             FieldInfo field = typeof(Rankscreen).GetField("trueGameover", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -69,6 +70,7 @@ public class FakeRankOnMistake : Modification
             if (isInOver(field, rankscreen))
                 return;
 
+			LastFrame = Time.frameCount;
             if (Say.Value)
                 scrConductor.PlayImmediately("sndJyi - Rank" + SoundName, SayVolume.Value * Mathf.Clamp01(weight), RDUtils.GetMixerGroup("RDGSVoice"), 1f, 0f, false, false, false);
 

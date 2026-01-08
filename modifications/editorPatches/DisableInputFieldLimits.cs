@@ -136,12 +136,12 @@ public class DisableInputFieldLimits : Modification
     {
         [HarmonyPrefix]
         [HarmonyPatch(typeof(InspectorPanel_MakeRow), "SaveInternal")]
-        public static void SavePrefix(InspectorPanel_MakeRow __instance, ref string __state)
+        public static void SavePrefix(InspectorPanel_MakeRow __instance, out string __state)
             => __state = __instance.length.text;
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(InspectorPanel_MakeRow), "SaveInternal")]
-        public static void SavePostfix(InspectorPanel_MakeRow __instance, ref string __state, LevelEvent_Base levelEvent)
+        public static void SavePostfix(InspectorPanel_MakeRow __instance, string __state, LevelEvent_Base levelEvent)
         {
             LevelEvent_MakeRow data = (LevelEvent_MakeRow)levelEvent;
             data.length = int.TryParse(__state, out int result) ? result : 7;
