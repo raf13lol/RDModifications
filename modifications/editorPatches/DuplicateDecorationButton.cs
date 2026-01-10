@@ -97,8 +97,21 @@ public class DuplicateDecorationButton : Modification
                 }
                 
                 editor.selectedSprite = newSpriteData.spriteId;
-                editor.UpdateUI_AllTabSections();
+				editor.tabSection_sprites.UpdateUI();
             }
         }
     }
+
+	// Nevermind. This issue still exists.
+	[HarmonyPatch(typeof(LevelEvent_Base), nameof(LevelEvent_Base.isSpriteTabEvent), MethodType.Getter)]
+	private class IsSpriteTabPatch
+    {
+        public static void Postfix(LevelEvent_Base __instance, ref bool __result)
+        {
+            if (!__result || __instance is not LevelEvent_Comment comment)
+				return;
+			__result = comment.tab == Tab.Sprites;
+        }
+    }
+	
 }

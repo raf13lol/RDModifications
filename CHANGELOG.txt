@@ -1,4 +1,2 @@
-Some configs have ranges now. So abide by them. Ha ha ha.
-FailOnCondition now a thing
-Fix a setting on NumericalHitJudgementAdjuments
-Um... some other things maybe. Not sure.
+Fixed dupe deco button 
+Fixed detection of the UnlockEditor mod

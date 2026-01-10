@@ -14,6 +14,8 @@ using UnityEngine;
 namespace RDModifications;
 
 [BepInProcess("Rhythm Doctor.exe")]
+// We need this so we can detect it in our UnlockEditor so we can decide if that should run
+[BepInDependency("wtf.seq.unlockeditor", BepInDependency.DependencyFlags.SoftDependency)] 
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 public class Entry : BaseUnityPlugin
 {

@@ -1,5 +1,8 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using BepInEx;
+
 #if !BPE5
 using BepInEx.Unity.Mono.Bootstrap;
 #else
@@ -22,7 +25,7 @@ public class UnlockEditor : Modification
 		#else
 		UnlockEditorExists = Chainloader.PluginInfos.ContainsKey("wtf.seq.unlockeditor");
 		#endif
-        if (!enabled)
+		if (!enabled)
 			return false;
 		// check for seq's mod and if it does exist don't do the EnableDevEventStuffPatch because it already does what we do
 		// and if they have the direct mod then let it do its thing
