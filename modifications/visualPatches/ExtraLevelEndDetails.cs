@@ -34,7 +34,7 @@ public class ExtraLevelEndDetails : Modification
 	[Configuration<float>(0, "How much the text should be moved down (in pixels).")]
     public static ConfigEntry<float> TextOffsetY;
 
-	[Configuration<int>(6, "How big the text should be.")]
+	[Configuration<int>(6, "How big the text should be.", [1, int.MaxValue])]
     public static ConfigEntry<int> TextSize;
 
 	[Configuration<int>(60, 
@@ -77,15 +77,6 @@ public class ExtraLevelEndDetails : Modification
     public static ConfigEntry<bool> IncludeModifications;
 	[Configuration<string>("Modifications:", "What the prefix to the shown modifications should be.")]
     public static ConfigEntry<string> ModificationsPrefix;
-
-    public static void Init()
-    {
-        if (TextSize.Value <= 0)
-        {
-            TextSize.Value = 10;
-            Log.LogWarning("ExtraLevelEndDetails: Invalid TextSize, resetting back to 10.");
-        }
-    }
 
     [HarmonyPatch(typeof(Rankscreen), nameof(Rankscreen.ShowRankDescription))]
     private class LevelDetailsPatch

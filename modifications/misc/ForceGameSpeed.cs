@@ -11,7 +11,7 @@ namespace RDModifications;
 )]
 public class ForceGameSpeed : Modification
 {
-	[Configuration<float>(1f, "What speed the game should be forced to be at.")]
+	[Configuration<float>(1f, "What speed the game should be forced to be at.", [float.Epsilon, float.PositiveInfinity])]
     public static ConfigEntry<float> GameSpeed;
 
 	[Configuration<bool>(true, "If enabled, the game speed will always be set to the desired value instead of only in levels.")]

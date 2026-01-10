@@ -14,7 +14,7 @@ public class CustomDifficulty : Modification
 	[Configuration<bool>(false, "If P2 should use the custom hit margin defined.")]
     public static ConfigEntry<bool> P2Enabled;
 
-	[Configuration<float>(25f, "How many milliseconds wide the hit margin should be. (e.g. -25ms to +25ms)")]
+	[Configuration<float>(25f, "How many milliseconds wide the hit margin should be. (e.g. -25ms to +25ms)", [float.Epsilon, float.PositiveInfinity])]
     public static ConfigEntry<float> HitMargin;
 
 	[Configuration<string>("Very Hard", "What the difficulty should be called in the options menu.")]

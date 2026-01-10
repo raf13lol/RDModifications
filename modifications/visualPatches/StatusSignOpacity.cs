@@ -10,16 +10,10 @@ namespace RDModifications;
 [Modification("If the opacity of the status sign elements should be modified.")]
 public class StatusSignOpacity : Modification
 {
-	[Configuration<float>(1f, 
-	"How opaque the status sign background should be.\n" +
-	"(Value should be between 0 and 1.)"
-	)]
+	[Configuration<float>(1f, "How opaque the status sign background should be.", [0f, 1f])]
 	public static ConfigEntry<float> BackgroundOpacity;
 
-	[Configuration<float>(1f, 
-	"How opaque the status sign text should be.\n" +
-	"(Value should be between 0 and 1.)"
-	)]
+	[Configuration<float>(1f, "How opaque the status sign text should be.", [0f, 1f])]
 	public static ConfigEntry<float> TextOpacity;
 
 	[HarmonyPatch(typeof(LEDSign), "Awake")]

@@ -14,19 +14,19 @@ namespace RDModifications;
 )]
 public class AnimatedSleeves : Modification
 {
-	[Configuration<int>(6, "The FPS of the player 1 sleeve in slot 1.")]
+	[Configuration<int>(6, "The FPS of the player 1 sleeve in slot 1.", [1, int.MaxValue])]
     public static ConfigEntry<int> P1Slot1FPS;
-	[Configuration<int>(6, "The FPS of the player 2 sleeve in slot 1.")]
+	[Configuration<int>(6, "The FPS of the player 2 sleeve in slot 1.", [1, int.MaxValue])]
     public static ConfigEntry<int> P2Slot1FPS;
 
-    [Configuration<int>(6, "The FPS of the player 1 sleeve in slot 2.")]
+    [Configuration<int>(6, "The FPS of the player 1 sleeve in slot 2.", [1, int.MaxValue])]
     public static ConfigEntry<int> P1Slot2FPS;
-	[Configuration<int>(6, "The FPS of the player 2 sleeve in slot 2.")]
+	[Configuration<int>(6, "The FPS of the player 2 sleeve in slot 2.", [1, int.MaxValue])]
     public static ConfigEntry<int> P2Slot2FPS;
 
-	[Configuration<int>(6, "The FPS of the player 1 sleeve in slot 3.")]
+	[Configuration<int>(6, "The FPS of the player 1 sleeve in slot 3.", [1, int.MaxValue])]
     public static ConfigEntry<int> P1Slot3FPS;
-	[Configuration<int>(6, "The FPS of the player 2 sleeve in slot 3.")]
+	[Configuration<int>(6, "The FPS of the player 2 sleeve in slot 3.", [1, int.MaxValue])]
     public static ConfigEntry<int> P2Slot3FPS;
 
 	[Configuration<bool>(false, "If the FPS of an animated sleeve shouldn't change with things like the Set Speed event.")]

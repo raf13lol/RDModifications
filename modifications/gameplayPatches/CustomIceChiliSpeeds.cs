@@ -10,10 +10,10 @@ namespace RDModifications;
 [Modification("If the custom-defined ice/chili speeds should be used, also allows using custom speeds on any level.")]
 public class CustomIceChiliSpeeds : Modification
 {
-	[Configuration<float>(0.75f, "The speed multiplier to use for ice speeds.")]
+	[Configuration<float>(0.75f, "The speed multiplier to use for ice speeds.", [float.Epsilon, 1f - float.Epsilon])]
 	public static ConfigEntry<float> IceSpeed;
 
-	[Configuration<float>(1.5f, "The speed multiplier to use for chili speeds.")]
+	[Configuration<float>(1.5f, "The speed multiplier to use for chili speeds.", [1f + float.Epsilon, float.PositiveInfinity])]
 	public static ConfigEntry<float> ChiliSpeed;
 
 	[Configuration<bool>(true, "If the rankscreen colours should adjust depending on the speed more accurately.")]
@@ -23,16 +23,6 @@ public class CustomIceChiliSpeeds : Modification
 	{
 		if (enabled && IceSpeed.Value == 0.75f && ChiliSpeed.Value == 1.5f)
 			Log.LogMessage("CustomIceChiliSpeeds: All values are default. No differences from base game.");
-		if (IceSpeed.Value <= 0.00f || IceSpeed.Value >= 1.00f)
-		{
-			IceSpeed.Value = 0.75f;
-			Log.LogWarning("CustomIceChiliSpeeds: Invalid IceSpeed, value is reset to 0.75x");
-		}
-		if (ChiliSpeed.Value <= 1.00f)
-		{
-			ChiliSpeed.Value = 1.5f;
-			Log.LogWarning("CustomIceChiliSpeeds: Invalid ChiliSpeed, value is reset to 1.5x");
-		}
 	}
 
 	[HarmonyPatch(typeof(HeartMonitor), nameof(HeartMonitor.Show))]

@@ -22,7 +22,8 @@ List of modifications available with a simple summary:
 - CustomIceChiliSpeeds -> Allows for having a custom speed on ice/chili speeds instead of 0.75x/1.5x
 - CustomSamuraiMode -> Allows for setting the `Samurai.` from Samurai. mode to any string
 - DailyBlend -> Adds in-game handling for the daily blend(s), meaning you don't have to download them yourself
-- DieOnMS -> Allows you to force a game over if you hit a beat with a certain millisecond offset
+- FailOnCondition -> Allows you to force a game over if a certain condition is met (e.g. being a heartbreaker)
+- FailOnMS -> Allows you to force a game over if you hit a beat with a certain millisecond offset
 - DisableExcessiveLogging -> Allows you to prevent the game from logging useless messages 
 - DoctorMode -> Removes the `Rhythm` from `Rhythm Doctor` (destroys the rhythm engine)
 - EditorPatches -> Some patches to extend editor features or to improve editor [(see the section for more info)](#editorpatches)

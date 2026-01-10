@@ -1,6 +1,4 @@
-Fix UnlockEditor
-Remove debug logs from remove four row limit
-FakeRankOnMistake no longer blows out ear drums sometimes
-ExtraLevelEndDetails now has positional options
-NumericalHitJudgementAdjuments to replace zero offset sign
-StatusSignOpacity exists
+Some configs have ranges now. So abide by them. Ha ha ha.
+FailOnCondition now a thing
+Fix a setting on NumericalHitJudgementAdjuments
+Um... some other things maybe. Not sure.

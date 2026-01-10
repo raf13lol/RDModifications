@@ -22,10 +22,10 @@ public class FakeRankOnMistake : Modification
 	[Configuration<LevelRank>(LevelRank.F, "What the fake rank should be.")]
     public static ConfigEntry<LevelRank> RankToDisplayAndSay;
 
-	[Configuration<float>(1f, "How loud the said fake rank should be said.")]
+	[Configuration<float>(1f, "How loud the said fake rank should be said.", [float.Epsilon, float.PositiveInfinity])]
     public static ConfigEntry<float> SayVolume;
 
-	[Configuration<float>(0.5f, "How long the shown fake rank should be shown for in seconds.")]
+	[Configuration<float>(0.5f, "How long the shown fake rank should be shown for in seconds.", [float.Epsilon, float.PositiveInfinity])]
     public static ConfigEntry<float> Duration;
 
     private static string SoundName;
@@ -33,16 +33,6 @@ public class FakeRankOnMistake : Modification
     public static void Init()
     {
         SoundName = RankToDisplayAndSay.Value.ToString().Replace("Minus", "-").Replace("Plus", "+");
-        if (SayVolume.Value < 0f)
-        {
-            SayVolume.Value = 1f;
-            Log.LogWarning("FakeRankOnMistake: Invalid SayVolume, value is reset to 1");
-        }
-        if (Duration.Value < 0f)
-        {
-            Duration.Value = 0.5f;
-            Log.LogWarning("FakeRankOnMistake: Invalid Duration, value is reset to 0.5");
-        }
     }
 
     // mwehehehehe

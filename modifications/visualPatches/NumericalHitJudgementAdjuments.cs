@@ -105,7 +105,7 @@ public class NumericalHitJudgementAdjuments : Modification
 
 			string colour = "#0D3";
             string darkenedColour = "#00901F";
-			if (JudgementInfoPatch.TimeOffset == 0)
+			if (JudgementInfoPatch.FrameOffset == 0)
 				goto End;
 
 			if (ColourStyle.Value == ColourStyleType.GreenZeroOffsetElseRed)
@@ -128,8 +128,8 @@ public class NumericalHitJudgementAdjuments : Modification
                 colour = "#E8651D";
 				darkenedColour = "#9B4313";
             } 
+			
 		End:
-
 			if (ColourStyle.Value == ColourStyleType.None)
             {
                 colour = "#FFF";

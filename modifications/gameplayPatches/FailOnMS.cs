@@ -4,10 +4,10 @@ using HarmonyLib;
 
 namespace RDModifications;
 
-[Modification("If upon getting a certain millisecond timing on a hit, the player should instantly die.")]
-public class DieOnMS : Modification
+[Modification("If upon getting a certain millisecond timing on a hit, the player should instantly fail the level.")]
+public class FailOnMS : Modification
 {
-	[Configuration<int>(73, "The certain millisecond timing that would kill the player.")]
+	[Configuration<int>(73, "The certain millisecond timing that would cause the player to fail the level.")]
     public static ConfigEntry<int> Millisecond;
 
 	[Configuration<bool>(false, "If it should uses the absolute value of the timing.")]

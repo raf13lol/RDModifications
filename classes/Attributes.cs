@@ -12,13 +12,14 @@ namespace RDModifications
 		public bool IsEditor = isEditor;
     }
 
-	public class ConfigurationAttribute<T>(T defaultValue, string description) : Attribute
+	public class ConfigurationAttribute<T>(T defaultValue, string description, T[] acceptableRange = null) : Attribute where T : IComparable
     {
         public T DefaultValue = defaultValue;
 		public string Description = description;
+		public AcceptableValueRange<T> AcceptableRange = acceptableRange == null ? null : new(acceptableRange[0], acceptableRange[1]);
 
 		public ConfigEntry<T> GetConfig(ConfigFile config, string sectionName, string fieldName)
-			=> config.Bind(sectionName, fieldName, DefaultValue, Description);
+			=> config.Bind(sectionName, fieldName, DefaultValue, new ConfigDescription(Description, AcceptableRange));
     }
 
 	public class PatchAttribute(bool ignoreInitReturn = false) : Attribute
