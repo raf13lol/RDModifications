@@ -69,28 +69,41 @@ public class DuplicateDecorationButton : Modification
                 
                 editor.spritesData.Insert(newSpriteDataIndex, newSpriteData);
                 editor.eventControls_sprites.Insert(newSpriteDataIndex, newSpriteEventControls);
-                
-                foreach (LevelEventControl_Base spriteEventControl in spriteEventControls)
+
+				// Move already existing events to the next index,
+				// since LevelEventController_Base.controller indexes based on the event's row
+				foreach (LevelEventControl_Base spriteEventControl in editor.eventControls)
+				{
+					if (spriteEventControl.levelEvent.isSpriteTabEvent)
+					// && (spriteEventControl.levelEvent.type != LevelEventType.Comment || (spriteEventControl.levelEvent as LevelEvent_Comment).tab == Tab.Sprites))
+					{
+						if (spriteEventControl.levelEvent.row >= newSpriteDataIndex)
+						{
+							spriteEventControl.levelEvent.row++;
+						}
+					}
+				}
+
+				foreach (LevelEventControl_Base spriteEventControl in spriteEventControls)
                 {
                     if (spriteEventControl.levelEvent.target == spriteData.spriteId)
                     {
                         LevelEvent_Base newSpriteEvent = spriteEventControl.levelEvent.Clone();
                         newSpriteEvent.target = newSpriteData.spriteId;
                         newSpriteEvent.y++;
-                        newSpriteEvent.row = newSpriteDataIndex;
-                        editor.CreateEventControl(newSpriteEvent, Tab.Sprites, true);
-                        // LevelEventControl_Sprite newSpriteEventControl = (LevelEventControl_Sprite)editor.CreateEventControl(newSpriteEvent, Tab.Sprites, true);
-                    }
+
+						newSpriteEvent.row = newSpriteDataIndex;
+						editor.CreateEventControl(newSpriteEvent, Tab.Sprites, true);
+						// LevelEventControl_Sprite newSpriteEventControl = (LevelEventControl_Sprite)editor.CreateEventControl(newSpriteEvent, Tab.Sprites, true);
+					}
                 }
                 
-                int index = 0;
                 int[] indexRooms = [0, 0, 0, 0];
                 foreach (LevelEventControl_Base spriteEventControl in editor.eventControls)
                 {
                     if (spriteEventControl.levelEvent.isSpriteTabEvent) 
                     // && (spriteEventControl.levelEvent.type != LevelEventType.Comment || (spriteEventControl.levelEvent as LevelEvent_Comment).tab == Tab.Sprites))
                     {
-                        spriteEventControl.levelEvent.row = index++;
                         spriteEventControl.levelEvent.y = indexRooms[SpriteHeader.GetSpriteData(spriteEventControl.levelEvent.target).room]++;
                         spriteEventControl.UpdateUI();
                     }
