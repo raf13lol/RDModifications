@@ -38,7 +38,7 @@ public class EditorBorderTintOpacity : Modification
     {
         // heh heh, important shit for my horribleness later on
         [JsonProperty("___borderOpacity", "", null, "", false, true, nameof(EnableBorderColorIf))]
-        [InputField("%", InputField.LineType.SingleLine, 40, 14, false, false, null)]
+        [InputField("%", InputField.LineType.SingleLine, 40, 14, false, false)]
         public static int borderOpacity
         {
             get => (int)(trueBorderOpacity * 100d);
@@ -46,7 +46,7 @@ public class EditorBorderTintOpacity : Modification
         }
 
         [JsonProperty("___tintOpacity", "", null, "", false, true, nameof(EnableTintColorIf))]
-        [InputField("%", InputField.LineType.SingleLine, 40, 14, false, false, null)]
+        [InputField("%", InputField.LineType.SingleLine, 40, 14, false, false)]
         public static int tintOpacity
         {
             get => (int)(trueTintOpacity * 100);
@@ -60,12 +60,12 @@ public class EditorBorderTintOpacity : Modification
 
         private static BorderType GetBorder()
         {
-            return eventToUse.border;
+            return eventToUse.border.HasValue ? (BorderType)eventToUse.border : BorderType.None;
         }
 
         private static bool GetTint()
         {
-            return eventToUse.tint;
+            return eventToUse.tint.HasValue ? (bool)eventToUse.tint : false;
         }
 
         public static bool stuffBeingEncoded = false;

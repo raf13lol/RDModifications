@@ -55,18 +55,14 @@ public class UnlockEditor : Modification
         public static IEnumerable<MethodBase> TargetMethods()
         {
             yield return AccessTools.Constructor(typeof(RDLevelData), [typeof(Dictionary<string, object>), typeof(bool), typeof(bool)]);
-            yield return AccessTools.Method(typeof(LevelEvent_NarrateRowInfo), nameof(LevelEvent_NarrateRowInfo.EnableLengthIf));
             yield return AccessTools.Method(typeof(LevelEvent_ReorderRow), nameof(LevelEvent_ReorderRow.EnableSortingOrderIf));
-            yield return AccessTools.Method(typeof(LevelEvent_AddClassicBeat), nameof(LevelEvent_AddClassicBeat.EnableLengthIf));
             yield return AccessTools.Method(typeof(LevelEvent_SetTheme), nameof(LevelEvent_SetTheme.EnableFirstRowOnFloorIf));
-            yield return AccessTools.Method(typeof(LevelEvent_HideWindow), nameof(LevelEvent_HideWindow.EnableIfDev));
             yield return AccessTools.Method(typeof(RDStartup), "LoadLevelEditorProperties");
-            yield return AccessTools.Method(typeof(InspectorPanel_MakeRow), nameof(InspectorPanel_MakeRow.Awake));
+            //yield return AccessTools.Method(typeof(InspectorPanel_MakeRow), nameof(InspectorPanel_MakeRow.Awake));
             yield return AccessTools.Method(typeof(InspectorPanel_AddOneshotBeat), nameof(InspectorPanel_AddOneshotBeat.Awake));
-            yield return AccessTools.Method(typeof(InspectorPanel_ShowDialogue), "Update");
-            yield return AccessTools.Method(typeof(InspectorPanel_MoveCamera), "Update");
+			// Need to look into this one. Think there might be something.
+            //yield return AccessTools.Method(typeof(InspectorPanel_ShowDialogue), "Update");
             yield return AccessTools.Method(typeof(LevelBase), "GoToLevelWithWarning");
-            yield return AccessTools.Method(typeof(LevelEventControlEventTrigger), nameof(LevelEventControlEventTrigger.OnDrag));
         }
 
 		[HarmonyPrefix]

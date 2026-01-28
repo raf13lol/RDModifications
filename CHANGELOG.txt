@@ -1,2 +1,3 @@
-Fixed dupe deco button 
-Fixed detection of the UnlockEditor mod
+Fixed for beta
+Implemented something to fix somethign (Thanks 9thcore i wouldn't have caught that)
+Um. Autoupdater will spare people in the future.
