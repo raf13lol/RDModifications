@@ -67,8 +67,14 @@ public class AnimatedSleeves : Modification
         [HarmonyPatch(typeof(RDArm), "Update")]
         public static void RDArmPostfix(RDArm __instance)
         {
-            if ((!__instance.playerCanUse && __instance.cpuCanUse) || __instance.cpuOwner != Character.Otto || __instance.player >= RDPlayer.CPU)
+			// multiplayer mod
+			bool isSpecialBeans = __instance.cpuOwner == Character.Beans;
+            if (!__instance.playerCanUse && __instance.cpuCanUse && !isSpecialBeans)
                 return;
+			if (__instance.cpuOwner != Character.Otto && !isSpecialBeans)
+				return;
+			if (__instance.player >= RDPlayer.CPU)
+				return;
 
             int player = (int)__instance.player;
             int slot = Persistence.currentSlotIndex;

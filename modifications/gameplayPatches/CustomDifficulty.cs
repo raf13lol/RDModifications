@@ -28,19 +28,27 @@ public class CustomDifficulty : Modification
 
     private class DifficultyPatch
     {
-        public static IEnumerable<MethodInfo> TargetMethods()
-        {
-            yield return AccessTools.Method(typeof(scnGame), nameof(scnGame.GetHitMargin));
-            yield return AccessTools.Method(typeof(scnGame), nameof(scnGame.GetReleaseMargin));
-        }
-
         [HarmonyPrefix]
-        public static bool HitReleasePrefix(ref float __result, RDPlayer player)
+		[HarmonyPatch(typeof(scnGame), nameof(scnGame.GetHitMargin))]
+        public static bool HitPrefix(ref float __result, RDPlayer player)
         {
             if ((player != RDPlayer.P2 && P1Enabled.Value)
             || (player == RDPlayer.P2 && P2Enabled.Value))
             {
-                __result = marginMult(HitMargin.Value / 1000);
+                __result = marginMult(HitMargin.Value / 1000f);
+                return false;
+            }
+            return true;
+        }
+
+        [HarmonyPrefix]
+		[HarmonyPatch(typeof(scnGame), nameof(scnGame.GetReleaseMargin))]
+        public static bool ReleasePrefix(ref float __result, RDPlayer player)
+        {
+            if ((player != RDPlayer.P2 && P1Enabled.Value)
+            || (player == RDPlayer.P2 && P2Enabled.Value))
+            {
+                __result = marginMult(Mathf.Clamp(HitMargin.Value / 1000f, 0.08f, 0.4f));
                 return false;
             }
             return true;

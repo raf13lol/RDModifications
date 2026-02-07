@@ -11,7 +11,9 @@ some random modifications that some people could want and such so why not
 ## warning: some of the modifications could cause issues (accidentally and purposefully) in levels
 #### (e.g. 2x+ speed seems to cause some ***visual*** issues sometimes)<br>
 
-Check the config file or use that Config manager that bepinex have said about
+Check the config file to change configuration
+
+the configuration manager is not properly supported due to my method of loading mods, unsure if i will ever fix that
 
 List of modifications available with a simple summary:
 

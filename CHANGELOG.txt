@@ -1,3 +1,2 @@
-Fixed for beta
-Implemented something to fix somethign (Thanks 9thcore i wouldn't have caught that)
-Um. Autoupdater will spare people in the future.
+Fix for animated sleeves not working in my multiplayer mod
+Fix for custom difficulty not being the most accurate

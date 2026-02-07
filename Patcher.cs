@@ -42,7 +42,7 @@ public class Patcher
                 Attribute configAttrib = attribs.Length > 0 ? attribs[0] : null;
 				if (configAttrib == null || !configAttrib.GetType().IsGenericType) // may not work forever.... beware!
 					continue;
-
+					
 				Type configType = configAttrib.GetType().GetGenericArguments()[0];
 				if (!getConfigs.TryGetValue(configType, out MethodInfo getConfig))
 				{
