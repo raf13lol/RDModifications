@@ -59,7 +59,7 @@ public class Updater
 				Logger.LogWarning($"RDModifications was outdated ({content} > {MyPluginInfo.PLUGIN_VERSION}), please restart to apply the updated version of the mod.");
             }
 			else
-                Logger.LogWarning($"HEY ! Um. This update ({MyPluginInfo.PLUGIN_VERSION}->{content}) requires you to be on the beta branch. So. Um. No update.");
+                Logger.LogWarning($"HEY ! Um. This update ({MyPluginInfo.PLUGIN_VERSION}->{content}) requires you to be on the beta branch (if you are, please run steam). So. Um. No update.");
 				
 			HttpResponseMessage response2 = await client.GetAsync("https://raw.githubusercontent.com/raf13lol/RDModifications/refs/heads/main/CHANGELOG.txt");
             if (response.StatusCode != HttpStatusCode.OK)

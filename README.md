@@ -24,14 +24,15 @@ List of modifications available with a simple summary:
 - CustomIceChiliSpeeds -> Allows for having a custom speed on ice/chili speeds instead of 0.75x/1.5x
 - CustomSamuraiMode -> Allows for setting the `Samurai.` from Samurai. mode to any string
 - DailyBlend -> Adds in-game handling for the daily blend(s), meaning you don't have to download them yourself
-- FailOnCondition -> Allows you to force a game over if a certain condition is met (e.g. being a heartbreaker)
-- FailOnMS -> Allows you to force a game over if you hit a beat with a certain millisecond offset
 - DisableExcessiveLogging -> Allows you to prevent the game from logging useless messages 
 - DoctorMode -> Removes the `Rhythm` from `Rhythm Doctor` (destroys the rhythm engine)
 - EditorPatches -> Some patches to extend editor features or to improve editor [(see the section for more info)](#editorpatches)
 - ExtraLevelEndDetails -> Provides extra details at the end of a level, e.g. previous best
+- FailOnCondition -> Allows you to force a game over if a certain condition is met (e.g. being a heartbreaker)
+- FailOnMS -> Allows you to force a game over if you hit a beat with a certain millisecond offset
 - FakeRankOnMistake -> Allows for flashing a fake rank screen and a sound to play on each miss, with being able to choose the Rank shown/said
 - ForceGameSpeed -> Forces the game speed to a certain value (may cause a few issues due to how forceful it is)
+- GameplayBugs -> Fixes some bugs within the game
 - LevelPRStatus -> Colours the syringe body of a custom level depending on the peer-review status of it on Rhythm Café
 - MassUnwrapLevels -> Allows for unwrapped all currently wrapped levels with a simple key combination
 - NumericalHitJudgementAdjuments -> Adjusts the Numerical Hit Judgement sign depending on judgement display and colour styling
@@ -76,6 +77,7 @@ each image should have the suffix of `_frameX` where X is a number starting from
 - DisableInputFieldLimits -> Numerical input field limits are disabled
 - DuplicateDecorationButton -> Adds a button to duplicate a deco, above the delete button for the deco
 - EditorBorderTintOpacity -> Enables/adds the built-in border/tint opacity field to paint events
+- EditorBugs -> Fixes some bugs within the editor
 - ImportAnimatedImages -> Allows the importing of APNGs/GIFs and them being converting to a valid format for RD 
 - InsertDeleteBars -> Alt + left click inserts a bar, alt + right click deletes the bar clicked (hard to explain shortly)
 - RemoveFourRowLimit -> Allows up to 16 rows in total placed in any room without limits

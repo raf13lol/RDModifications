@@ -1,2 +1,1 @@
-Fix for animated sleeves not working in my multiplayer mod
-Fix for custom difficulty not being the most accurate
+New 2 modifications to fix some bugs
