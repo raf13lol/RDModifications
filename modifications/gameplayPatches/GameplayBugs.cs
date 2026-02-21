@@ -9,23 +9,29 @@ namespace RDModifications;
 [Modification("If to fix bugs within the game.")]
 public class GameplayBugs : Modification
 {
-	[HarmonyPatch(typeof(LevelEvent_SetGameSound), nameof(LevelEvent_SetGameSound.Decode))]
     private class SetGameSoundCompatibilityPatch
     {
-		public static void Postfix(LevelEvent_SetGameSound __instance, Dictionary<string, object> dict)
+		[HarmonyPostfix]
+		[HarmonyPatch(typeof(LevelEvent_SetGameSound), nameof(LevelEvent_SetGameSound.Decode))]
+		public static void DecodePostfix(LevelEvent_SetGameSound __instance, Dictionary<string, object> dict)
         {
             if (dict.ContainsKey("soundSubtypes"))
 				return;
 			if (!RDEditorConstants.gameSoundGroups.TryGetValue(__instance.soundType, out GameSoundType[] array))
 				return;
+			for (int i = 0; i <__instance.sounds.Length; i++)
+				__instance.sounds[i].groupSubtype = __instance.sounds[i].used ? array[i] : (GameSoundType)int.MaxValue;
+		}
 
+		[HarmonyPrefix]
+		[HarmonyPatch(typeof(LevelEvent_SetGameSound), nameof(LevelEvent_SetGameSound.Run))]
+		public static void RunPrefix(LevelEvent_SetGameSound __instance)
+        {
 			for (int i = 0; i <__instance.sounds.Length; i++)
 			{
-				if (__instance.sounds[i].used)
-				{
-					__instance.soundType = array[i];
-					return;
-				}
+				if (!__instance.sounds[i].used || __instance.sounds[i].groupSubtype != (GameSoundType)int.MaxValue)
+					continue;
+				__instance.sounds[i].used = false;
 			}
 		}
     }
