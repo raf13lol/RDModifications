@@ -1,1 +1,1 @@
-New 2 modifications to fix some bugs
+Fixed pivot ease bug

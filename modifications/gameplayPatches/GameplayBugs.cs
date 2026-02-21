@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using HarmonyLib;
 using RDLevelEditor;
+using UnityEngine;
 
 namespace RDModifications;
 
@@ -26,5 +28,18 @@ public class GameplayBugs : Modification
 				}
 			}
 		}
+    }
+
+	[HarmonyPatch(typeof(CustomAnimation), nameof(CustomAnimation.UpdateMesh))]
+    private class PivotEaseBugPatch
+    {
+		public static void Prefix(CustomAnimation __instance, out int __state)
+        {
+			__state = __instance.clipFrame;
+            __instance.clipFrame = Mathf.Clamp(__state, 0, __instance.currentClip.frames.Length - 1);
+        }
+
+		public static void Postfix(CustomAnimation __instance, int __state)
+			=> __instance.clipFrame = __state;
     }
 }
