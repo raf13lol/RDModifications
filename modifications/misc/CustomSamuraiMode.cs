@@ -1,5 +1,3 @@
-// this uses scary transpiler... not so scary ?
-
 using BepInEx.Configuration;
 using HarmonyLib;
 using UnityEngine;
@@ -9,6 +7,7 @@ using RDLevelEditor;
 using System.Reflection;
 using System;
 using System.Text.RegularExpressions;
+using MonoMod.Cil;
 
 namespace RDModifications;
 
@@ -63,10 +62,9 @@ public class CustomSamuraiMode : Modification
             yield return AccessUtils.GetFirstInnerMethodContains(typeof(RDInk), "<Say>", "MoveNext");
         }
 
-        [HarmonyTranspiler]
-        public static IEnumerable<CodeInstruction> SamuraiTranspiler(IEnumerable<CodeInstruction> instructions)
-            // This is actually quite useful !
-            => TranspilerUtils.ReplaceString(instructions, "Samurai.", SamuraiReplacement.Value);
+        [HarmonyILManipulator]
+        public static void SamuraiILManipulator(ILContext il)
+            => ILManipulatorUtils.ReplaceString(il, "Samurai.", SamuraiReplacement.Value);
     }
     [HarmonyPatch(typeof(Rankscreen), nameof(Rankscreen.ShowAndSaveRank))]
     private class SamuraiRankPatch

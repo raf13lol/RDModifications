@@ -1,7 +1,5 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using BepInEx;
 
 #if !BPE5
 using BepInEx.Unity.Mono.Bootstrap;

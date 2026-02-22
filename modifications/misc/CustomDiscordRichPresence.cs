@@ -1,7 +1,6 @@
 using BepInEx.Configuration;
 using HarmonyLib;
-using System.Collections.Generic;
-using System.Reflection.Emit;
+using MonoMod.Cil;
 
 namespace RDModifications;
 
@@ -24,25 +23,24 @@ public class CustomDiscordRichPresence : Modification
     [HarmonyPatch(typeof(RDRichPresence_Discord), "TryInitDiscord")]
     private class IDPatch
     {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        public static void ILManipulator(ILContext il)
         {
-            return new CodeMatcher(instructions)
-                .MatchForward(false, new CodeMatch(OpCodes.Ldc_I8, 477926053420072961L))
-                .SetOperandAndAdvance(DiscordClientID.Value)
-                .InstructionEnumeration();
+			ILCursor cursor = new(il);
+			cursor.GotoNext(x => x.MatchLdcI8(477926053420072961L));
+			cursor.Next.Operand = DiscordClientID.Value;
         }
     }
 
     private class LargeImagePatch
     {
-		[HarmonyTranspiler]
+		[HarmonyILManipulator]
     	[HarmonyPatch(typeof(RDRichPresence_Discord), nameof(RDRichPresence_Discord.SetPresence))]
-        public static IEnumerable<CodeInstruction> KeyTranspiler(IEnumerable<CodeInstruction> instructions)
-        	=> TranspilerUtils.ReplaceString(instructions, (string)LargeImageKey.DefaultValue, LargeImageKey.Value);
+        public static void KeyILManipulator(ILContext il)
+        	=> ILManipulatorUtils.ReplaceString(il, (string)LargeImageKey.DefaultValue, LargeImageKey.Value);
 
-		[HarmonyTranspiler]
+		[HarmonyILManipulator]
     	[HarmonyPatch(typeof(RDRichPresence_Discord), nameof(RDRichPresence_Discord.SetPresence))]
-        public static IEnumerable<CodeInstruction> TextTranspiler(IEnumerable<CodeInstruction> instructions)
-        	=> TranspilerUtils.ReplaceString(instructions, (string)LargeImageText.DefaultValue, LargeImageText.Value);
+        public static void TextILManipulator(ILContext il)
+        	=> ILManipulatorUtils.ReplaceString(il, (string)LargeImageText.DefaultValue, LargeImageText.Value);
     }
 }

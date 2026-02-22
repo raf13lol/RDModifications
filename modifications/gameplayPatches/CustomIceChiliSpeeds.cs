@@ -3,7 +3,7 @@ using HarmonyLib;
 using UnityEngine;
 using System.Reflection;
 using System.Collections.Generic;
-using System.Reflection.Emit;
+using MonoMod.Cil;
 
 namespace RDModifications;
 
@@ -28,12 +28,13 @@ public class CustomIceChiliSpeeds : Modification
 	[HarmonyPatch(typeof(HeartMonitor), nameof(HeartMonitor.Show))]
 	private class SpeedAnyPatch
 	{
-		public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-			=> new CodeMatcher(instructions)
-				.MatchForward(false, new CodeMatch(OpCodes.Ldc_I4_S, (sbyte)Level.Montage))
-				.Advance(-2)
-				.RemoveInstructions(6)
-				.InstructionEnumeration();
+		public static void ILManipulator(ILContext il)
+		{
+			ILCursor cursor = new(il);
+			cursor.GotoNext(x => x.MatchLdcI4((sbyte)Level.Montage));
+			cursor.Index -= 2;
+			cursor.RemoveRange(6);
+		}
 	}
 
 	[HarmonyPatch(typeof(scnGame), nameof(scnGame.StartTheGame))]

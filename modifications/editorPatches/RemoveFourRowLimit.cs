@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Reflection.Emit;
+using Mono.Cecil.Cil;
 using HarmonyLib;
+using MonoMod.Cil;
 using RDLevelEditor;
 using UnityEngine;
 using UnityEngine.UI;
@@ -185,24 +186,23 @@ public class RemoveFourRowLimit : Modification
 	[HarmonyPatch(typeof(Timeline), nameof(Timeline.usedRowCount), MethodType.Getter)]
 	private class UsedRowCountPatch
     {
-		public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+		public static void ILManipulator(ILContext il)
         {
-            return new CodeMatcher(instructions)
-				.MatchForward(false, [new(OpCodes.Ldc_I4_1)]) // Tab.Rows
-				.SetInstruction(new(OpCodes.Ldc_I4_3)) // Tab.Rooms
-				.InstructionEnumeration();
+            ILCursor cursor = new(il);
+			cursor.GotoNext(x => x.MatchLdcI4(1));
+			cursor.Next.OpCode = OpCodes.Ldc_I4_3;
         }
 	}
 
 	[HarmonyPatch(typeof(TabSection_Rows), nameof(TabSection_Rows.UpdateUIInternal))]
 	private class UpdateUI16RowHeadersPatch
     {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        public static void ILManipulator(ILContext il)
         {
-            return new CodeMatcher(instructions)
-				.MatchForward(false, [new(OpCodes.Ldc_I4_4)]) // loop 4
-				.SetInstruction(new(OpCodes.Ldc_I4, 16)) // loop 16
-				.InstructionEnumeration();
+            ILCursor cursor = new(il);
+			cursor.GotoNext(x => x.MatchLdcI4(4));
+			cursor.Next.OpCode = OpCodes.Ldc_I4;
+			cursor.Next.Operand = 16;
         }
 
 		public static void Postfix(RowHeader __instance)
@@ -226,42 +226,25 @@ public class RemoveFourRowLimit : Modification
 	[HarmonyPatch(typeof(InspectorPanel_MakeRow), nameof(InspectorPanel_MakeRow.RoomDropdownWasUpdated))]
 	private class RoomDropdownWasUpdatedPatch
     {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+		public static void ILManipulator(ILContext il)
         {
-			// skip the return on "room full"
-            return new CodeMatcher(instructions)
-				.MatchForward(false, [new(OpCodes.Bge)]) 
-				.Advance(-2) // skip the ldc.i4.4
-				.SetOpcodeAndAdvance(OpCodes.Ldc_I4_0) // 0 is not >= 4
-				.InstructionEnumeration();
+            ILCursor cursor = new(il);
+			cursor.GotoNext(x => x.MatchBge(out _));
+			cursor.Index -= 2;
+			cursor.Next.OpCode = OpCodes.Ldc_I4_0;
         }
 	}
 
 	[HarmonyPatch(typeof(InspectorPanel_MakeRow), nameof(InspectorPanel_MakeRow.UpdateRoomDropdown))]
 	private class UpdateRoomDropdownPatch
     {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+		public static void ILManipulator(ILContext il)
         {
-			bool removeFullRoomSuffix = false;
-			foreach (CodeInstruction instruction in instructions)
-            {
-				if (removeFullRoomSuffix)
-                {
-					yield return new(OpCodes.Nop); // call
-					yield return new(OpCodes.Nop); // pointer byte 1
-					yield return new(OpCodes.Nop); // pointer byte 2
-					yield return new(OpCodes.Nop); // pointer byte 3
-					yield return new(OpCodes.Nop); // pointer byte 4
-                    removeFullRoomSuffix = false;
-					continue;
-                }
-                if (instruction.OperandIs("editor.MakeRow.fullRoomSuffix"))
-				{
-					instruction.operand = "";
-					removeFullRoomSuffix = true;
-				}
-				yield return instruction;
-            }
+            ILCursor cursor = new(il);
+			cursor.GotoNext(x => x.MatchLdstr("editor.MakeRow.fullRoomSuffix"));
+			cursor.Next.Operand = "";
+			cursor.Index++;
+			cursor.Remove();
         }
 	}
 }

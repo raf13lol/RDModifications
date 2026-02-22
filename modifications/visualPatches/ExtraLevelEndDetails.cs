@@ -1,13 +1,9 @@
-// this uses scary transpiler... not so scary ?
-
 using BepInEx.Configuration;
 using HarmonyLib;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Reflection;
-using System.Reflection.Emit;
 using System.IO;
 using System.Linq;
 
@@ -239,25 +235,5 @@ public class ExtraLevelEndDetails : Modification
                 bestPrev = Persistence.GetCustomLevelRank(hash, RDTime.speed);
             }
         }
-
-    }
-
-    [HarmonyPatch(typeof(scnGame), "Start")]
-    private class FixScnGamePatch
-    {
-        // It seems bepinex runs scnGame.Start under this assembly which when paired with GetType causes a few issues
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            MethodInfo concatFunc = AccessTools.Method("System.String:Concat", [typeof(string), typeof(string)]);
-            
-            return new CodeMatcher(instructions)
-                .MatchForward(false, new CodeMatch(OpCodes.Ldstr, "Level_"))
-                .MatchForward(false, new CodeMatch(OpCodes.Call, concatFunc)) // should be concat
-                .InsertAndAdvance([
-                    new(OpCodes.Ldstr, ", " + typeof(scnGame).Assembly.GetName()),
-                    new(OpCodes.Call, concatFunc)
-                ])
-                .InstructionEnumeration();
-        }
-    }
+	}
 }

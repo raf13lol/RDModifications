@@ -1,1 +1,2 @@
-Fixed inspector panel of old set game sounds
+Fixed hardcoded levels not loading if a level that uses an rdlevel hasn't been loaded yet
+Ported all transpilers to ilmanipulators... Please stay vigilant for any errors and let me know immediately

@@ -1,7 +1,7 @@
 using BepInEx.Configuration;
 using HarmonyLib;
-using System.Collections.Generic;
-using System.Reflection.Emit;
+using Mono.Cecil.Cil;
+using MonoMod.Cil;
 
 namespace RDModifications;
 
@@ -43,34 +43,33 @@ public class DoctorMode : Modification
         public static void GetCrotchetPostfix(ref float __result)
             => __result *= UnityEngine.Random.Range(LowMultiplier.Value, HighMultiplier.Value);
 
-        [HarmonyTranspiler]
+        [HarmonyILManipulator]
         [HarmonyPatch(typeof(scrConductor), nameof(scrConductor.BeatToTime))]
-        public static IEnumerable<CodeInstruction> BeatToTimeTranspiler(IEnumerable<CodeInstruction> instructions)
+        public static void BeatToTimeILManipulator(ILContext il)
         {
-            CodeInstruction[] randMult = [
-                new(OpCodes.Ldc_R4, LowMultiplier.Value),
-                new(OpCodes.Ldc_R4, HighMultiplier.Value),
-                new(OpCodes.Call, AccessTools.Method("UnityEngine.Random:Range", [typeof(float), typeof(float)])),
-                new(OpCodes.Mul)
-            ];
+			static void emitRandomMultiplier(ILCursor cursor)
+            {
+				int index = cursor.Index;
 
-            // twice?! ... okay then :pensive:
-            return new CodeMatcher(instructions)
-                // need to Ignore the first two `mul`'s so
-                // sets it to the max via the Idiotproofing (oob)
-                .Advance(500000)
-                // goes backwards to the last one before ret
-                .MatchBack(false, new CodeMatch(OpCodes.Mul))
-                .InsertAndAdvance(randMult)
-                // back to where we just were
-                .MatchBack(false, new CodeMatch(OpCodes.Mul))
-                // go past that (idk if we can match on the same thing sooo)
-                .Advance(-5)
-                // To the next one after
-                .MatchBack(false, new CodeMatch(OpCodes.Mul))
-                .InsertAndAdvance(randMult)
-                // done
-                .InstructionEnumeration();
+                cursor.Emit(OpCodes.Ldc_R4, LowMultiplier.Value);
+                cursor.Emit(OpCodes.Ldc_R4, HighMultiplier.Value);
+                cursor.Emit(OpCodes.Call, AccessTools.Method("UnityEngine.Random:Range", [typeof(float), typeof(float)]));
+                cursor.Emit(OpCodes.Mul);
+
+				cursor.Index = index;
+            }
+
+			ILCursor cursor = new(il)
+			{
+				Index = -1
+			};
+
+			cursor.GotoPrev(x => x.MatchMul());
+			emitRandomMultiplier(cursor);
+			cursor.Index--;
+
+			cursor.GotoPrev(x => x.MatchMul());
+			emitRandomMultiplier(cursor);
         }
     }
 

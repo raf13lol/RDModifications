@@ -1,6 +1,7 @@
-using System;
 using System.Collections.Generic;
 using HarmonyLib;
+using Mono.Cecil.Cil;
+using MonoMod.Cil;
 using RDLevelEditor;
 using UnityEngine;
 
@@ -47,5 +48,29 @@ public class GameplayBugs : Modification
 
 		public static void Postfix(CustomAnimation __instance, int __state)
 			=> __instance.clipFrame = __state;
+    }
+
+	[HarmonyPatch(typeof(scnGame), "Start")]
+    private class HardcodedLevelsPatch
+    {
+    	public static void ILManipulator(ILContext il)
+        {
+            ILCursor cursor = new(il);
+			cursor.GotoNext(
+				x => x.MatchCall(AccessTools.Method(typeof(Conditionals), nameof(Conditionals.GetGlobalConditionals))),
+				x => x.MatchLdloc(13),
+				x => x.MatchLdfld(AccessTools.Field(typeof(RDLevelData), nameof(RDLevelData.conditionals)))
+			);
+			cursor.RemoveRange(5);
+			cursor.Emit(OpCodes.Call, AccessTools.Method(typeof(HardcodedLevelsPatch), nameof(GetConditionals)));
+        }
+
+		public static List<Conditional> GetConditionals()
+        {
+            List<Conditional> conds = Conditionals.GetGlobalConditionals();
+			if (RDLevelData.current != null)
+				conds = [.. conds, .. RDLevelData.current.conditionals];
+			return conds;
+        }
     }
 }
