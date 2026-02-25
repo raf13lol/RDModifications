@@ -1,4 +1,7 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using HarmonyLib;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
@@ -72,5 +75,36 @@ public class GameplayBugs : Modification
 				conds = [.. conds, .. RDLevelData.current.conditionals];
 			return conds;
         }
+    }
+
+    private class SetCountingSoundPatch
+    {
+		// I've done some bullshit because otherwise it just doesn't work?
+		public static MethodInfo TargetMethod()
+			=> AccessUtils.GetFirstInnerMethodContains(typeof(LevelEvent_SetCountingSound), "<Prepare>", "MoveNext");
+
+		[HarmonyPostfix]
+    	public static void Postfix(IEnumerator __instance, bool __result)
+        {
+			if (__result)
+				return;
+
+			LevelEvent_SetCountingSound levelEvent = (LevelEvent_SetCountingSound)AccessUtils.GetFirstFieldContains(__instance.GetType(), "this").GetValue(__instance);
+			if (levelEvent.voiceSource != CountingVoiceSource.Custom)
+				return;
+
+			SoundData[] soundsData = (SoundData[])AccessTools.Field(typeof(LevelEvent_SetCountingSound), "soundsData").GetValue(levelEvent);
+			foreach (SoundData soundData in soundsData)
+			{
+				if (soundData == null || soundData.filename.HasAudioFileExtension())
+					continue;
+
+				if (soundData.itsASong || !soundData.filename.StartsWith("sndsnd"))
+					continue;
+					
+				soundData.itsASong = true;
+				soundData.filename = soundData.filename.Replace("sndsnd", "snd");
+			}
+		}
     }
 }
