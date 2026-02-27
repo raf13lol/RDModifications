@@ -16,7 +16,7 @@ namespace RDModifications;
 , true)]
 public class RemoveFourRowLimit : Modification
 {
- 	static readonly FieldInfo maxUsedYField = AccessTools.Field(typeof(Timeline), "maxUsedY");
+	static readonly FieldInfo maxUsedYField = AccessTools.Field(typeof(Timeline), "maxUsedY");
 
 	public static void SetMaxYUsed()
 	{
@@ -32,16 +32,16 @@ public class RemoveFourRowLimit : Modification
 
 	[HarmonyPatch(typeof(TabSection_Rows), nameof(TabSection_Rows.Setup))]
 	private class CreateRowHeadersPatch
-    {
-        public static void Postfix(TabSection_Rows __instance)
-        {
+	{
+		public static void Postfix(TabSection_Rows __instance)
+		{
 			List<GameObject> rowHeaders = __instance.rowHeaders;
 			GameObject baseHolder = __instance.rowHeaders[^1].transform.parent.gameObject;
 			// __instance.rowsListRect.offsetMax = __instance.rowsListRect.offsetMax.WithY(-64f);
-            while (rowHeaders.Count < 16)
-            {
+			while (rowHeaders.Count < 16)
+			{
 				GameObject holder = Object.Instantiate(baseHolder, baseHolder.transform.parent);
-				GameObject rowHeader = holder.transform.GetChild(0).gameObject; 
+				GameObject rowHeader = holder.transform.GetChild(0).gameObject;
 				holder.name = $"holder{rowHeaders.Count}";
 				rowHeader.name = $"rowHeader{rowHeaders.Count}";
 				holder.transform.position = baseHolder.transform.position;
@@ -50,11 +50,11 @@ public class RemoveFourRowLimit : Modification
 				holder.SetActive(true);
 				rowHeader.SetActive(true);
 				rowHeaders.Add(rowHeader);
-            }
+			}
 			GameObject rowsList = baseHolder.transform.parent.gameObject;
 			GameObject spritesList = __instance.editor.tabSection_sprites.headersListRect.parent.gameObject;
 			RectTransform spritesListRectTransform = spritesList.GetComponent<RectTransform>();
-			
+
 			GameObject maskObject = new()
 			{
 				name = "MaskObjectRDM"
@@ -79,17 +79,17 @@ public class RemoveFourRowLimit : Modification
 			rowsList.transform.SetParent(maskObject.transform);
 
 			ScrollSidePatch.VerticalScrollRectLastY = ScrollSidePatch.ScrollbarOffset = 0;
-        }
-    }
+		}
+	}
 
 	[HarmonyPatch(typeof(TabSection), nameof(TabSection.LateUpdate))]
 	private class ScrollSidePatch
-    {
+	{
 		public static float VerticalScrollRectLastY = 0;
 		public static float ScrollbarOffset = 0;
 
-        public static void Postfix(TabSection __instance)
-        {
+		public static void Postfix(TabSection __instance)
+		{
 			float y = __instance.timeline.scrollViewVertContent.anchoredPosition.y;
 			if (VerticalScrollRectLastY == y)
 				return;
@@ -101,23 +101,23 @@ public class RemoveFourRowLimit : Modification
 
 			__instance.tabSection_rows.rowsListRect.anchoredPosition = anchoredPosition;
 			VerticalScrollRectLastY = y;
-        }
-    }
+		}
+	}
 
 	[HarmonyPatch(typeof(Timeline), "UpdateUIInternalCo")]
 	private class SideSizePatch
-    {   
+	{
 		public static RectTransform SavedRowsListRect = null;
 		public static RectTransform DummyRectTransform = null;
 
 		public static void Prefix(Timeline __instance)
-        {
+		{
 			if (GameObject.Find("DummyRectTransform") == null)
 			{
 				GameObject dummy = new()
-                {
-                    name = "DummyRectTransform"
-                };
+				{
+					name = "DummyRectTransform"
+				};
 				DummyRectTransform = dummy.AddComponent<RectTransform>();
 				SavedRowsListRect = __instance.tabSection_rows.rowsListRect;
 			}
@@ -135,7 +135,7 @@ public class RemoveFourRowLimit : Modification
 				if (__instance.editor.currentTab == Tab.Rows && (int)maxUsedYField.GetValue(__instance) == 0)
 				{
 					SetMaxYUsed();
-        	        __instance.scrollViewVertContent.SizeDeltaY((__instance.usedRowCount - __instance.scaledRowCellCount) * __instance.cellHeight);
+					__instance.scrollViewVertContent.SizeDeltaY((__instance.usedRowCount - __instance.scaledRowCellCount) * __instance.cellHeight);
 				}
 				yield return __result.Current;
 			}
@@ -154,97 +154,97 @@ public class RemoveFourRowLimit : Modification
 			// add the new one
 			anchoredPosition = rectTransform.anchoredPosition;
 			anchoredPosition.y += __instance.scrollViewVertContent.anchoredPosition.y;
-			rectTransform.anchoredPosition = anchoredPosition;  
+			rectTransform.anchoredPosition = anchoredPosition;
 		}
 	}
 
 	[HarmonyPatch(typeof(Timeline), "ApplyNewMaxUsedY")]
 	private class ApplyNewMaxUsedYPatch
-    {
-        public static void Prefix()
-        	=> SetMaxYUsed();
+	{
+		public static void Prefix()
+			=> SetMaxYUsed();
 	}
 
 	[HarmonyPatch(typeof(Timeline), "LateUpdate")]
 	private class DisableRectPatch
-    {
-        public static void Postfix(Timeline __instance)
-        {
+	{
+		public static void Postfix(Timeline __instance)
+		{
 			if (__instance.editor.currentTab != Tab.Rows)
 				return;
 
-            int maxHeight = __instance.scaledRowCellCount;
+			int maxHeight = __instance.scaledRowCellCount;
 			if (__instance.editor.rowsData.Count < 16)
 				maxHeight--;
 
 			int enabledRows = Mathf.Min(__instance.editor.currentPageRowsData.Count, maxHeight);
 			int height = (__instance.scaledRowCellCount - enabledRows) * __instance.cellHeight;
 			__instance.disabledRowsQuad.GetComponent<RectTransform>().sizeDelta = new Vector2(0f, height);
-        }
+		}
 	}
 
 	[HarmonyPatch(typeof(Timeline), nameof(Timeline.usedRowCount), MethodType.Getter)]
 	private class UsedRowCountPatch
-    {
+	{
 		public static void ILManipulator(ILContext il)
-        {
-            ILCursor cursor = new(il);
+		{
+			ILCursor cursor = new(il);
 			cursor.GotoNext(x => x.MatchLdcI4(1));
 			cursor.Next.OpCode = OpCodes.Ldc_I4_3;
-        }
+		}
 	}
 
 	[HarmonyPatch(typeof(TabSection_Rows), nameof(TabSection_Rows.UpdateUIInternal))]
 	private class UpdateUI16RowHeadersPatch
-    {
-        public static void ILManipulator(ILContext il)
-        {
-            ILCursor cursor = new(il);
+	{
+		public static void ILManipulator(ILContext il)
+		{
+			ILCursor cursor = new(il);
 			cursor.GotoNext(x => x.MatchLdcI4(4));
 			cursor.Next.OpCode = OpCodes.Ldc_I4;
 			cursor.Next.Operand = 16;
-        }
+		}
 
 		public static void Postfix(RowHeader __instance)
 			=> __instance.timeline.UpdateMaxUsedY();
-    }
+	}
 
 	[HarmonyPatch(typeof(RowHeader), nameof(RowHeader.UpdateUI))]
 	private class RowHeaderUpdateUIPatch
-    {
-        public static void Prefix(ref bool isNextToLastRow)
+	{
+		public static void Prefix(ref bool isNextToLastRow)
 			=> isNextToLastRow = isNextToLastRow && scnEditor.instance.rowsData.Count < 16;
 	}
 
 	[HarmonyPatch(typeof(RowHeader), nameof(RowHeader.Select))]
 	private class RowHeaderUpdateScrollbarAddPatch
-    {
-        public static void Postfix(RowHeader __instance)
+	{
+		public static void Postfix(RowHeader __instance)
 			=> __instance.timeline.UpdateMaxUsedY();
 	}
 
 	[HarmonyPatch(typeof(InspectorPanel_MakeRow), nameof(InspectorPanel_MakeRow.RoomDropdownWasUpdated))]
 	private class RoomDropdownWasUpdatedPatch
-    {
+	{
 		public static void ILManipulator(ILContext il)
-        {
-            ILCursor cursor = new(il);
+		{
+			ILCursor cursor = new(il);
 			cursor.GotoNext(x => x.MatchBge(out _));
 			cursor.Index -= 2;
 			cursor.Next.OpCode = OpCodes.Ldc_I4_0;
-        }
+		}
 	}
 
 	[HarmonyPatch(typeof(InspectorPanel_MakeRow), nameof(InspectorPanel_MakeRow.UpdateRoomDropdown))]
 	private class UpdateRoomDropdownPatch
-    {
+	{
 		public static void ILManipulator(ILContext il)
-        {
-            ILCursor cursor = new(il);
+		{
+			ILCursor cursor = new(il);
 			cursor.GotoNext(x => x.MatchLdstr("editor.MakeRow.fullRoomSuffix"));
 			cursor.Next.Operand = "";
 			cursor.Index++;
 			cursor.Remove();
-        }
+		}
 	}
 }

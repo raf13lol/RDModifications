@@ -8,19 +8,19 @@ namespace RDModifications;
 public class FailOnCondition : Modification
 {
 	[Configuration<FailOn>(FailOn.Heartbreak,
-	"What the fail condition should be.\n" + 
+	"What the fail condition should be.\n" +
 	"If it is a rank, the condition will be met once you meet the condition for the rank at any point during the level."
-	)]	
+	)]
 	public static ConfigEntry<FailOn> FailCondition;
 
-	[Configuration<float>(10f, 
-	"How many 'mistakes' (misses with mistake-weighting) can be made.\n" + 
+	[Configuration<float>(10f,
+	"How many 'mistakes' (misses with mistake-weighting) can be made.\n" +
 	"This does include mistakes added via Call Custom Method."
 	, [float.Epsilon, float.PositiveInfinity])]
-	public static ConfigEntry<float> AmountOfMistakesToFailOn; 
+	public static ConfigEntry<float> AmountOfMistakesToFailOn;
 
 	[Configuration<int>(10, "How many misses can be made.", [1, int.MaxValue])]
-	public static ConfigEntry<int> AmountOfMissesToFailOn; 
+	public static ConfigEntry<int> AmountOfMissesToFailOn;
 
 	[Configuration<bool>(false, "If upon meeting the fail condition, the status sign should appear with the specified text below, instead of the player failing the level.")]
 	public static ConfigEntry<bool> AlertInsteadOfFail;
@@ -31,26 +31,26 @@ public class FailOnCondition : Modification
 	private static bool FailedYet = false;
 
 	private static void FailLevel(RowEntity entity = null)
-    {
+	{
 		if (FailedYet || scnGame.instance.currentLevel.failedLevel)
 			return;
 		FailedYet = true;
-        if (AlertInsteadOfFail.Value || entity == null)
-            scnGame.instance.statusText.SetStatusText(AlertText.Value);
+		if (AlertInsteadOfFail.Value || entity == null)
+			scnGame.instance.statusText.SetStatusText(AlertText.Value);
 		else
-            scnGame.instance.FailLevel(entity);
-    }
+			scnGame.instance.FailLevel(entity);
+	}
 
 	[HarmonyPatch(typeof(scnGame), nameof(scnGame.StartTheGame))]
 	private class ResetFailedYetPatch
-    {
+	{
 		public static void Postfix()
 			=> FailedYet = false;
-    }
+	}
 
 	[HarmonyPatch(typeof(scnGame), nameof(scnGame.OnMistakeOrHeal))]
 	private class RankMistakesFailConditionsPatch
-    {
+	{
 		public static void Postfix(scnGame __instance, Row prop)
 		{
 			bool shouldFail = FailCondition.Value == FailOn.AmountOfMistakes && __instance.mistakesManager.mistakes >= AmountOfMistakesToFailOn.Value;
@@ -66,7 +66,7 @@ public class FailOnCondition : Modification
 
 	[HarmonyPatch(typeof(scnGame), nameof(scnGame.AddHitOffset))]
 	private class MissesFailConditionPatch
-    {
+	{
 		public static void Postfix(scnGame __instance, int rowID)
 		{
 			if (FailCondition.Value != FailOn.AmountOfMisses)
@@ -80,7 +80,7 @@ public class FailOnCondition : Modification
 	// don't be a heartbreaker
 	[HarmonyPatch(typeof(scrHeart), nameof(scrHeart.DoFinalCrack))]
 	private class HeartbreakerFailConditionPatch
-    {
+	{
 		public static void Postfix(scrHeart __instance)
 		{
 			if (FailCondition.Value != FailOn.Heartbreak)
@@ -90,7 +90,7 @@ public class FailOnCondition : Modification
 	}
 
 	public enum FailOn
-    {
+	{
 		F = Rank.F,
 		D = Rank.D,
 		C = Rank.C,
@@ -99,5 +99,5 @@ public class FailOnCondition : Modification
 		Heartbreak,
 		AmountOfMistakes,
 		AmountOfMisses
-    }
+	}
 }

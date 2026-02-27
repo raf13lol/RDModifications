@@ -1,1 +1,1 @@
-Fixed set counting sound
+Fixed for new beta update

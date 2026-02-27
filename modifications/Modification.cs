@@ -7,6 +7,6 @@ namespace RDModifications;
 
 public class Modification
 {
-    public static ManualLogSource Log;
-    public static Dictionary<Type, ConfigEntry<bool>> Enabled;
+	public static ManualLogSource Log;
+	public static Dictionary<Type, ConfigEntry<bool>> Enabled;
 }

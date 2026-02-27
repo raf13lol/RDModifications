@@ -29,28 +29,28 @@ public class Patcher
 			ModificationAttribute modAttrib = type.GetCustomAttribute<T>();
 			if (modAttrib == null || (modAttrib.PlatformSpecific != null && modAttrib.PlatformSpecific != Application.platform))
 				continue;
-				
+
 			// config stuff
 			string sectionName = modAttrib.IsEditor ? "EditorPatches" : type.Name;
 			List<FieldInfo> fields = AccessTools.GetDeclaredFields(type);
 
-			ConfigEntry<bool> enabled =  config.Bind(sectionName, modAttrib.IsEditor ? type.Name : "Enabled", false, modAttrib.EnabledDescription);
+			ConfigEntry<bool> enabled = config.Bind(sectionName, modAttrib.IsEditor ? type.Name : "Enabled", false, modAttrib.EnabledDescription);
 			Modification.Enabled[type] = enabled;
 			foreach (FieldInfo field in fields)
-            {
+			{
 				Attribute[] attribs = [.. field.GetCustomAttributes()];
-                Attribute configAttrib = attribs.Length > 0 ? attribs[0] : null;
+				Attribute configAttrib = attribs.Length > 0 ? attribs[0] : null;
 				if (configAttrib == null || !configAttrib.GetType().IsGenericType) // may not work forever.... beware!
 					continue;
-					
+
 				Type configType = configAttrib.GetType().GetGenericArguments()[0];
 				if (!getConfigs.TryGetValue(configType, out MethodInfo getConfig))
 				{
 					getConfig = AccessTools.Method(configAttrib.GetType(), "GetConfig");
-					getConfigs[configType] = getConfig;	
+					getConfigs[configType] = getConfig;
 				}
 				field.SetValue(null, getConfig.Invoke(configAttrib, [config, sectionName, field.Name]));
-            }
+			}
 
 			// should we actually patch + init
 			bool shouldPatch = enabled.Value;

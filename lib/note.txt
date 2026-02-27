@@ -8,4 +8,5 @@ Assembly-CSharp-firstpass.dll
 RDTools.dll
 DOTween.dll
 Unity.TextMeshPro.dll
+UnityFileDialog.dll
 from Rhythm Doctor_Data\Managed

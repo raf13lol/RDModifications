@@ -59,7 +59,7 @@ public class Frame
 		{
 			int pos = index;
 			if (Interlaced)
-            {
+			{
 				int x = index % Width;
 				int yIndex = index / Width;
 				int y = yIndex * (1 << 3);
@@ -71,8 +71,8 @@ public class Frame
 					y = (yIndex - (Height >> i) - 1) * (1 << i) + (1 << (i - 1));
 				}
 				pos = x + y * Width;
-            }
-			
+			}
+
 			index++;
 			if (b == transparentColour)
 				continue;

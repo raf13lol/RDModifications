@@ -7,57 +7,57 @@ namespace RDModifications;
 
 public class AccessUtils
 {
-    public static MethodInfo GetFirstMethodStartsWith(Type T, string name)
+	public static MethodInfo GetFirstMethodStartsWith(Type T, string name)
    		=> AccessTools.FirstMethod(T, (m) => m.Name.StartsWith(name));
 
-    public static MethodInfo GetFirstMethodContains(Type T, string name)
-    	=> AccessTools.FirstMethod(T, (m) => m.Name.Contains(name));
+	public static MethodInfo GetFirstMethodContains(Type T, string name)
+		=> AccessTools.FirstMethod(T, (m) => m.Name.Contains(name));
 
-    public static MethodInfo GetFirstInnerMethodContains(Type T, string inner, string name)
-    {
-        Type innerType = AccessTools.FirstInner(T, (t) => t.Name.Contains(inner));
-        return AccessTools.FirstMethod(innerType, (m) => m.Name.Contains(name));
-    }
+	public static MethodInfo GetFirstInnerMethodContains(Type T, string inner, string name)
+	{
+		Type innerType = AccessTools.FirstInner(T, (t) => t.Name.Contains(inner));
+		return AccessTools.FirstMethod(innerType, (m) => m.Name.Contains(name));
+	}
 
-    public static MethodInfo GetInnerMethodContainsWithArgs(Type T, string inner, string name, Type[] methodArgTypes)
-    {
-        Type innerType = AccessTools.FirstInner(T, (t) => t.Name.Contains(inner));
-        List<MethodInfo> possibleMethods = AccessTools.GetDeclaredMethods(innerType);
+	public static MethodInfo GetInnerMethodContainsWithArgs(Type T, string inner, string name, Type[] methodArgTypes)
+	{
+		Type innerType = AccessTools.FirstInner(T, (t) => t.Name.Contains(inner));
+		List<MethodInfo> possibleMethods = AccessTools.GetDeclaredMethods(innerType);
 
-        foreach (MethodInfo possibleMethod in possibleMethods)
-        {
-            if (!possibleMethod.Name.Contains(name))
-                continue;
-            ParameterInfo[] argTypes = possibleMethod.GetParameters();
-            bool correctMethod = true;
+		foreach (MethodInfo possibleMethod in possibleMethods)
+		{
+			if (!possibleMethod.Name.Contains(name))
+				continue;
+			ParameterInfo[] argTypes = possibleMethod.GetParameters();
+			bool correctMethod = true;
 
-            for (int i = 0; i < methodArgTypes.Length; i++)
-            {
-                // this length checks for indexoutofrangeexception
-                if (argTypes.Length <= i || argTypes[i].ParameterType != methodArgTypes[i])
-                {
-                    correctMethod = false;
-                    break;
-                }
-            }
+			for (int i = 0; i < methodArgTypes.Length; i++)
+			{
+				// this length checks for indexoutofrangeexception
+				if (argTypes.Length <= i || argTypes[i].ParameterType != methodArgTypes[i])
+				{
+					correctMethod = false;
+					break;
+				}
+			}
 
-            if (!correctMethod)
-                continue;
+			if (!correctMethod)
+				continue;
 
-            return possibleMethod;
-        }
-        return null;
-    }
+			return possibleMethod;
+		}
+		return null;
+	}
 
-    public static FieldInfo GetFirstFieldContains(Type T, string name)
-    {
-        FieldInfo[] possibleFields = T.GetFields();
+	public static FieldInfo GetFirstFieldContains(Type T, string name)
+	{
+		FieldInfo[] possibleFields = T.GetFields();
 
-        foreach (FieldInfo possibleField in possibleFields)
-        {
-            if (possibleField.Name.Contains(name))
-                return possibleField;
-        }
-        return null;
-    }
+		foreach (FieldInfo possibleField in possibleFields)
+		{
+			if (possibleField.Name.Contains(name))
+				return possibleField;
+		}
+		return null;
+	}
 }

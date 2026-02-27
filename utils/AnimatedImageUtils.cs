@@ -6,9 +6,9 @@ namespace RDModifications;
 
 public class AnimatedImageUtils
 {
-    public static IAnimatedImageFile? GetAnimatedImage(string path)
-    {
-        using FileStream file = File.OpenRead(path);
+	public static IAnimatedImageFile? GetAnimatedImage(string path)
+	{
+		using FileStream file = File.OpenRead(path);
 		int b1 = file.ReadByte();
 		int b2 = file.ReadByte();
 		int b3 = file.ReadByte();
@@ -22,5 +22,5 @@ public class AnimatedImageUtils
 		if (isGIF)
 			return new GIFFile(file);
 		return new APNGFile(file);
-    }
+	}
 }

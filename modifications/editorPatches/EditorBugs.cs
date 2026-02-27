@@ -67,7 +67,7 @@ public class EditorBugs : Modification
 			{
 				if (levelEvent is not LevelEvent_SetCountingSound setCountingSound)
 					continue;
-				
+
 				SoundDataStruct[] sounds = setCountingSound.sounds;
 				foreach (SoundDataStruct sound in sounds)
 					checkFile.Invoke(null, [filesForLevel, sound.filename]);

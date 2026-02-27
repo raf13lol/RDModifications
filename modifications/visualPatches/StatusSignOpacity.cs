@@ -15,15 +15,15 @@ public class StatusSignOpacity : Modification
 	public static ConfigEntry<float> TextOpacity;
 
 	[HarmonyPatch(typeof(LEDSign), "Awake")]
-    private class OpacityPatch
-    {
-        public static void Postfix(LEDSign __instance, RectTransform ___rect)
-        {
+	private class OpacityPatch
+	{
+		public static void Postfix(LEDSign __instance, RectTransform ___rect)
+		{
 			if (scnBase.instance is scnCLS)
 				return;
 			foreach (Image image in ___rect.GetComponentsInChildren<Image>())
-			 	image.color = image.color.WithAlpha(BackgroundOpacity.Value);
+				image.color = image.color.WithAlpha(BackgroundOpacity.Value);
 			__instance.message.color = __instance.message.color.WithAlpha(TextOpacity.Value);
-        }
-    }
+		}
+	}
 }

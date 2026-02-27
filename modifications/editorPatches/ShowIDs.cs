@@ -19,7 +19,7 @@ public class ShowIDs : Modification
 		{
 			LevelEvent_MakeRow makeRow = scnEditor.instance.rowsData[rowIndex];
 			makeRow.row = rowIndex; // Disgusting bullshit that is placed in my hands for On row creation
-			DoText(makeRow); 
+			DoText(makeRow);
 		}
 
 		[HarmonyPostfix]
@@ -32,7 +32,7 @@ public class ShowIDs : Modification
 		}
 
 		public static void DoText(LevelEvent_Base levelEvent)
-        {
+		{
 			string text = string.Empty;
 			if (levelEvent is LevelEvent_FloatingText ft)
 				text = ft.id.ToString();
@@ -46,15 +46,15 @@ public class ShowIDs : Modification
 			if (text.IsNullOrEmpty())
 				return;
 			scnEditor.instance.inspectorTitle.text = RDString.Get($"editor.{levelEvent.type}");
-		 	scnEditor.instance.inspectorTitle.text += (levelEvent is not LevelEvent_AdvanceText) ? '\n' : ' ';
+			scnEditor.instance.inspectorTitle.text += (levelEvent is not LevelEvent_AdvanceText) ? '\n' : ' ';
 			scnEditor.instance.inspectorTitle.text += $"(#{text})";
-        }
+		}
 	}
 
 	[HarmonyPatch(typeof(Conditionals), nameof(Conditionals.Edit))]
 	private class ConditionalTextPatch
-    {
+	{
 		public static void Postfix(int id)
 			=> scnEditor.instance.inspectorTitle.text = $"{RDString.Get("editor.Conditionals.editCondition")}\n(#{id})";
-    }
+	}
 }
