@@ -3,7 +3,7 @@ using System.IO;
 using GIF;
 using HarmonyLib;
 using RDLevelEditor;
-using SFB;
+using UnityFileDialog;
 using Unity.Collections;
 using UnityEngine;
 
@@ -59,7 +59,7 @@ public class ImportAnimatedImages : Modification
 	private class SkipOverwritePatch
     {
 		[HarmonyPostfix]
-		[HarmonyPatch(typeof(StandaloneFileBrowser), nameof(StandaloneFileBrowser.OpenFilePanel), [typeof(string), typeof(string), typeof(ExtensionFilter[]), typeof(bool)])]
+		[HarmonyPatch(typeof(FileBrowser), nameof(FileBrowser.PickFiles), [typeof(string), typeof(string), typeof(string[]), typeof(string)])]
 		public static void OpenFilePanelPostfix(ref string[] __result)
         {
 			if (!ImagesSelectorOpen)

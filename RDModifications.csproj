@@ -55,6 +55,9 @@
         <!-- <Reference Include="DOTweenPro" IncludeAssets="compile">
         <HintPath>lib\DOTweenPro.dll</HintPath>
     </Reference> -->
+        <Reference Include="UnityFileDialog" IncludeAssets="compile">
+            <HintPath>lib\UnityFileDialog.dll</HintPath>
+        </Reference>
         <Reference Include="Unity.TextMeshPro" IncludeAssets="compile">
             <HintPath>lib\Unity.TextMeshPro.dll</HintPath>
         </Reference>
