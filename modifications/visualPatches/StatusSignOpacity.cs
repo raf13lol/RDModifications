@@ -8,22 +8,22 @@ namespace RDModifications;
 [Modification("If the opacity of the status sign elements should be modified.")]
 public class StatusSignOpacity : Modification
 {
-	[Configuration<float>(1f, "How opaque the status sign background should be.", [0f, 1f])]
-	public static ConfigEntry<float> BackgroundOpacity;
+    [Configuration<float>(1f, "How opaque the status sign background should be.", [0f, 1f])]
+    public static ConfigEntry<float> BackgroundOpacity;
 
-	[Configuration<float>(1f, "How opaque the status sign text should be.", [0f, 1f])]
-	public static ConfigEntry<float> TextOpacity;
+    [Configuration<float>(1f, "How opaque the status sign text should be.", [0f, 1f])]
+    public static ConfigEntry<float> TextOpacity;
 
-	[HarmonyPatch(typeof(LEDSign), "Awake")]
-	private class OpacityPatch
-	{
-		public static void Postfix(LEDSign __instance, RectTransform ___rect)
-		{
-			if (scnBase.instance is scnCLS)
-				return;
-			foreach (Image image in ___rect.GetComponentsInChildren<Image>())
-				image.color = image.color.WithAlpha(BackgroundOpacity.Value);
-			__instance.message.color = __instance.message.color.WithAlpha(TextOpacity.Value);
-		}
-	}
+    [HarmonyPatch(typeof(LEDSign), "Awake")]
+    public class OpacityPatch
+    {
+        public static void Postfix(LEDSign __instance, RectTransform ___rect)
+        {
+            if (scnBase.instance is scnCLS)
+                return;
+            foreach (Image image in ___rect.GetComponentsInChildren<Image>())
+                image.color = image.color.WithAlpha(BackgroundOpacity.Value);
+            __instance.message.color = __instance.message.color.WithAlpha(TextOpacity.Value);
+        }
+    }
 }

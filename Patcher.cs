@@ -11,79 +11,100 @@ namespace RDModifications;
 
 public class Patcher
 {
-	public static void PatchAllWithAttribute<T>(out bool anyEnabled, bool forceEditorOff) where T : ModificationAttribute
-	{
-		Harmony patcher = Entry.HarmonyPatcher;
-		ConfigFile config = Entry.Configuration;
-		ManualLogSource logger = Modification.Log;
+    public static void PatchAllWithAttribute<T>(Harmony patcher, ConfigFile config, out bool anyEnabled, bool forceEditorOff) where T : ModificationAttribute
+    {
+        Type[] potentialPatches = typeof(Entry).Assembly.GetTypes();
 
-		Type[] potentialTypes = typeof(Entry).Assembly.GetTypes();
-		Dictionary<Type, MethodInfo> getConfigs = [];
+        Dictionary<Type, MethodInfo> GetConfigCache = [];
+        Dictionary<Type, FieldInfo> SetAsConfigValueCache = [];
 
-		anyEnabled = false;
-		foreach (Type type in potentialTypes)
-		{
-			if (type.Name.StartsWith("TemplateModification") || type.Name == "Modification" || type.Name.EndsWith("Attribute"))
-				continue;
+        anyEnabled = false;
+        foreach (Type type in potentialPatches)
+        {
+            if (type.Name.StartsWith("TemplateModification") || type.Name == "Modification" || type.Name.EndsWith("Attribute"))
+                continue;
 
-			ModificationAttribute modAttrib = type.GetCustomAttribute<T>();
-			if (modAttrib == null || (modAttrib.PlatformSpecific != null && modAttrib.PlatformSpecific != Application.platform))
-				continue;
+            ModificationAttribute modAttribute = type.GetCustomAttribute<T>();
+            if (modAttribute == null || (modAttribute.PlatformSpecific != null && modAttribute.PlatformSpecific != Application.platform))
+                continue;
 
-			// config stuff
-			string sectionName = modAttrib.IsEditor ? "EditorPatches" : type.Name;
-			List<FieldInfo> fields = AccessTools.GetDeclaredFields(type);
+            // config stuff
+            string sectionName = modAttribute.IsEditor ? "EditorPatches" : type.Name;
+            ConfigEntry<bool> enabledConfigEntry = config.Bind(sectionName, modAttribute.IsEditor ? type.Name : "Enabled", false, modAttribute.EnabledDescription);
+            Modification.Enabled[type] = enabledConfigEntry;
 
-			ConfigEntry<bool> enabled = config.Bind(sectionName, modAttrib.IsEditor ? type.Name : "Enabled", false, modAttrib.EnabledDescription);
-			Modification.Enabled[type] = enabled;
-			foreach (FieldInfo field in fields)
-			{
-				Attribute[] attribs = [.. field.GetCustomAttributes()];
-				Attribute configAttrib = attribs.Length > 0 ? attribs[0] : null;
-				if (configAttrib == null || !configAttrib.GetType().IsGenericType) // may not work forever.... beware!
-					continue;
+            List<FieldInfo> fields = AccessTools.GetDeclaredFields(type);
+            foreach (FieldInfo field in fields)
+            {
+                Attribute[] attributes = [.. field.GetCustomAttributes()];
+                Attribute configAttribute = null;
 
-				Type configType = configAttrib.GetType().GetGenericArguments()[0];
-				if (!getConfigs.TryGetValue(configType, out MethodInfo getConfig))
-				{
-					getConfig = AccessTools.Method(configAttrib.GetType(), "GetConfig");
-					getConfigs[configType] = getConfig;
-				}
-				field.SetValue(null, getConfig.Invoke(configAttrib, [config, sectionName, field.Name]));
-			}
+                foreach (Attribute attribute in attributes)
+                {
+                    if (!attribute.GetType().Name.StartsWith(nameof(ConfigurationAttribute<>)))
+                        continue;
 
-			// should we actually patch + init
-			bool shouldPatch = enabled.Value;
-			bool initShouldPatch = true;
-			// access tool throws logs... 
-			MethodInfo method = type.GetMethod("Init", BindingFlags.Public | BindingFlags.Static);
-			if (method != null)
-			{
-				object[] funcParams = [];
-				if (method.GetParameters().Length > 0)
-					funcParams = [enabled.Value];
+                    configAttribute = attribute;
+                    break;
+                }
 
-				if (method.ReturnType == typeof(bool))
-					initShouldPatch = (bool)method.Invoke(null, funcParams);
-				else
-					method.Invoke(null, funcParams);
-			}
+                if (configAttribute == null)
+                    continue;
 
-			if (!shouldPatch || (modAttrib.IsEditor && forceEditorOff))
-				continue;
+                Type specificConfigAttributeType = configAttribute.GetType();
+                Type configType = specificConfigAttributeType.GetGenericArguments()[0];
 
-			// patch
-			Type[] innerTypes = [..(from t in type.GetNestedTypes(BindingFlags.NonPublic)
-										where t.Name.EndsWith("Patch") || t.GetCustomAttribute(typeof(PatchAttribute)) != null
-										select t)];
-			foreach (Type innerPatch in innerTypes)
-			{
-				PatchAttribute patch = (PatchAttribute)innerPatch.GetCustomAttribute(typeof(PatchAttribute));
-				if (!initShouldPatch && (patch == null || !patch.IgnoreInitReturn))
-					continue;
-				anyEnabled = true;
-				patcher.PatchAll(innerPatch);
-			}
-		}
-	}
+                if (!GetConfigCache.TryGetValue(configType, out MethodInfo GetConfig))
+                {
+                    GetConfig = AccessTools.Method(specificConfigAttributeType, nameof(ConfigurationAttribute<>.GetConfig));
+                    GetConfigCache[configType] = GetConfig;
+                    SetAsConfigValueCache[configType] = AccessTools.Field(specificConfigAttributeType, nameof(ConfigurationAttribute<>.SetAsConfigValue));
+                }
+
+                object configEntryOrValue = GetConfig.Invoke(configAttribute, [config, sectionName, field.Name]);
+                if ((bool)SetAsConfigValueCache[configType].GetValue(configAttribute))
+                {
+                    MethodInfo valueGetter = AccessTools.PropertyGetter(configEntryOrValue.GetType(), nameof(ConfigEntry<>.Value));
+                    configEntryOrValue = valueGetter.Invoke(configEntryOrValue, []);
+                }
+
+                field.SetValue(null, configEntryOrValue);
+            }
+
+            // should we actually patch + init
+            bool shouldPatch = enabledConfigEntry.Value;
+            bool initShouldPatch = true;
+            // access tool throws logs... 
+            MethodInfo method = type.GetMethod("Init", AccessTools.all);
+            if (method != null)
+            {
+                object[] funcParams = [];
+                if (method.GetParameters().Length == 1)
+                    funcParams = [enabledConfigEntry.Value];
+
+                if (method.ReturnType == typeof(bool))
+                    initShouldPatch = (bool)method.Invoke(null, funcParams);
+                else
+                    method.Invoke(null, funcParams);
+            }
+
+            if (!shouldPatch || (modAttribute.IsEditor && forceEditorOff))
+                continue;
+
+            // patch
+            Type[] innerTypes = [..(from t in type.GetNestedTypes(AccessTools.all)
+                                        where t.Name.EndsWith("Patch") || t.GetCustomAttribute(typeof(PatchAttribute)) != null
+                                        select t)];
+
+            foreach (Type innerPatch in innerTypes)
+            {
+                PatchAttribute patch = (PatchAttribute)innerPatch.GetCustomAttribute(typeof(PatchAttribute));
+                if (!initShouldPatch && (patch == null || !patch.IgnoreInitReturn))
+                    continue;
+
+                anyEnabled = true;
+                patcher.PatchAll(innerPatch);
+            }
+        }
+    }
 }

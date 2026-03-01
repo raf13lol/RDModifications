@@ -6,119 +6,119 @@ using MonoMod.Cil;
 namespace RDModifications;
 
 [Modification(
-	"If this is enabled, the mod will completely destroy the rhythm engine.\n" +
-	"It destroys the rhythm engine by multipling the 'crotchet' by a random value between 2 bounds.\n" +
-	"With these settings, you can configure how much to destroy it by modifying these 2 bounds."
+    "If this is enabled, the mod will completely destroy the rhythm engine.\n" +
+    "It destroys the rhythm engine by multipling the 'crotchet' by a random value between 2 bounds.\n" +
+    "With these settings, you can configure how much to destroy it by modifying these 2 bounds."
 )]
 public class DoctorMode : Modification
 {
-	[Configuration<float>(0.75f, "The lowest multiplier to use in the random multiplier.")]
-	public static ConfigEntry<float> LowMultiplier;
-	[Configuration<float>(1.25f, "The highest multiplier to use in the random multiplier.")]
-	public static ConfigEntry<float> HighMultiplier;
+    [Configuration<float>(0.75f, "The lowest multiplier to use in the random multiplier.")]
+    public static ConfigEntry<float> LowMultiplier;
+    [Configuration<float>(1.25f, "The highest multiplier to use in the random multiplier.")]
+    public static ConfigEntry<float> HighMultiplier;
 
-	[Configuration<bool>(false, "If the songs should be played automatically. Only applies to Doctor mode. (NO RANKS NOR ANY ACHIEVEMENTS WILL BE SAVED)")]
-	public static ConfigEntry<bool> Auto;
+    [Configuration<bool>(false, "If the songs should be played automatically. Only applies to Doctor mode. (NO RANKS NOR ANY ACHIEVEMENTS WILL BE SAVED)")]
+    public static ConfigEntry<bool> Auto;
 
-	public static bool Init(bool enabled)
-	{
-		if (enabled && LowMultiplier.Value == 1.00f && HighMultiplier.Value == 1.00f)
-		{
-			Log.LogWarning("DoctorMode: LowMultiplier and HighMultiplier are both 1.00. No Doctor mode patches will be applied.");
-			return false;
-		}
+    public static bool Init(bool enabled)
+    {
+        if (enabled && LowMultiplier.Value == 1.00f && HighMultiplier.Value == 1.00f)
+        {
+            Log.LogWarning("DoctorMode: LowMultiplier and HighMultiplier are both 1.00. No Doctor mode patches will be applied.");
+            return false;
+        }
 
-		if (LowMultiplier.Value > HighMultiplier.Value)
-		{
-			LowMultiplier.Value = HighMultiplier.Value;
-			Log.LogWarning("DoctorMode: LowMultiplier was greater than HighMultiplier. LowMultiplier has been set to HighMultiplier.");
-		}
-		return true;
-	}
+        if (LowMultiplier.Value > HighMultiplier.Value)
+        {
+            LowMultiplier.Value = HighMultiplier.Value;
+            Log.LogWarning("DoctorMode: LowMultiplier was greater than HighMultiplier. LowMultiplier has been set to HighMultiplier.");
+        }
+        return true;
+    }
 
-	private class ConductorPatch
-	{
-		[HarmonyPostfix]
-		[HarmonyPatch(typeof(scrConductor), nameof(scrConductor.crotchet), MethodType.Getter)]
-		public static void GetCrotchetPostfix(ref float __result)
-			=> __result *= UnityEngine.Random.Range(LowMultiplier.Value, HighMultiplier.Value);
+    public class ConductorPatch
+    {
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(scrConductor), nameof(scrConductor.crotchet), MethodType.Getter)]
+        public static void GetCrotchetPostfix(ref float __result)
+            => __result *= UnityEngine.Random.Range(LowMultiplier.Value, HighMultiplier.Value);
 
-		[HarmonyILManipulator]
-		[HarmonyPatch(typeof(scrConductor), nameof(scrConductor.BeatToTime))]
-		public static void BeatToTimeILManipulator(ILContext il)
-		{
-			static void emitRandomMultiplier(ILCursor cursor)
-			{
-				int index = cursor.Index;
+        [HarmonyILManipulator]
+        [HarmonyPatch(typeof(scrConductor), nameof(scrConductor.BeatToTime))]
+        public static void BeatToTimeILManipulator(ILContext il)
+        {
+            static void emitRandomMultiplier(ILCursor cursor)
+            {
+                int index = cursor.Index;
 
-				cursor.Emit(OpCodes.Ldc_R4, LowMultiplier.Value);
-				cursor.Emit(OpCodes.Ldc_R4, HighMultiplier.Value);
-				cursor.Emit(OpCodes.Call, AccessTools.Method("UnityEngine.Random:Range", [typeof(float), typeof(float)]));
-				cursor.Emit(OpCodes.Mul);
+                cursor.Emit(OpCodes.Ldc_R4, LowMultiplier.Value);
+                cursor.Emit(OpCodes.Ldc_R4, HighMultiplier.Value);
+                cursor.Emit(OpCodes.Call, AccessTools.Method(typeof(UnityEngine.Random), nameof(UnityEngine.Random.Range), [typeof(float), typeof(float)]));
+                cursor.Emit(OpCodes.Mul);
 
-				cursor.Index = index;
-			}
+                cursor.Index = index;
+            }
 
-			ILCursor cursor = new(il)
-			{
-				Index = -1
-			};
+            ILCursor cursor = new(il)
+            {
+                Index = -1
+            };
 
-			cursor.GotoPrev(x => x.MatchMul());
-			emitRandomMultiplier(cursor);
-			cursor.Index--;
+            cursor.GotoPrev(x => x.MatchMul());
+            emitRandomMultiplier(cursor);
+            cursor.Index--;
 
-			cursor.GotoPrev(x => x.MatchMul());
-			emitRandomMultiplier(cursor);
-		}
-	}
+            cursor.GotoPrev(x => x.MatchMul());
+            emitRandomMultiplier(cursor);
+        }
+    }
 
-	[HarmonyPatch(typeof(scnMenu), "Start")]
-	private class TitlescreenPatch
-	{
-		public static void Postfix(scnMenu __instance)
-		{
-			__instance.logo.rhythm.image.color = new(0, 0, 0, 0);
-			__instance.logo.rhythmChinese.image.color = new(0, 0, 0, 0);
-		}
-	}
+    [HarmonyPatch(typeof(scnMenu), "Start")]
+    public class TitlescreenPatch
+    {
+        public static void Postfix(scnMenu __instance)
+        {
+            __instance.logo.rhythm.image.color = new(0, 0, 0, 0);
+            __instance.logo.rhythmChinese.image.color = new(0, 0, 0, 0);
+        }
+    }
 
-	private class AutoPatch
-	{
-		// This is how Otto in the editor works so Do not strike me down mods
-		[HarmonyPostfix]
-		[HarmonyPatch(typeof(DebugSettings), nameof(DebugSettings.Auto), MethodType.Getter)]
-		public static void AutoHitPostfix(ref bool __result)
-			// this code is only ran if auto.Value 
-			=> __result = Auto.Value;
+    public class AutoPatch
+    {
+        // This is how Otto in the editor works so Do not strike me down mods
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(DebugSettings), nameof(DebugSettings.Auto), MethodType.Getter)]
+        public static void AutoHitPostfix(ref bool __result)
+            // this code is only ran if auto.Value 
+            => __result = Auto.Value;
 
-		[HarmonyPostfix]
-		[HarmonyPatch(typeof(Rankscreen), nameof(Rankscreen.ShowAndSaveRank))]
-		public static void RankscreenPostfix(Rankscreen __instance)
-		{
-			if (!Auto.Value)
-				return;
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Rankscreen), nameof(Rankscreen.ShowAndSaveRank))]
+        public static void RankscreenPostfix(Rankscreen __instance)
+        {
+            if (!Auto.Value)
+                return;
 
-			// should be safe to do so
-			if (__instance.rank.text.Length > 0)
-				__instance.rank.text += "?";
-			if (__instance.customText.text.Length > 0)
-				__instance.customText.text += "?";
-		}
-	}
+            // should be safe to do so
+            if (__instance.rank.text.Length > 0)
+                __instance.rank.text += "?";
+            if (__instance.customText.text.Length > 0)
+                __instance.customText.text += "?";
+        }
+    }
 
-	private class RanksAchievementsPatch
-	{
-		[HarmonyPrefix]
-		[HarmonyPatch(typeof(SteamIntegration), nameof(SteamIntegration.UnlockAchievement), [typeof(string), typeof(bool)])]
-		[HarmonyPatch(typeof(Persistence), nameof(Persistence.SetLevelRank), [typeof(string), typeof(Rank), typeof(bool), typeof(bool)])]
-		[HarmonyPatch(typeof(Persistence), nameof(Persistence.SetLevelScore))]
-		public static bool NormalPrefix()
-			=> !Auto.Value;
+    public class RanksAchievementsPatch
+    {
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(SteamIntegration), nameof(SteamIntegration.UnlockAchievement), [typeof(string), typeof(bool)])]
+        [HarmonyPatch(typeof(Persistence), nameof(Persistence.SetLevelRank), [typeof(string), typeof(Rank), typeof(bool), typeof(bool)])]
+        [HarmonyPatch(typeof(Persistence), nameof(Persistence.SetLevelScore))]
+        public static bool NormalPrefix()
+            => !Auto.Value;
 
-		[HarmonyPrefix]
-		[HarmonyPatch(typeof(Persistence), nameof(Persistence.SetCustomLevelRank), [typeof(string), typeof(Rank), typeof(float)])]
-		public static bool CustomRankPrefix(ref Rank rank)
-			=> !Auto.Value || rank == Rank.NotFinished;
-	}
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Persistence), nameof(Persistence.SetCustomLevelRank), [typeof(string), typeof(Rank), typeof(float)])]
+        public static bool CustomRankPrefix(ref Rank rank)
+            => !Auto.Value || rank == Rank.NotFinished;
+    }
 }

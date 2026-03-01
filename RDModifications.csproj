@@ -3,8 +3,8 @@
     <PropertyGroup>
         <TargetFramework>netstandard2.1</TargetFramework>
         <AssemblyName>com.rhythmdr.randommodifications</AssemblyName>
-        <Product>RD Modifications</Product>
-        <Version>3.6.3</Version>
+        <Product>RDModifications</Product>
+        <Version>3.6.4</Version>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
         <RestoreAdditionalProjectSources>
@@ -14,17 +14,26 @@
         </RestoreAdditionalProjectSources>
         <RootNamespace>RDModifications</RootNamespace>
         <NoWarn>MSB3277</NoWarn>
+
         <DefineConstants Condition="$(BPE5) == '1'">$(DefineConstants);BPE5</DefineConstants>
+        <TargetName Condition="$(BPE5) == '1'">com.rhythmdr.bpe5randommodifications</TargetName>
+        <!-- <DefineConstants>$(DefineConstants);BPE5</DefineConstants> -->
+        <!-- <TargetName>com.rhythmdr.bpe5randommodifications</TargetName> -->
+
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
-        <PackageReference Condition="$(BPE5) != '1'" Include="BepInEx.Unity.Mono" Version="6.0.0-be.*" IncludeAssets="compile" />
+
+        <PackageReference Condition="$(BPE5) != '1'" Include="BepInEx.Unity.Mono"
+            Version="6.0.0-be.*" IncludeAssets="compile" />
         <PackageReference Condition="$(BPE5) == '1'" Include="BepInEx.Core" Version="5.*" />
+        <!-- <PackageReference Include="BepInEx.Core" Version="5.*" /> -->
+
+        <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
         <PackageReference Include="BepInEx.PluginInfoProps" Version="2.*" />
         <PackageReference Include="Newtonsoft.Json" Version="13.*" />
         <PackageReference Include="System.Collections.Immutable" Version="9.*" />
-        <PackageReference Include="UnityEngine.Modules" IncludeAssets="compile" Version="2022.3.33" />
+        <PackageReference Include="UnityEngine.Modules" IncludeAssets="compile" Version="2022.3.62" />
     </ItemGroup>
 
     <ItemGroup>
@@ -61,9 +70,13 @@
         <Reference Include="UnityFileDialog" IncludeAssets="compile">
             <HintPath>lib\UnityFileDialog.dll</HintPath>
         </Reference>
+        <Reference Include="RDEditorPlus" IncludeAssets="compile">
+            <HintPath>lib\RDEditorPlus.dll</HintPath>
+        </Reference>
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
-        <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.*" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.*"
+            PrivateAssets="all" />
     </ItemGroup>
 </Project>
