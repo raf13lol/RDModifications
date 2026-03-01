@@ -11,7 +11,7 @@ namespace RDModifications;
 public class Updater
 {
 	[HarmonyPatch(typeof(SteamIntegration), nameof(SteamIntegration.Setup))]
-	private class SteamUpdatePatch
+	public class SteamUpdatePatch
 	{
 		public static void Postfix()
 			=> _ = CheckUpdate(Modification.Log, Entry.PluginInfo, Entry.DLLName);
@@ -21,6 +21,7 @@ public class Updater
 	{
 		try
 		{
+			
 			HttpClient client = new();
 			HttpResponseMessage response = await client.GetAsync("https://raw.githubusercontent.com/raf13lol/RDModifications/refs/heads/main/VERSION.txt");
 			if (response.StatusCode != HttpStatusCode.OK)

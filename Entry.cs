@@ -48,7 +48,7 @@ public class Entry : BaseUnityPlugin
 		if (AutoUpdateEnabled.Value)
 		{
 			Harmony autoUpdatePatcher = new("autoupdatepatcher");
-			autoUpdatePatcher.PatchAll(typeof(Updater));
+			autoUpdatePatcher.PatchAll(typeof(Updater.SteamUpdatePatch));
 		}
 
 		if (!Enabled.Value)
@@ -79,7 +79,7 @@ public class Entry : BaseUnityPlugin
 		{
 			HarmonyPatcher.UnpatchSelf();
 			Logger.LogError(e);
-			Logger.LogWarning($"An error occurred whilst loading modifications, so RDModifications has disabled itself (except for the auto-update, if you have that enabled).");
+			Logger.LogWarning($"An error occurred whilst loading a modification, so RDModifications has disabled itself (except for the auto-update, if you have that enabled).");
 		}
 	}
 
