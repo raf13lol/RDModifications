@@ -19,7 +19,9 @@ List of modifications available with a simple summary:
 
 - AnimatedSleeves -> Allows for animated sleeves [(see the section for how to do it)](#animatedsleeves-setup)
 - APNGPreviewImage -> Allows for animated preview images using the APNG file format
+- Blindfolded -> Allows for hiding the row visuals 
 - CustomDifficulty -> Allows for a custom hit margin
+- ConsistentHoldPitchAlternation -> Allows for making the pitch alternation of holds consistent with regular classics
 - CustomDiscordRichPresence -> Allows for customising the discord rich presence, including the presence id
 - CustomIceChiliSpeeds -> Allows for having a custom speed on ice/chili speeds instead of 0.75x/1.5x
 - CustomSamuraiMode -> Allows for setting the `Samurai.` from Samurai. mode to any string
@@ -37,6 +39,7 @@ List of modifications available with a simple summary:
 - MassUnwrapLevels -> Allows for unwrapped all currently wrapped levels with a simple key combination
 - NumericalHitJudgementAdjuments -> Adjusts the Numerical Hit Judgement sign depending on judgement display and colour styling
 - StatusSignOpacity -> Allows for changing the opacity of some of the status sign's elements
+- TwoPlayerOverwritePanning -> Allows for using one's 2P panning separation value on all pulse sounds
 
 ## AnimatedSleeves setup
 
