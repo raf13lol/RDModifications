@@ -11,7 +11,7 @@ using MonoMod.Cil;
 
 namespace RDModifications;
 
-[Modification("If Samurai. mode to have your own custom text.")]
+[Modification("If Samurai. mode should have your own custom text.")]
 public class CustomSamuraiMode : Modification
 {
     [Configuration<bool>(false, "If Samurai. mode should be enabled by default when playing the game.")]
