@@ -129,7 +129,6 @@ public class GIFFile : IAnimatedImageFile
         if (ImageIndex == 0 || OutputBufferPrevious == null)
             goto OutputReturn;
 
-
         foreach (Frame frame in image.Frames)
         {
             int pixelCount = frame.Width * frame.Height;
