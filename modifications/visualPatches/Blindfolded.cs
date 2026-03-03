@@ -6,6 +6,7 @@ using BepInEx.Configuration;
 using HarmonyLib;
 using OggVorbisEncoder.Setup;
 using RDLevelEditor;
+using UnityEngine;
 
 namespace RDModifications;
 
@@ -32,14 +33,14 @@ public class Blindfolded : Modification
             if (!SavedEnabled.Value)
                 return;
             bool isClassyCC = __instance.character.customAnimation.data.name.Contains("classybeat", StringComparison.OrdinalIgnoreCase);
-            __instance.Hide(!isClassyCC, false);
+            __instance.Hide(__instance.character.visible && !isClassyCC, false);
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(RowEntity), "Update")]
         public static void UpdatePostfix(RowEntity __instance)
         {
-            if (!SavedEnabled.Value)
+            if (!SavedEnabled.Value || !__instance.character.visible)
                 return;
             bool isClassyCC = __instance.character.customAnimation.data.name.Contains("classybeat", StringComparison.OrdinalIgnoreCase);
             __instance.character.visible = !isClassyCC;
@@ -58,7 +59,7 @@ public class Blindfolded : Modification
                 return;
             CustomSprite sprite = __instance.game.currentLevel.sprites[__instance.spriteId];
             sprite.gameObject.SetActive(false);
-            sprite.gameObject.tag = "Kill";
+            sprite.gameObject.AddComponent<BlindfoldedMarkedForDeath>();
         }
     }
 
@@ -73,7 +74,7 @@ public class Blindfolded : Modification
             if (!SavedEnabled.Value)
                 return;
             Dictionary<string, CustomSprite> sprites = __instance.game.currentLevel.sprites;
-            if (!sprites.TryGetValue(__instance.target, out CustomSprite sprite) || sprite.tag != "Kill")
+            if (!sprites.TryGetValue(__instance.target, out CustomSprite sprite) || !sprite.GetComponent<BlindfoldedMarkedForDeath>())
                 return;
             sprite.gameObject.SetActive(false);
         }
@@ -85,9 +86,9 @@ public class Blindfolded : Modification
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(PauseMenuData), nameof(PauseMenuData.Initialize))]
-        public static void PauseDataPrefix(PauseMenuData __instance)
+        public static void PauseDataPrefix(PauseMenuData __instance, bool ___isInitialized)
         {
-            if (!DisplayOption.Value)
+            if (!DisplayOption.Value || ___isInitialized)
                 return;
 
             foreach (PauseMenuModeData modeData in __instance.modes)
@@ -108,6 +109,7 @@ public class Blindfolded : Modification
                 falseText = "enum.ToggleBool.off",
                 trueText = "enum.ToggleBool.on",
             });
+
             __instance.contents = [.. contents];
         }
 
@@ -153,4 +155,6 @@ public class Blindfolded : Modification
             return true;
         }
     }
+
+    public class BlindfoldedMarkedForDeath : MonoBehaviour { }
 }

@@ -21,8 +21,8 @@ public class Updater
     {
         try
         {
-            HttpClient client = new();
-            HttpResponseMessage response = await client.GetAsync($"https://raw.githubusercontent.com/{githubRepoURL}/refs/heads/main/VERSION.txt");
+            using HttpClient client = new();
+            using HttpResponseMessage response = await client.GetAsync($"https://raw.githubusercontent.com/{githubRepoURL}/refs/heads/main/VERSION.txt");
             if (response.StatusCode != HttpStatusCode.OK)
                 return;
             string content = await response.Content.ReadAsStringAsync();
@@ -51,7 +51,7 @@ public class Updater
 
             if (!betaOnly || GC.onBetaBranch || Entry.AutoUpdateAssumeBeta.Value)
             {
-                HttpResponseMessage file = await client.GetAsync($"https://github.com/{githubRepoURL}/releases/download/{content}/{ReleaseDLLName}.dll");
+                using HttpResponseMessage file = await client.GetAsync($"https://github.com/{githubRepoURL}/releases/download/{content}/{ReleaseDLLName}.dll");
                 if (file.StatusCode != HttpStatusCode.OK)
                     return;
                 byte[] fileData = await file.Content.ReadAsByteArrayAsync();
@@ -61,7 +61,7 @@ public class Updater
             else
                 Logger.LogWarning($"The update of {PluginInfo.Metadata.Name} ({MyPluginInfo.PLUGIN_VERSION}->{content}) requires you to be on the beta branch (if you are, please run Steam) to update.");
 
-            HttpResponseMessage response2 = await client.GetAsync($"https://raw.githubusercontent.com/{githubRepoURL}/refs/heads/main/CHANGELOG.txt");
+            using HttpResponseMessage response2 = await client.GetAsync($"https://raw.githubusercontent.com/{githubRepoURL}/refs/heads/main/CHANGELOG.txt");
             if (response.StatusCode != HttpStatusCode.OK)
                 return;
 

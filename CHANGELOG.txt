@@ -1,2 +1,1 @@
-Added some modifications that were requested by stack
-Please please please do not ask me to do that terrible options menu integration that i did with blindfolded
+Fixed blindfolded

@@ -90,7 +90,7 @@ public class LevelPRStatus : Modification
                 }
             }
 
-            HttpClient client = new()
+            using HttpClient client = new()
             {
                 Timeout = TimeSpan.FromMinutes(30)
             };
@@ -102,12 +102,12 @@ public class LevelPRStatus : Modification
 
             while (!gotAllSongs)
             {
-                HttpRequestMessage request = new(HttpMethod.Get,
+                using HttpRequestMessage request = new(HttpMethod.Get,
                 new Uri("https://orchardb.fly.dev/typesense/collections/levels/documents/search/"
                     + "?q=*&per_page=250&include_fields=id, approval, sha1&highlight_fields=none&highlight_full_fields=none"
                     + "&page=" + page++));
                 request.Headers.Add("x-typesense-api-key", "nicolebestgirl");
-
+                
                 HttpResponseMessage response;
                 try
                 {
@@ -139,6 +139,8 @@ public class LevelPRStatus : Modification
                         cache += "\n";
                     cache += $"{hit.document.id};{sha};{approval}";
                 }
+
+                response.Dispose();
             }
 
             if (ShouldCache.Value)

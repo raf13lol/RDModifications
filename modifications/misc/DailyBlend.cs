@@ -92,7 +92,7 @@ public class DailyBlend : Modification
 
         public static async Task Init()
         {
-            HttpClient client = new();
+            using HttpClient client = new();
             string lastMessageID = "";
             bool gotBlends = false;
 
@@ -109,10 +109,10 @@ public class DailyBlend : Modification
                 if (lastMessageID != "")
                     url += $"&before={lastMessageID}";
 
-                HttpRequestMessage request = new(HttpMethod.Get, new Uri(url));
+                using HttpRequestMessage request = new(HttpMethod.Get, new Uri(url));
                 request.Headers.Add("Authorization", Token);
 
-                HttpResponseMessage response = await client.SendAsync(request);
+                using HttpResponseMessage response = await client.SendAsync(request);
                 if (response.StatusCode != HttpStatusCode.OK)
                     break;
 
@@ -167,6 +167,19 @@ public class DailyBlend : Modification
                 Log.LogMessage("DailyBlend: Obtained daily blend(s).");
             else
                 Log.LogWarning("DailyBlend: No daily blend(s) obtained.");
+        
+
+            // When cafe v2 daily blend is updated more often
+            // using HttpRequestMessage cafeV2 = new(HttpMethod.Get, new Uri("https://v2.rhythm.cafe/"));
+            // cafeV2.Headers.Add("X-Requested-With", "DjangoBridge");
+
+            // using HttpResponseMessage cafeV2Response = await client.SendAsync(cafeV2);
+            // if (cafeV2Response.StatusCode != HttpStatusCode.OK)
+            //     return;
+            
+            // string jsonPage = await cafeV2Response.Content.ReadAsStringAsync();
+            // CafeV2HomePage page = JsonConvert.DeserializeObject<CafeV2HomePage>(jsonPage);
+            // BlendIDs.Add(page.props.daily_blend_level.sha1[3..]);
         }
 
         public class Blend(string url)
@@ -195,6 +208,21 @@ public class DailyBlend : Modification
             {
                 public string name { get; set; }
                 public string value { get; set; }
+            }
+        }
+
+        public class CafeV2HomePage
+        {
+            public DailyBlendHolder props { get; set; }
+
+            public class DailyBlendHolder
+            {
+                public DailyBlendLevel daily_blend_level { get; set; }
+            }
+
+            public class DailyBlendLevel
+            {
+                public string sha1 { get; set; }
             }
         }
     }
