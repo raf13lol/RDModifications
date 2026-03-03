@@ -63,6 +63,7 @@ public class CustomSamuraiMode : Modification
         public static void SamuraiILManipulator(ILContext il)
             => ILManipulatorUtils.ReplaceString(il, "Samurai.", SamuraiReplacement.Value);
     }
+    
     [HarmonyPatch(typeof(Rankscreen), nameof(Rankscreen.ShowAndSaveRank))]
     public class SamuraiRankPatch
     {

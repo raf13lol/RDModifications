@@ -1,1 +1,2 @@
-Changed the internals a fair bit. Added the beginning of some compat with rdeditorplus
+Added some modifications that were requested by stack
+Please please please do not ask me to do that terrible options menu integration that i did with blindfolded
