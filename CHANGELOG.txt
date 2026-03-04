@@ -1,1 +1,1 @@
-Fixed blindfolded
+Fixed freeze images not being included in rdzip export

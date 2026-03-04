@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using HarmonyLib;
 using RDLevelEditor;
@@ -50,30 +51,56 @@ public class EditorBugs : Modification
     }
 
     [HarmonyPatch(typeof(RDPublishPopup), nameof(RDPublishPopup.GetFilesForLevel))]
-    public class IncludeFilesSetCountingSoundPatch
+    public class IncludeFilesPatch
     {
         public static void Postfix(ref string[] __result, RDLevelData levelData)
         {
+            List<string> missingFiles = [];
             MethodInfo checkFile = AccessTools.Method(typeof(RDPublishPopup), "CheckFile");
+
             scnEditor editor = scnEditor.instance;
-            List<LevelEvent_Base> list = levelData?.levelEvents ?? [];
+            List<LevelEvent_Base> events = levelData?.levelEvents ?? [];
+            List<LevelEvent_MakeRow> rows = levelData?.rows ?? editor.rowsData;
+            List<LevelEvent_MakeSprite> sprites = levelData?.sprites ?? editor.spritesData;
 
             if (levelData == null)
                 foreach (LevelEventControl_Base eventControl in editor.eventControls)
-                    list.Add(eventControl.levelEvent);
+                    events.Add(eventControl.levelEvent);
 
-            List<string> filesForLevel = [];
-            foreach (LevelEvent_Base levelEvent in list)
+            void AddFreezeshotSprite(string character)
+                => checkFile.Invoke(null, [missingFiles, Path.Combine(RDEditorUtils.GetCurrentLevelFolderPath(), character + "_freeze.png")]);
+
+            foreach (LevelEvent_Base levelEvent in events)
             {
-                if (levelEvent is not LevelEvent_SetCountingSound setCountingSound)
-                    continue;
-
-                SoundDataStruct[] sounds = setCountingSound.sounds;
-                foreach (SoundDataStruct sound in sounds)
-                    checkFile.Invoke(null, [filesForLevel, sound.filename]);
+                if (levelEvent is LevelEvent_SetCountingSound setCountingSound)
+                {
+                    SoundDataStruct[] sounds = setCountingSound.sounds;
+                    foreach (SoundDataStruct sound in sounds)
+                        checkFile.Invoke(null, [missingFiles, sound.filename]);
+                }
+                else if (levelEvent is LevelEvent_ChangeCharacter changeCharacter)
+                {
+                    if (string.IsNullOrEmpty(changeCharacter.customCharacter))
+                        continue;
+                    checkFile.Invoke(null, [missingFiles, changeCharacter.customCharacter]);
+                }
             }
 
-            __result = [.. __result, .. filesForLevel];
+            foreach (LevelEvent_MakeRow row in rows)
+            {
+                if (row.character != Character.Custom || string.IsNullOrEmpty(row.customCharacterName))
+                    continue;
+                AddFreezeshotSprite(row.customCharacterName);
+            }
+
+            foreach (LevelEvent_MakeSprite sprite in sprites)
+            {
+                if (string.IsNullOrEmpty(sprite.filename) || sprite.filename.HasImageFileExtension())
+                    continue;
+                AddFreezeshotSprite(Path.GetFileNameWithoutExtension(sprite.filename));
+            }
+
+            __result = [.. __result, .. missingFiles];
         }
     }
 }
