@@ -1,1 +1,1 @@
-Fixed freeze images not being included in rdzip export
+Ghost rows

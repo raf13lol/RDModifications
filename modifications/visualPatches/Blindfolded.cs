@@ -46,6 +46,15 @@ public class Blindfolded : Modification
             __instance.character.visible = !isClassyCC;
         }
 
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(scrHoldBar), nameof(scrHoldBar.visibleHold), MethodType.Getter)]
+        public static void HoldBarPostfix(scrHoldBar __instance)
+        {
+            if (!SavedEnabled.Value)
+                return;
+            __instance.visible = false;
+        }
+
         [HarmonyPrefix]
         [HarmonyPatch(typeof(RowEntity), nameof(RowEntity.ExpressionPlusFX))]
         public static void FXPrefix(RowEntity __instance)

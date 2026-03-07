@@ -53,6 +53,27 @@ public class GameplayBugs : Modification
             => __instance.clipFrame = __state;
     }
 
+    [HarmonyPatch(typeof(scrChar), nameof(scrChar.OnCustomAnimEnd))]
+    public class NeutralLoopFixPatch
+    {
+        public static void ILManipulator(ILContext il)
+        {
+            ILCursor cursor = new(il);
+
+            void replaceNeutralWithNeutralAnimationName()
+            {
+                cursor.GotoNext(x => x.MatchLdstr("neutral"));
+                cursor.Remove();
+                cursor.Emit(OpCodes.Ldarg_0);
+                cursor.Emit(OpCodes.Ldfld, AccessTools.Field(typeof(scrChar), nameof(scrChar.neutralAnimName)));
+            }
+
+            replaceNeutralWithNeutralAnimationName(); // customAnimation.currentClip.name != "neutral"
+            replaceNeutralWithNeutralAnimationName(); // customAnimation.data.clips.TryGetValue("neutral", out var value)
+            replaceNeutralWithNeutralAnimationName(); // PlayExpression("neutral", ...);
+        }
+    }
+
     public class SetCountingSoundPatch
     {
         // I've done some bullshit because otherwise it just doesn't work?

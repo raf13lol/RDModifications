@@ -6,6 +6,7 @@ using BepInEx;
 
 #if !BPE5
 using BepInEx.Unity.Mono.Bootstrap;
+using HarmonyLib;
 #else
 using BepInEx.Bootstrap;
 #endif
@@ -49,4 +50,10 @@ public class OtherPluginUtils
     
     public static Type GetOtherPluginType(Assembly assembly, string name)
         => assembly.GetTypes().First((t) => t.Name == name);
+
+    public static Type GetOtherPluginType(string pluginGUID, string typeNamespace, string name)
+        => GetOtherPluginAssembly(pluginGUID).GetType($"{typeNamespace}.{name}");
+    
+    public static Type GetOtherPluginType(string pluginGUID, string name)
+        => GetOtherPluginAssembly(pluginGUID).GetTypes().First((t) => t.Name == name);
 }

@@ -53,7 +53,7 @@ public class Entry : BaseUnityPlugin
 
         if (AutoUpdateEnabled.Value)
         {
-            Harmony autoUpdatePatcher = new("autoupdatepatcher");
+            Harmony autoUpdatePatcher = new("RDMAUP");
             autoUpdatePatcher.PatchAll(typeof(Updater.SteamUpdatePatch));
         }
 
@@ -63,7 +63,7 @@ public class Entry : BaseUnityPlugin
             return;
         }
 
-        HarmonyPatcher = new("patcher");
+        HarmonyPatcher = new("RDMP");
         ConfigurationFile = Config;
         PluginInfo = Info;
 
