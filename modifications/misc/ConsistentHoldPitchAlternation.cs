@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using HarmonyLib;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
@@ -11,6 +12,7 @@ public class ConsistentHoldPitchAlternation : Modification
     public class ConsistentPatch
     {
         public static BeatClassic CurrentInstance = null;
+        public static FieldInfo shouldHeldbeatPulseBeAlt = AccessTools.Field(typeof(BeatClassic), nameof(BeatClassic.shouldHeldbeatPulseBeAlt));
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(BeatClassic), nameof(BeatClassic.GetAlternatingBeatPitchMultiplier))]
@@ -27,15 +29,25 @@ public class ConsistentHoldPitchAlternation : Modification
         {
             ILCursor cursor = new(il);
 
-            cursor.GotoNext(MoveType.After, x => x.MatchStfld(AccessTools.Field(typeof(BeatClassic), nameof(BeatClassic.shouldHeldbeatPulseBeAlt))));
+            cursor.GotoNext(MoveType.After, x => x.MatchStfld(shouldHeldbeatPulseBeAlt));
             cursor.Index++;
+     
             cursor.Emit(OpCodes.Ldarg_0);
+
+            // (k % 2)
             cursor.Emit(OpCodes.Ldloc, 6);
-            cursor.EmitDelegate(delegate (BeatClassic beat, int k)
-            {
-                int kShouldBe = scrConductor.BeatsoundPitchMode ? 0 : 1;
-                beat.shouldHeldbeatPulseBeAlt = k % 2 == kShouldBe;
-            });
+            cursor.Emit(OpCodes.Ldc_I4_2);
+            cursor.Emit(OpCodes.Rem);
+
+            // flipped scrConductor.BeatsoundPitchMode - (scrConductor.BeatsoundPitchMode != 0)
+            cursor.Emit(OpCodes.Ldsfld, AccessTools.Field(typeof(scrConductor), nameof(scrConductor.BeatsoundPitchMode)));
+            cursor.Emit(OpCodes.Ldc_I4_0);
+            cursor.Emit(OpCodes.Ceq);
+
+            // (k % 2) == (!scrConductor.BeatsoundPitchMode)
+            cursor.Emit(OpCodes.Ceq);
+            // beat.shouldHeldbeatPulseBeAlt = (k % 2) != scrConductor.BeatsoundPitchMode
+            cursor.Emit(OpCodes.Stfld, shouldHeldbeatPulseBeAlt);
         }
     }
 

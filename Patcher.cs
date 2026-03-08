@@ -92,7 +92,7 @@ public class Patcher
                 continue;
 
             // patch
-            Type[] innerTypes = [..(from t in type.GetNestedTypes(AccessTools.all)
+            Type[] innerTypes = [.. (from t in type.GetNestedTypes(AccessTools.all)
                                         where t.Name.EndsWith("Patch") || t.GetCustomAttribute(typeof(PatchAttribute)) != null
                                         select t)];
 

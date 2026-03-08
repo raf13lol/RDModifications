@@ -6,7 +6,7 @@ using RDLevelEditor;
 
 namespace RDModifications;
 
-[Modification("If to fix the bugs in the editor.", true)]
+[Modification("If the bugs within the editor should be fixed.", true)]
 public class EditorBugs : Modification
 {
     [HarmonyPatch(typeof(LevelEvent_Base), nameof(LevelEvent_Base.isSpriteTabEvent), MethodType.Getter)]

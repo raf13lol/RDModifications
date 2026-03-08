@@ -1,11 +1,11 @@
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 using BepInEx.Configuration;
 using HarmonyLib;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using System.IO;
-using System.Linq;
 
 namespace RDModifications;
 
@@ -93,10 +93,16 @@ public class ExtraLevelEndDetails : Modification
             string bestPrev = LevelStatsPatch.BestPrev.ToString();
             List<string> baseMods = [];
 
+            // Blindfolded
+            if (Enabled[typeof(Blindfolded)].Value && Blindfolded.SavedEnabled.Value)
+                baseMods.Add("Blind");
+            // Doctor mode
             if (Enabled[typeof(DoctorMode)].Value)
-                baseMods.Add($"DM ({DoctorMode.LowMultiplier.Value}x-{DoctorMode.HighMultiplier.Value}x)");
+                baseMods.Add($"Doctor ({DoctorMode.LowMultiplier.Value}x-{DoctorMode.HighMultiplier.Value}x)");
+            // Custom difficulty
             if (Enabled[typeof(CustomDifficulty)].Value && (CustomDifficulty.P1Enabled.Value || (GC.twoPlayerMode && CustomDifficulty.P2Enabled.Value)))
-                baseMods.Add($"CD ({CustomDifficulty.HitMargin.Value}ms)");
+                baseMods.Add($"{CustomDifficulty.HitMargin.Value}ms");
+            // Chilly/Chili
             if (RDTime.speed != 1.0f)
                 baseMods.Add($"{RDTime.speed}x");
 

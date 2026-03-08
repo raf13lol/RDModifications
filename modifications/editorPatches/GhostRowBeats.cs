@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Reflection;
+using BepInEx.Configuration;
 using DG.Tweening;
 using HarmonyLib;
 using RDLevelEditor;
@@ -8,9 +10,12 @@ using UnityEngine.UI;
 
 namespace RDModifications;
 
-[Modification("Bomboclatt", true)]
+[Modification("If the current page of the Rows tab should be shown at all times.", true)]
 public class GhostRowBeats : Modification
 {
+    [Configuration<float>(0.45f, "What the opacity of the ghost rows should be multiplied by.", [float.Epsilon, float.MaxValue])]
+    public static ConfigEntry<float> GhostRowBeatsOpacityMultiplier;
+
     [HarmonyPatch(typeof(TabSection_Rows), nameof(TabSection_Rows.Setup))]
     public class PreventSetupShowPatch
     {
@@ -42,7 +47,7 @@ public class GhostRowBeats : Modification
                     if (rows.editor.selectedControls.Contains(control))
                         control.ShowAsSelected();
                     else
-                        control.ShowAsDeselected(); 
+                        control.ShowAsDeselected();
                     control.trigger.enabled = true;
                 }
                 return;
@@ -66,10 +71,10 @@ public class GhostRowBeats : Modification
                     control.ShowAsSelected();
                 else
                 {
-                    control.ShowAsDeselected(); 
+                    control.ShowAsDeselected();
                     MultiplyGraphicAlpha(control);
                 }
-                
+
                 control.trigger.enabled = false;
                 control.trigger.OnEndDrag(new(EventSystem.current));
                 control.trigger.OnPointerExit(new(EventSystem.current));
@@ -92,7 +97,7 @@ public class GhostRowBeats : Modification
         [HarmonyPatch(typeof(scnEditor), "ShowUIAsNewFile")]
         public static void LoadFilePostfix(scnEditor __instance)
             => __instance.tabSection_rows.Hide(false);
-        
+
         [HarmonyPostfix]
         [HarmonyPatch(typeof(scnEditor), nameof(scnEditor.OffsetSelectedEventsByBar))]
         [HarmonyPatch(typeof(BulkSelectPanel), nameof(BulkSelectPanel.UpdateTag))]
@@ -121,13 +126,13 @@ public class GhostRowBeats : Modification
 
             List<LevelEventControl_Base> deselectedControls = [];
             foreach (LevelEventControl_Base control in __instance.selectedControls)
-			{
-				if (control.isBase || control.tab != Tab.Rows)
-					continue;
+            {
+                if (control.isBase || control.tab != Tab.Rows)
+                    continue;
 
                 control.SaveData();
                 deselectedControls.Add(control);
-			}
+            }
 
             foreach (LevelEventControl_Base control in deselectedControls)
             {
@@ -149,6 +154,23 @@ public class GhostRowBeats : Modification
         }
     }
 
+    [HarmonyPatch(typeof(Timeline), "CullMaskedObjects")]
+    public class CullingPatch
+    {
+        public static MethodInfo CullMaskedObjects = AccessTools.Method(typeof(Timeline), "CullMaskedObjects");
+
+        public static void Postfix(Timeline __instance)
+        {
+            Tab tab = __instance.editor.currentTab;
+            if (tab == Tab.Rows)
+                return;
+
+            __instance.editor.currentTab = Tab.Rows;
+            CullMaskedObjects.Invoke(__instance, null);
+            __instance.editor.currentTab = tab;
+        }
+    }
+
     // public class DisableInteractionsPatch
     // {
     //     [HarmonyPrefix]
@@ -167,7 +189,7 @@ public class GhostRowBeats : Modification
     {
         if (!graphic)
             return;
-        graphic.color = graphic.color.WithAlpha(graphic.color.a * 0.5F);
+        graphic.color = graphic.color.WithAlpha(graphic.color.a * GhostRowBeatsOpacityMultiplier.Value);
     }
 
     public static void MultiplyGraphicAlpha(LevelEventControl_Base control)

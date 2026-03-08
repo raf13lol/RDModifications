@@ -46,7 +46,7 @@ public class Entry : BaseUnityPlugin
         "If any of the available modifications should be loaded at all.");
         AutoUpdateEnabled = Config.Bind("", "AutoUpdateEnabled", true,
         "If RDModifications should auto-update. Only disable this in specific cases.");
-        AutoUpdateAssumeBeta = Config.Bind("", "AutoUpdateEnabled", true,
+        AutoUpdateAssumeBeta = Config.Bind("", "AutoUpdateAssumeBeta", false,
         "If the auto-updater should assume you're on beta if it is unable to check your Steam branch.");
         EditorEnabled = Config.Bind("EditorPatches", "Enabled", true,
         "If any of the editor patches should be enabled.");

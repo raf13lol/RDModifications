@@ -1,13 +1,13 @@
 // i heard someone wanted this
 
+using System.Reflection;
 using BepInEx.Configuration;
-using HarmonyLib;
 using DG.Tweening;
 using DG.Tweening.Core;
 using DG.Tweening.Plugins.Options;
-using System.Reflection;
-using UnityEngine.UI;
+using HarmonyLib;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace RDModifications;
 

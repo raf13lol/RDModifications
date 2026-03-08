@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace RDModifications;
 
-[Modification("If to be able to remove row visuals with an option.")]
+[Modification("If you should be able to remove row visuals with an option.")]
 public class Blindfolded : Modification
 {
     [Configuration<bool>(false,
@@ -19,7 +19,7 @@ public class Blindfolded : Modification
     )]
     public static ConfigEntry<bool> SavedEnabled;
 
-    [Configuration<bool>(true, "If to show the option for this in the settings menu, under Advanced.")]
+    [Configuration<bool>(true, "If the option for this should be shown in the settings menu, under Advanced.")]
     public static ConfigEntry<bool> DisplayOption;
 
     public class BlindfoldedVisualsPatch

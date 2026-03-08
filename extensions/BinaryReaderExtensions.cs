@@ -1,6 +1,6 @@
 using System;
-using System.IO;
 using System.Buffers.Binary;
+using System.IO;
 
 public static class BinaryReaderExtensions
 {

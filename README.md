@@ -30,6 +30,7 @@ List of modifications available with a simple summary:
 - DoctorMode -> Removes the `Rhythm` from `Rhythm Doctor` (destroys the rhythm engine)
 - EditorPatches -> Some patches to extend editor features or to improve editor [(see the section for more info)](#editorpatches)
 - ExtraLevelEndDetails -> Provides extra details at the end of a level, e.g. previous best
+- ExtraSearchFilters -> Allows you to search in the CLS with certain filters
 - FailOnCondition -> Allows you to force a game over if a certain condition is met (e.g. being a heartbreaker)
 - FailOnMS -> Allows you to force a game over if you hit a beat with a certain millisecond offset
 - FakeRankOnMistake -> Allows for flashing a fake rank screen and a sound to play on each miss, with being able to choose the Rank shown/said
@@ -77,10 +78,11 @@ each image should have the suffix of `_frameX` where X is a number starting from
 
 ## EditorPatches
 
+- BorderTintOpacity -> Enables/adds the built-in border/tint opacity field to paint events
 - DisableInputFieldLimits -> Numerical input field limits are disabled
 - DuplicateDecorationButton -> Adds a button to duplicate a deco, above the delete button for the deco
-- EditorBorderTintOpacity -> Enables/adds the built-in border/tint opacity field to paint events
 - EditorBugs -> Fixes some bugs within the editor
+- GhostRowBeats -> Makes the Row tab always visible
 - ImportAnimatedImages -> Allows the importing of APNGs/GIFs and them being converting to a valid format for RD 
 - InsertDeleteBars -> Alt + left click inserts a bar, alt + right click deletes the bar clicked (hard to explain shortly)
 - RemoveFourRowLimit -> Allows up to 16 rows in total placed in any room without limits

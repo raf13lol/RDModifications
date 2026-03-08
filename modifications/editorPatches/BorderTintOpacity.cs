@@ -1,10 +1,10 @@
-using HarmonyLib;
 using System;
-using System.Reflection;
-using RDLevelEditor;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
+using HarmonyLib;
+using RDLevelEditor;
 using UnityEngine.UI;
 
 namespace RDModifications;
@@ -13,7 +13,7 @@ namespace RDModifications;
     "If there should be the built-in input field for the border/tint opacity in Paint Rows/Sprite, no matter what.\n" +
     "Meant to simplify under/overtinting."
 , true)]
-public class EditorBorderTintOpacity : Modification
+public class BorderTintOpacity : Modification
 {
     public class TintRowsPatch
     {

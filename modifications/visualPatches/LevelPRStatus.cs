@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using BepInEx.Configuration;
-using Newtonsoft.Json;
 using HarmonyLib;
+using Newtonsoft.Json;
 using UnityEngine;
-using System.IO;
 
 namespace RDModifications;
 
@@ -34,15 +34,8 @@ public class LevelPRStatus : Modification
     {
         public static void Postfix(CustomLevel __instance, CustomLevelData data)
         {
-            int status = PRLevels.Get(LevelUtils.GetLevelFolderName(data));
-            if (status == -127)
-            {
-                // check if the level was downloaded from rdcafe v2
-                // NOTE: i hope rdcafe v2 uses the same database, but i don't think it will due to alternate naming :(
-                status = PRLevels.Get(LevelUtils.GetLevelFolderName(data), true);
-            }
-
-            if (status == -127)
+            PRStatus status = PRLevels.Get(data);
+            if (status == PRStatus.Unknown)
             {
                 __instance.syringeBodyImage.color = Color.white;
                 return;
@@ -50,13 +43,13 @@ public class LevelPRStatus : Modification
 
             Color colToSet = status switch
             {
-                -1 => Color.red,
-                0 => Color.black,
-                10 => Color.green,
+                PRStatus.NonRefereed => Color.red,
+                PRStatus.Pending => Color.black,
+                PRStatus.PeerReviewed => Color.green,
                 _ => Color.white
             };
 
-            __instance.syringeBodyImage.color = Color.Lerp(Color.white, colToSet, Mathf.Min((status == 10 ? 0.325f : 0.5f) * ColourAmplifier.Value, 1));
+            __instance.syringeBodyImage.color = Color.Lerp(Color.white, colToSet, Mathf.Min((status == PRStatus.Pending ? 0.325f : 0.5f) * ColourAmplifier.Value, 1));
         }
     }
 
@@ -66,15 +59,20 @@ public class LevelPRStatus : Modification
         public static Dictionary<string, sbyte> LevelV2Statuses = [];
         public static string Filename = Path.Combine(Entry.UserDataFolder, "__rdmodifications_prstatuses_cache.rdmf");
 
-        public static sbyte Get(string id, bool checkIfFromV2 = false)
+        public static PRStatus Get(string id)
         {
-            Dictionary<string, sbyte> dictToCheck = LevelStatuses;
-            if (checkIfFromV2)
-                dictToCheck = LevelV2Statuses;
-            if (dictToCheck.TryGetValue(id, out sbyte val))
-                return val;
-            return -127; // means no entry (not on rdcafe or not all data got yet)
+            sbyte status = (sbyte)PRStatus.Unknown;
+
+            if (LevelStatuses.TryGetValue(id, out sbyte val1))
+                status = val1;
+            else if (LevelV2Statuses.TryGetValue(id, out sbyte val2))
+                status = val2;
+
+            return (PRStatus)status;
         }
+
+        public static PRStatus Get(CustomLevelData data)
+            => Get(LevelUtils.GetLevelFolderName(data));
 
         public static async Task Init()
         {
@@ -107,7 +105,7 @@ public class LevelPRStatus : Modification
                     + "?q=*&per_page=250&include_fields=id, approval, sha1&highlight_fields=none&highlight_full_fields=none"
                     + "&page=" + page++));
                 request.Headers.Add("x-typesense-api-key", "nicolebestgirl");
-                
+
                 HttpResponseMessage response;
                 try
                 {

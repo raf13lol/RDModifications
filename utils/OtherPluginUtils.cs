@@ -47,13 +47,13 @@ public class OtherPluginUtils
 
     public static Type GetOtherPluginType(Assembly assembly, string typeNamespace, string name)
         => assembly.GetType($"{typeNamespace}.{name}");
-    
+
     public static Type GetOtherPluginType(Assembly assembly, string name)
         => assembly.GetTypes().First((t) => t.Name == name);
 
     public static Type GetOtherPluginType(string pluginGUID, string typeNamespace, string name)
         => GetOtherPluginAssembly(pluginGUID).GetType($"{typeNamespace}.{name}");
-    
+
     public static Type GetOtherPluginType(string pluginGUID, string name)
         => GetOtherPluginAssembly(pluginGUID).GetTypes().First((t) => t.Name == name);
 }

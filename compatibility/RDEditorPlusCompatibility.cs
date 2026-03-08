@@ -11,7 +11,7 @@ public class RDEditorPlusCompatibility
 {
     public static void Run()
     {
-        Plugin.RDModificationsRowPatchEnabled = Modification.Enabled[typeof(RemoveFourRowLimit)].Value; 
+        Plugin.RDModificationsRowPatchEnabled = Modification.Enabled[typeof(RemoveFourRowLimit)].Value;
     }
 
     public static void ForceRowSubRowUpdate()

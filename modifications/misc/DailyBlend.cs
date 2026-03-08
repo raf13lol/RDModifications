@@ -21,7 +21,7 @@ public class DailyBlend : Modification
     [Configuration<string>("",
         "Needs to be your Discord token. You can get it in many ways.\n" +
         "If you don't trust this, which is fair, you can check the source code of this patch at\n" +
-        "'https://github.com/raf13lol/RDModifications/blob/main/modifications/misc/DailyBlend.cs'.", 
+        "'https://github.com/raf13lol/RDModifications/blob/main/modifications/misc/DailyBlend.cs'.",
     null, true)]
     public static string Token;
 
@@ -56,12 +56,12 @@ public class DailyBlend : Modification
             if (textToSearch != "daily-blend")
                 return;
 
-            int index = 0;
-            foreach (CustomLevelData customLevelData in __instance.levelsData)
+            for (int i = 0; i < __instance.levelsData.Count; i++ )
             {
+                CustomLevelData customLevelData = __instance.levelsData[i];
+                
                 if (RecentBlends.BlendIDs.Contains(LevelUtils.GetLevelFolderName(customLevelData)))
-                    __instance.searchLevelsDataIndex.Add(index);
-                index++;
+                    __instance.searchLevelsDataIndex.Add(i);
             }
         }
     }
@@ -167,7 +167,7 @@ public class DailyBlend : Modification
                 Log.LogMessage("DailyBlend: Obtained daily blend(s).");
             else
                 Log.LogWarning("DailyBlend: No daily blend(s) obtained.");
-        
+
 
             // When cafe v2 daily blend is updated more often
             // using HttpRequestMessage cafeV2 = new(HttpMethod.Get, new Uri("https://v2.rhythm.cafe/"));
@@ -176,7 +176,7 @@ public class DailyBlend : Modification
             // using HttpResponseMessage cafeV2Response = await client.SendAsync(cafeV2);
             // if (cafeV2Response.StatusCode != HttpStatusCode.OK)
             //     return;
-            
+
             // string jsonPage = await cafeV2Response.Content.ReadAsStringAsync();
             // CafeV2HomePage page = JsonConvert.DeserializeObject<CafeV2HomePage>(jsonPage);
             // BlendIDs.Add(page.props.daily_blend_level.sha1[3..]);

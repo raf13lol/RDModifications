@@ -1,13 +1,13 @@
-using BepInEx.Configuration;
-using HarmonyLib;
-using UnityEngine;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using RDLevelEditor;
 using System.Reflection;
-using System;
 using System.Text.RegularExpressions;
+using BepInEx.Configuration;
+using HarmonyLib;
 using MonoMod.Cil;
+using RDLevelEditor;
+using UnityEngine;
 
 namespace RDModifications;
 
@@ -63,7 +63,7 @@ public class CustomSamuraiMode : Modification
         public static void SamuraiILManipulator(ILContext il)
             => ILManipulatorUtils.ReplaceString(il, "Samurai.", SamuraiReplacement.Value);
     }
-    
+
     [HarmonyPatch(typeof(Rankscreen), nameof(Rankscreen.ShowAndSaveRank))]
     public class SamuraiRankPatch
     {

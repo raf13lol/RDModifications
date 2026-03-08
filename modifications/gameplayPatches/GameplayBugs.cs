@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace RDModifications;
 
-[Modification("If to fix bugs within the game.")]
+[Modification("If bugs within the game should be fixed.")]
 public class GameplayBugs : Modification
 {
     public class SetGameSoundCompatibilityPatch
