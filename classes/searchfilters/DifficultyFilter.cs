@@ -8,7 +8,7 @@ public class DifficultyFilter : SearchFilter
     public bool Inverted { get; set; } = false;
 
     public bool Enabled => true;
-    public string[] Prefixes => ["difficulty-", "diff-"];
+    public string[] Prefixes => ["difficulty", "diff"];
 
     private LevelDifficulty DifficultyToCheck;
 

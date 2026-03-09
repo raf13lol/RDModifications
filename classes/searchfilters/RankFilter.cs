@@ -7,7 +7,7 @@ public class RankFilter : SearchFilter
     public bool Inverted { get; set; } = false;
 
     public bool Enabled => true;
-    public string[] Prefixes => ["rank-"];
+    public string[] Prefixes => ["rank"];
 
     private Rank RankToCheck;
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BepInEx.Configuration;
 using HarmonyLib;
 using RDLevelEditor;
 using RDModifications.SearchFilters;
@@ -8,14 +9,17 @@ using RDModifications.SearchFilters;
 namespace RDModifications;
 
 [Modification(
-    "If there should be more ways to search in the CLS.\n" + 
-    "'rank-RANK' searches for a specific rank." +
-    "'difficulty-DIFFICULTY' searches for a specific difficulty." +
-    "'pr-STATUS' searches for a specific PR status if LevelPRStatus is enabled." +
-    "If any of these filters are prefixed with '!', it will invert the filter." 
+    "If there should be more ways to search in the CLS.\n" +
+    "'rank=RANK' searches for a specific rank." +
+    "'difficulty=DIFFICULTY' searches for a specific difficulty." +
+    "'pr=STATUS' searches for a specific PR status if LevelPRStatus is enabled." +
+    "If any of these filters are prefixed with '!', it will invert the filter."
 )]
 public class ExtraSearchFilters : Modification
 {
+    [Configuration<string>("=", "What should separate the filter name from the filter value.")]
+    public static ConfigEntry<string> SeparatorCharacters;
+
     [HarmonyPatch(typeof(scnCLS), nameof(scnCLS.SetSearchData))]
     public class FiltersPatch
     {
@@ -31,6 +35,7 @@ public class ExtraSearchFilters : Modification
                 // new VersionFilter()
             ];
 
+            string sepChar = SeparatorCharacters.Value.ToLower();
             List<string> potentialFilters = [.. textToSearch.Split(" ")];
             List<string> searchWords = [];
 
@@ -43,14 +48,14 @@ public class ExtraSearchFilters : Modification
 
                 foreach (SearchFilter filterToCheck in filtersToUse)
                 {
-                    string prefix = filterToCheck.Prefixes.FirstOrDefault(s => trimmedFilter.StartsWith(s));
+                    string prefix = filterToCheck.Prefixes.FirstOrDefault(s => trimmedFilter.StartsWith(s + sepChar));
                     if (prefix == default)
                         continue;
 
-                    string removedPrefix = trimmedFilter.Replace(prefix, "");
+                    string removedPrefix = trimmedFilter.Replace(prefix + sepChar, "");
                     if (!filterToCheck.Check(removedPrefix, out SearchFilter searchFilter))
                         continue;
-                    
+
                     searchFilter.Inverted = inverted;
                     FiltersToApply.Add(searchFilter);
                     filtered = true;
@@ -83,6 +88,6 @@ public class ExtraSearchFilters : Modification
                 if (removeLevel)
                     __instance.searchLevelsDataIndex.RemoveAt(i--);
             }
-        }    
+        }
     }
 }

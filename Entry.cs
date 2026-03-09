@@ -76,6 +76,7 @@ public class Entry : BaseUnityPlugin
             // (i'm making it sound really fancy)
             Patcher.PatchAllWithAttribute<ModificationAttribute>(HarmonyPatcher, ConfigurationFile, out bool anyEnabled, !EditorEnabled.Value);
             HarmonyPatcher.PatchAll(typeof(PluginCompatibility));
+            GlobalPatches.PatchAll(HarmonyPatcher);
 
             if (anyEnabled)
                 Logger.LogMessage("Any modifications that have been enabled have been loaded. See individual messages for any info on issues.");

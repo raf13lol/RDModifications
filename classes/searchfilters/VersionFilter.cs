@@ -7,7 +7,7 @@ public class VersionFilter : SearchFilter
     public bool Inverted { get; set; } = false;
 
     public bool Enabled => true;
-    public string[] Prefixes => ["version-", "ver-"];
+    public string[] Prefixes => ["version", "ver"];
 
     private int VersionToCheck;
 

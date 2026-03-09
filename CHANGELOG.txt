@@ -1,3 +1,1 @@
-Fixed ghost rows
-Added ExtraSearchFilters
-Renamed EditorBorderTintOpacity to jsut BorderTintOpacity
+Changed a few things.

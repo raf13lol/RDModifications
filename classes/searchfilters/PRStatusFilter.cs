@@ -7,7 +7,7 @@ public class PRStatusFilter : SearchFilter
     public bool Inverted { get; set; } = false;
 
     public bool Enabled => Modification.Enabled[typeof(LevelPRStatus)].Value;
-    public string[] Prefixes => ["peerreview-", "pr-"];
+    public string[] Prefixes => ["peerreview", "pr"];
 
     private PRStatus StatusToCheck;
 
