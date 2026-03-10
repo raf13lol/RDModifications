@@ -72,17 +72,11 @@ public class EditorBugs : Modification
 
             foreach (LevelEvent_Base levelEvent in events)
             {
-                if (levelEvent is LevelEvent_SetCountingSound setCountingSound)
-                {
-                    SoundDataStruct[] sounds = setCountingSound.sounds;
-                    foreach (SoundDataStruct sound in sounds)
-                        checkFile.Invoke(null, [missingFiles, sound.filename]);
-                }
-                else if (levelEvent is LevelEvent_ChangeCharacter changeCharacter)
+                if (levelEvent is LevelEvent_ChangeCharacter changeCharacter)
                 {
                     if (string.IsNullOrEmpty(changeCharacter.customCharacter))
                         continue;
-                    checkFile.Invoke(null, [missingFiles, changeCharacter.customCharacter]);
+                    AddFreezeshotSprite(changeCharacter.customCharacter);
                 }
             }
 
