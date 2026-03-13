@@ -117,13 +117,6 @@ public class EditorBugs : Modification
         }
 
         public static void Postfix(scnEditor __instance)
-        {
-            foreach (LevelEventControl_Base control in __instance.selectedControls)
-                control.ShowAsDeselected();
-            foreach (LevelEventControl_Base control in savedSelectedControls)
-                control.ShowAsSelected();
-
-            __instance.selectedControls = [.. savedSelectedControls];
-        }
+            => __instance.SelectEventControls(savedSelectedControls);
     }
 }
