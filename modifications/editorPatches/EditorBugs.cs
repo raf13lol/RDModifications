@@ -124,14 +124,6 @@ public class EditorBugs : Modification
                 control.ShowAsSelected();
 
             __instance.selectedControls = [.. savedSelectedControls];
-
-            // May not be needed but better save than sorry am i right 
-            IList undoStates = (IList)AccessTools.Field(typeof(scnEditor), "undoStates").GetValue(__instance);
-            List<int> selectedIds = (List<int>)AccessTools.Field(LevelState, "selectedIds").GetValue(undoStates[undoStates.Count - 1]);
-
-            selectedIds.Clear();
-            foreach (LevelEventControl_Base control in __instance.selectedControls)
-                selectedIds.Add(control.levelEvent.uid);
         }
     }
 }
