@@ -112,7 +112,7 @@ public class EditorBugs : Modification
 
         public static void Prefix(scnEditor __instance, ref LevelEventControlEventTrigger eventTrigger)
         {
-            savedSelectedControls = [.. __instance.selectedControls];
+            savedSelectedControls = [.. __instance.selectedControls.Where(lec => !lec.isBase)];
             eventTrigger = null;
         }
 
