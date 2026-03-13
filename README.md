@@ -79,6 +79,7 @@ each image should have the suffix of `_frameX` where X is a number starting from
 ## EditorPatches
 
 - BorderTintOpacity -> Enables/adds the built-in border/tint opacity field to paint events
+- DefaultNarrateOffOnCreate -> Narrate on created level events is by default off
 - DisableInputFieldLimits -> Numerical input field limits are disabled
 - DuplicateDecorationButton -> Adds a button to duplicate a deco, above the delete button for the deco
 - EditorBugs -> Fixes some bugs within the editor
@@ -89,4 +90,4 @@ each image should have the suffix of `_frameX` where X is a number starting from
 - ShowIDs -> Shows IDs of certain things via the title text
 - UnlockEditor -> Developer-exclusive functions of the editor unlocked (ported from [UnlockEditor](https://gist.github.com/lithiumjs/847ce77f3888585ad2d7c0fcd5041b83) by Seq... thanks for letting me port it)
 
-# Create a github issue for suggestions/bugs or just ping me if you're in a server i'm in
+# Create a github issue for suggestions/bugs or just ping me if you're in a server i'm in or just dm me

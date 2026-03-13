@@ -1,1 +1,2 @@
-Removed patches that aren't needed anymore
+Added DefaultNarrateOffOnCreate
+Fixed issue where cloned events would just get sent to outer space sometimes (dragging issue)

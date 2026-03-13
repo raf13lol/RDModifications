@@ -1,8 +1,14 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using RDLevelEditor;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UIElements.UIR;
 
 namespace RDModifications;
 
@@ -95,6 +101,37 @@ public class EditorBugs : Modification
             }
 
             __result = [.. __result, .. missingFiles];
+        }
+    }
+
+    [HarmonyPatch(typeof(scnEditor), nameof(scnEditor.Clone))]
+    public class ClonedEventsSentToStratospherePatch
+    {
+        public static Type LevelState = AccessTools.Inner(typeof(scnEditor), "LevelState");
+        public static List<LevelEventControl_Base> savedSelectedControls = [];
+
+        public static void Prefix(scnEditor __instance, ref LevelEventControlEventTrigger eventTrigger)
+        {
+            savedSelectedControls = [.. __instance.selectedControls];
+            eventTrigger = null;
+        }
+
+        public static void Postfix(scnEditor __instance)
+        {
+            foreach (LevelEventControl_Base control in __instance.selectedControls)
+                control.ShowAsDeselected();
+            foreach (LevelEventControl_Base control in savedSelectedControls)
+                control.ShowAsSelected();
+
+            __instance.selectedControls = [.. savedSelectedControls];
+
+            // May not be needed but better save than sorry am i right 
+            IList undoStates = (IList)AccessTools.Field(typeof(scnEditor), "undoStates").GetValue(__instance);
+            List<int> selectedIds = (List<int>)AccessTools.Field(LevelState, "selectedIds").GetValue(undoStates[undoStates.Count - 1]);
+
+            selectedIds.Clear();
+            foreach (LevelEventControl_Base control in __instance.selectedControls)
+                selectedIds.Add(control.levelEvent.uid);
         }
     }
 }

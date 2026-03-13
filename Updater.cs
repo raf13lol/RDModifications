@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -30,21 +31,21 @@ public class Updater
             if (betaOnly)
                 content = content[0..(content.Length - 1)];
 
-            string[] serverVersion = content.Split(".");
-            int serverMajor = int.Parse(serverVersion[0]);
-            int serverMinor = int.Parse(serverVersion[1]);
-            int serverPatch = int.Parse(serverVersion[2]);
+            string[] serverVersionText = content.Split(".");
+            int serverMajor = int.Parse(serverVersionText[0]);
+            int serverMinor = int.Parse(serverVersionText[1]);
+            int serverBuild = int.Parse(serverVersionText[2]);
 
-            string[] currentVersion = MyPluginInfo.PLUGIN_VERSION.Split(".");
-            int currentMajor = int.Parse(currentVersion[0]);
-            int currentMinor = int.Parse(currentVersion[1]);
-            int currentPatch = int.Parse(currentVersion[2]);
+            string[] currentVersionText = MyPluginInfo.PLUGIN_VERSION.Split(".");
+            int currentMajor = int.Parse(currentVersionText[0]);
+            int currentMinor = int.Parse(currentVersionText[1]);
+            int currentBuild = int.Parse(currentVersionText[2]);
 
-            int serverVersionNum = serverMajor * 10000 + serverMinor * 100 + serverPatch;
-            int currentVersionNum = currentMajor * 10000 + currentMinor * 100 + currentPatch;
-            if (serverVersionNum <= currentVersionNum)
+            Version serverVersion = new(serverMajor, serverMinor, serverBuild);
+            Version currentVersion = new(currentMajor, currentMinor, currentBuild);
+            if (serverVersion <= currentVersion)
             {
-                if (serverVersionNum < currentVersionNum)
+                if (serverVersion < currentVersion)
                     Logger.LogMessage($"dev build of {PluginInfo.Metadata.Name} 👍");
                 return;
             }
