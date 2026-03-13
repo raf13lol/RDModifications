@@ -90,13 +90,4 @@ public class GameplayBugs : Modification
             }
         }
     }
-
-    [HarmonyPatch(typeof(Timeline), nameof(Timeline.GetBarAndBeatWithColumn))]
-    public class BurnbeatPatch
-    {
-        public static void Prefix()
-            => Log.LogMessage("poutone");
-        public static void Postfix()
-            => Log.LogMessage("heartbeat");
-    }
 }
