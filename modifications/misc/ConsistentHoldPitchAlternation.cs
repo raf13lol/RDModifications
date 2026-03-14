@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using HarmonyLib;
 using Mono.Cecil.Cil;

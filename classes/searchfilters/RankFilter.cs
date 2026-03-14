@@ -1,5 +1,3 @@
-using System;
-
 namespace RDModifications.SearchFilters;
 
 public class RankFilter : SearchFilter

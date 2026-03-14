@@ -88,7 +88,7 @@ public class ExtraLevelEndDetails : Modification
             string songName = LevelStatsPatch.SongName;
             string songArtist = LevelStatsPatch.SongArtist;
             string levelAuthor = LevelStatsPatch.LevelAuthor;
-            int hits = LevelStatsPatch.StoredIfHits.Count((hit) => hit);
+            int hits = LevelStatsPatch.StoredIfHits.Count(hit => hit);
             int misses = LevelStatsPatch.StoredIfHits.Count - hits;
             string bestPrev = LevelStatsPatch.BestPrev.ToString();
             List<string> baseMods = [];

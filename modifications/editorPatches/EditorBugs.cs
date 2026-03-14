@@ -1,14 +1,12 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
+using Mono.Cecil.Cil;
+using MonoMod.Cil;
 using RDLevelEditor;
-using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.UIElements.UIR;
 
 namespace RDModifications;
 
@@ -118,5 +116,18 @@ public class EditorBugs : Modification
 
         public static void Postfix(scnEditor __instance)
             => __instance.SelectEventControls(savedSelectedControls);
+    }
+
+    [HarmonyPatch(typeof(RDUtils), nameof(RDUtils.OpenInLinuxFileBrowser))]
+    public class OpenInFolderPatch
+    {
+        public static void ILManipulator(ILContext il)
+        {
+            ILCursor cursor = new(il);
+
+            cursor.GotoNext(x => x.OpCode == OpCodes.Brfalse_S);
+            cursor.Emit(OpCodes.Pop);
+            cursor.Emit(OpCodes.Ldc_I4_0);
+        }
     }
 }
