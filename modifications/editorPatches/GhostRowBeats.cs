@@ -99,6 +99,19 @@ public class GhostRowBeats : Modification
             => __instance.tabSection_rows.Hide(false);
 
         [HarmonyPostfix]
+        [HarmonyPatch(typeof(Timeline), nameof(Timeline.ZoomIn))]
+        [HarmonyPatch(typeof(Timeline), nameof(Timeline.ZoomOut))]
+        [HarmonyPatch(typeof(Timeline), nameof(Timeline.ZoomVert))]
+        public static void ZoomUpdatePostfix(bool ___hasZoomed, bool ___hasZoomedVert)
+        {
+            scnEditor editor = scnEditor.instance;
+            if ((!___hasZoomed && !___hasZoomedVert) || editor.currentTab == Tab.Rows)
+                return;
+            foreach (LevelEventControl_Base control in editor.eventControls_rows[editor.tabSection_rows.pageIndex])
+                control.UpdateUIInternal();
+        }
+
+        [HarmonyPostfix]
         [HarmonyPatch(typeof(scnEditor), nameof(scnEditor.OffsetSelectedEventsByBar))]
         [HarmonyPatch(typeof(BulkSelectPanel), nameof(BulkSelectPanel.UpdateTag))]
         [HarmonyPatch(typeof(BulkSelectPanel), nameof(BulkSelectPanel.UpdateTagRunNormally))]
