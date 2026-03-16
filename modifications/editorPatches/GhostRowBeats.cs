@@ -108,7 +108,28 @@ public class GhostRowBeats : Modification
             if ((!___hasZoomed && !___hasZoomedVert) || editor.currentTab == Tab.Rows)
                 return;
             foreach (LevelEventControl_Base control in editor.eventControls_rows[editor.tabSection_rows.pageIndex])
-                control.UpdateUIInternal();
+                UpdateControlUI(control);
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(scnEditor), nameof(scnEditor.UpdateTimelineAccordingToLevelEventType))]
+        public static void SetCPBDragPostfix(scnEditor __instance, LevelEventType type)
+        {
+            if (__instance.currentTab == Tab.Rows || type != LevelEventType.SetCrotchetsPerBar)
+                return;
+            foreach (LevelEventControl_Base control in __instance.eventControls_rows[__instance.tabSection_rows.pageIndex])
+                UpdateControlUI(control);
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(InspectorPanel_SetCrotchetsPerBar), nameof(InspectorPanel_SetCrotchetsPerBar.SaveProperties))]
+        public static void SetCPBEventPostfix()
+        {
+            scnEditor editor = scnEditor.instance;
+            if (editor.currentTab == Tab.Rows)
+                return;
+            foreach (LevelEventControl_Base control in editor.eventControls_rows[editor.tabSection_rows.pageIndex])
+                UpdateControlUI(control);
         }
 
         [HarmonyPostfix]
@@ -125,8 +146,7 @@ public class GhostRowBeats : Modification
             {
                 if (control.tab != Tab.Rows)
                     continue;
-                control.UpdateUIInternal();
-                MultiplyGraphicAlpha(control);
+                UpdateControlUI(control);
             }
         }
 
@@ -163,7 +183,20 @@ public class GhostRowBeats : Modification
                 return;
             LevelEventControl_Base control = scnEditor.instance.eventControls.Find(x => x.levelEvent == levelEvent);
             if (control.tab == Tab.Rows)
-                control.UpdateUIInternal();
+                UpdateControlUI(control);
+        }
+
+        public static void UpdateControlUI(LevelEventControl_Base control)
+        {
+            bool selected = scnEditor.instance.selectedControls.Contains(control);
+            control.UpdateUIInternal();
+            if (selected)
+                control.ShowAsSelected();
+            else
+            {
+                control.ShowAsDeselected();
+                MultiplyGraphicAlpha(control);
+            }
         }
     }
 

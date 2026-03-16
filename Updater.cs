@@ -1,10 +1,9 @@
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using BepInEx;
-using BepInEx.Logging;
 using HarmonyLib;
 
 namespace RDModifications;
@@ -15,67 +14,112 @@ public class Updater
     public class SteamUpdatePatch
     {
         public static void Postfix()
-            => _ = CheckUpdate(Modification.Log, Entry.PluginInfo, "raf13lol/RDModifications", Entry.DLLName);
+            => _ = CheckUpdate(new()
+            {
+                Logger = Modification.Log,
+                PluginInfo = Entry.PluginInfo,
+
+                GithubRepoURL = "raf13lol/RDModifications",
+                GithubRepoBranch = "main",
+
+                ReleaseName = Entry.DLLName,
+                VersionName = "VERSION.txt",
+                ChangelogName = "CHANGELOG.txt",
+
+                IsZip = false,
+            });
     }
 
-    public static async Task CheckUpdate(ManualLogSource Logger, PluginInfo PluginInfo, string githubRepoURL, string ReleaseDLLName)
+    public static async Task CheckUpdate(AutoUpdateData data)
     {
+        string rawGithubURL = $"https://raw.githubusercontent.com/{data.GithubRepoURL}/refs/heads/{data.GithubRepoBranch}/";
         try
         {
             using HttpClient client = new();
-            using HttpResponseMessage response = await client.GetAsync($"https://raw.githubusercontent.com/{githubRepoURL}/refs/heads/main/VERSION.txt");
+            using HttpResponseMessage response = await client.GetAsync(rawGithubURL + data.VersionName);
             if (response.StatusCode != HttpStatusCode.OK)
                 return;
-            string content = await response.Content.ReadAsStringAsync();
-            bool betaOnly = content.EndsWith("b");
-            if (betaOnly)
-                content = content[0..(content.Length - 1)];
 
-            string[] serverVersionText = content.Split(".");
+            string versionText = (await response.Content.ReadAsStringAsync()).Trim();
+            bool betaOnly = versionText.EndsWith("b");
+            if (betaOnly)
+                versionText = versionText[0..(versionText.Length - 1)];
+
+            string[] serverVersionText = versionText.Split(".");
             int serverMajor = int.Parse(serverVersionText[0]);
             int serverMinor = int.Parse(serverVersionText[1]);
             int serverBuild = int.Parse(serverVersionText[2]);
 
-            string[] currentVersionText = MyPluginInfo.PLUGIN_VERSION.Split(".");
-            int currentMajor = int.Parse(currentVersionText[0]);
-            int currentMinor = int.Parse(currentVersionText[1]);
-            int currentBuild = int.Parse(currentVersionText[2]);
-
             Version serverVersion = new(serverMajor, serverMinor, serverBuild);
-            Version currentVersion = new(currentMajor, currentMinor, currentBuild);
+            Version currentVersion = new(
+                data.PluginInfo.Metadata.Version.Major,
+                data.PluginInfo.Metadata.Version.Minor,
+#if !BPE5
+                data.PluginInfo.Metadata.Version.Patch
+#else
+                data.PluginInfo.Metadata.Version.Build
+#endif
+            );
             if (serverVersion <= currentVersion)
-            {
-                if (serverVersion < currentVersion)
-                    Logger.LogMessage($"dev build of {PluginInfo.Metadata.Name} 👍");
                 return;
-            }
 
             if (!betaOnly || GC.onBetaBranch || Entry.AutoUpdateAssumeBeta.Value)
             {
-                using HttpResponseMessage file = await client.GetAsync($"https://github.com/{githubRepoURL}/releases/download/{content}/{ReleaseDLLName}.dll");
+                using HttpResponseMessage file = await client.GetAsync(
+                    $"https://github.com/{data.GithubRepoURL}/releases/download/{versionText}/{data.ReleaseName.Replace("{version}", versionText)}"
+                );
                 if (file.StatusCode != HttpStatusCode.OK)
                     return;
+
                 byte[] fileData = await file.Content.ReadAsByteArrayAsync();
-                File.WriteAllBytes(PluginInfo.Location, fileData);
-                Logger.LogWarning($"{PluginInfo.Metadata.Name} was outdated ({content} > {MyPluginInfo.PLUGIN_VERSION}), please restart to apply the updated version of the mod.");
+                HandleFile(fileData, data.PluginInfo.Location, data.IsZip);
+                data.Logger.LogWarning($"{data.PluginInfo.Metadata.Name} was outdated ({versionText} > {data.PluginInfo.Metadata.Version}), please restart to apply the updated version of the mod.");
             }
             else
-                Logger.LogWarning($"The update of {PluginInfo.Metadata.Name} ({MyPluginInfo.PLUGIN_VERSION}->{content}) requires you to be on the beta branch (if you are, please run Steam) to update.");
+                data.Logger.LogWarning(
+                    $"The update of {data.PluginInfo.Metadata.Name} ({data.PluginInfo.Metadata.Version}->{versionText}) requires you to be on the beta branch (if you are, please run Steam) to update."
+                );
 
-            using HttpResponseMessage response2 = await client.GetAsync($"https://raw.githubusercontent.com/{githubRepoURL}/refs/heads/main/CHANGELOG.txt");
+            if (data.ChangelogName == null)
+                return;
+
+            using HttpResponseMessage response2 = await client.GetAsync(
+                rawGithubURL + data.ChangelogName
+            );
             if (response.StatusCode != HttpStatusCode.OK)
                 return;
 
             string changelog = await response2.Content.ReadAsStringAsync();
-            Logger.LogWarning("Changelog: \n" + changelog);
+            data.Logger.LogWarning($"Changelog of {data.PluginInfo.Metadata.Name}: \n" + changelog);
         }
-        catch //(Exception e)
+        catch// (Exception e)
         {
-            // Logger.LogMessage(e.Message);
-            // Logger.LogMessage(e.StackTrace);
-            // Logger.LogMessage(e.Source);
-            // Logger.LogMessage(e.GetType());
+            // data.Logger.LogMessage(e.Message);
+            // data.Logger.LogMessage(e.StackTrace);
+            // data.Logger.LogMessage(e.Source);
+            // data.Logger.LogMessage(e.GetType());
             // doesn't matter, prob just no wifi
+        }
+    }
+
+    public static void HandleFile(byte[] fileData, string pluginLocation, bool isZip)
+    {
+        if (!isZip)
+        {
+            File.WriteAllBytes(pluginLocation, fileData);
+            return;
+        }
+
+        using MemoryStream file = new(fileData);
+
+        string pluginFolder = Path.GetDirectoryName(pluginLocation) + Path.DirectorySeparatorChar;
+        ZipArchive modZip = new(file);
+        foreach (ZipArchiveEntry entry in modZip.Entries)
+        {
+            string directory = Path.GetDirectoryName(pluginFolder + entry.FullName) ?? string.Empty;
+            if (directory != string.Empty)
+                Directory.CreateDirectory(directory);
+            entry.ExtractToFile(pluginFolder + entry.FullName, true);
         }
     }
 }

@@ -2,34 +2,20 @@ using HarmonyLib;
 
 namespace RDModifications;
 
-public class PluginCompatibility
+public class PluginCompatibilityAutoUpdate
 {
-    public const string RDEditorPlusGUID = "com.9thcore.rdeditorplus";
-    public static bool RDEditorPlusDetected = false;
-
-    [HarmonyPrefix]
-    [HarmonyPatch(typeof(RDStartup), nameof(RDStartup.Setup))]
-    public static void OnceAllLoadedRun()
-        => Run();
-
     [HarmonyPostfix]
     [HarmonyPatch(typeof(SteamIntegration), nameof(SteamIntegration.Setup))]
     public static void AutoUpdateOthers()
         => RunAutoUpdates();
 
-    public static void Run()
-    {
-        if (RDEditorPlusDetected = OtherPluginUtils.DetectPlugin(RDEditorPlusGUID, new(0, 7, 0)))
-            RDEditorPlusCompatibility.Run();
-    }
-
     public static void RunAutoUpdates()
     {
-        if (RDEditorPlusDetected)
+        if (PluginCompatibility.RDEditorPlusDetected)
             _ = Updater.CheckUpdate(new()
             {
                 Logger = Modification.Log,
-                PluginInfo = OtherPluginUtils.PluginInfos[RDEditorPlusGUID],
+                PluginInfo = OtherPluginUtils.PluginInfos[PluginCompatibility.RDEditorPlusGUID],
 
                 GithubRepoURL = "9thCore/RDEditorPlus",
                 GithubRepoBranch = "main",

@@ -24,9 +24,9 @@ public class Entry : BaseUnityPlugin
 #endif
 
 #if !BPE5
-    public const string DLLName = "com.rhythmdr.randommodifications";
+    public const string DLLName = "com.rhythmdr.randommodifications.dll";
 #else
-    public const string DLLName = "com.rhythmdr.bpe5randommodifications";
+    public const string DLLName = "com.rhythmdr.bpe5randommodifications.dll";
 #endif
 
     public static string UserDataFolder = Path.Combine(Application.dataPath.Replace("Rhythm Doctor_Data", ""), "User");
@@ -55,6 +55,7 @@ public class Entry : BaseUnityPlugin
         {
             Harmony autoUpdatePatcher = new("RDMAUP");
             autoUpdatePatcher.PatchAll(typeof(Updater.SteamUpdatePatch));
+            autoUpdatePatcher.PatchAll(typeof(PluginCompatibilityAutoUpdate));
         }
 
         if (!Enabled.Value)

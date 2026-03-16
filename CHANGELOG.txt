@@ -1,1 +1,3 @@
-CustomPrebarLength
+CustomPrebarLength now has auto adjust
+Can now auto update other mods
+Fixed ghostrowbeats having some odd update problems
