@@ -31,16 +31,23 @@ public class CustomPrebarLength : Modification
 
     public class AutoAdjustFixPatch
     {
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(scrConductor), nameof(scrConductor.SetBPM))]
+        [HarmonyPatch(typeof(scrConductor), nameof(scrConductor.crotchetsPerBar), MethodType.Setter)]
+        public static void SetPrefix(out float __state)
+            => __state = RDCalibration.latency;
+
         [HarmonyPostfix]
         [HarmonyPatch(typeof(scrConductor), nameof(scrConductor.SetBPM))]
         [HarmonyPatch(typeof(scrConductor), nameof(scrConductor.crotchetsPerBar), MethodType.Setter)]
-        public static void SetPostfix(scrConductor __instance)
+        public static void SetPostfix(scrConductor __instance, float __state)
         {
             if (!FixAutoAdjust.Value)
                 return;
 
-            float currentPrebarLength = __instance.crotchet * __instance.crotchetsPerBar - RDCalibration.calibration_v - 0.01f;
+            float currentPrebarLength = Math.Clamp(__instance.crotchet * __instance.crotchetsPerBar - RDCalibration.calibration_v - 0.01f, 0, float.PositiveInfinity);
             RDCalibration.latency = Mathf.Min(RDCalibration.latency, currentPrebarLength);
+            __instance.startOfLastPrebar += __state - RDCalibration.latency;
         }
 
         [HarmonyPostfix]
