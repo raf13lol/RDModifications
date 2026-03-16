@@ -20,10 +20,11 @@ List of modifications available with a simple summary:
 - AnimatedSleeves -> Allows for animated sleeves [(see the section for how to do it)](#animatedsleeves-setup)
 - APNGPreviewImage -> Allows for animated preview images using the APNG file format
 - Blindfolded -> Allows for hiding the row visuals 
-- CustomDifficulty -> Allows for a custom hit margin
 - ConsistentHoldPitchAlternation -> Allows for making the pitch alternation of holds consistent with regular classics
+- CustomDifficulty -> Allows for a custom hit margin
 - CustomDiscordRichPresence -> Allows for customising the discord rich presence, including the presence id
 - CustomIceChiliSpeeds -> Allows for having a custom speed on ice/chili speeds instead of 0.75x/1.5x
+- CustomPrebarLength -> Allows for having a custom prebar length instead of 0.6 seconds
 - CustomSamuraiMode -> Allows for setting the `Samurai.` from Samurai. mode to any string
 - DailyBlend -> Adds in-game handling for the daily blend(s), meaning you don't have to download them yourself
 - DisableExcessiveLogging -> Allows you to prevent the game from logging useless messages 

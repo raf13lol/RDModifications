@@ -1,2 +1,1 @@
-So um row ghost beats had an issue with zooming so 
-PLEASE NOTIFY ME IF MY NEW BUG PATCHES CAUSE ANY ISSUES !!
+CustomPrebarLength
