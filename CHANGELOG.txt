@@ -1,2 +1,1 @@
-Removes patches for bugs that are now fixed in the main game
-Adds player filter
+Fixed BPE5 Auto update crashes

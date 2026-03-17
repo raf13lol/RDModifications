@@ -56,6 +56,12 @@ public class Entry : BaseUnityPlugin
             Harmony autoUpdatePatcher = new("RDMAUP");
             autoUpdatePatcher.PatchAll(typeof(Updater.SteamUpdatePatch));
             autoUpdatePatcher.PatchAll(typeof(PluginCompatibilityAutoUpdate));
+
+            Application.quitting += delegate()
+            {
+                foreach (AutoUpdateFile file in Updater.FilesToUpdateOnClose)
+                    Updater.HandleFile(file, true);
+            };
         }
 
         if (!Enabled.Value)

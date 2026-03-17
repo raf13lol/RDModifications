@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
@@ -10,6 +11,10 @@ namespace RDModifications;
 
 public class Updater
 {
+    public static bool LoggedClosingWarning = !Entry.IsBPE5;
+
+    public static List<AutoUpdateFile> FilesToUpdateOnClose = [];
+
     [HarmonyPatch(typeof(SteamIntegration), nameof(SteamIntegration.Setup))]
     public class SteamUpdatePatch
     {
@@ -71,8 +76,19 @@ public class Updater
                 if (file.StatusCode != HttpStatusCode.OK)
                     return;
 
-                byte[] fileData = await file.Content.ReadAsByteArrayAsync();
-                HandleFile(fileData, data.PluginInfo.Location, data.IsZip);
+                if (!LoggedClosingWarning)
+                {
+                    data.Logger.LogWarning("Please only quit the game via 'Exit' in the main menu or Alt+F4 on the game window so the auto-updates can work.");
+                    LoggedClosingWarning = true;
+                }
+
+                HandleFile(new()
+                {
+                    FileData = await file.Content.ReadAsByteArrayAsync(),
+                    PluginLocation = data.PluginInfo.Location,
+                    IsZip = data.IsZip
+                });
+
                 data.Logger.LogWarning($"{data.PluginInfo.Metadata.Name} was outdated ({versionText} > {data.PluginInfo.Metadata.Version}), please restart to apply the updated version of the mod.");
             }
             else
@@ -102,17 +118,23 @@ public class Updater
         }
     }
 
-    public static void HandleFile(byte[] fileData, string pluginLocation, bool isZip)
+    public static void HandleFile(AutoUpdateFile fileInfo, bool gameClosing = false)
     {
-        if (!isZip)
+        if (Entry.IsBPE5 && !gameClosing)
         {
-            File.WriteAllBytes(pluginLocation, fileData);
+            FilesToUpdateOnClose.Add(fileInfo);
             return;
         }
 
-        using MemoryStream file = new(fileData);
+        if (!fileInfo.IsZip)
+        {
+            File.WriteAllBytes(fileInfo.PluginLocation, fileInfo.FileData);
+            return;
+        }
 
-        string pluginFolder = Path.GetDirectoryName(pluginLocation) + Path.DirectorySeparatorChar;
+        using MemoryStream file = new(fileInfo.FileData);
+
+        string pluginFolder = Path.GetDirectoryName(fileInfo.PluginLocation) + Path.DirectorySeparatorChar;
         ZipArchive modZip = new(file);
         foreach (ZipArchiveEntry entry in modZip.Entries)
         {
