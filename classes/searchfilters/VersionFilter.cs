@@ -1,4 +1,5 @@
-// Cache encodes incorrect information so this cannot work for now
+//// Cache encodes incorrect information so this cannot work for now
+// Hey cache is now correct but due to complications this still cannot work
 
 namespace RDModifications.SearchFilters;
 

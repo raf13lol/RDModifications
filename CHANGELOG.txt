@@ -1,1 +1,2 @@
-Fix auto adjust fix
+Removes patches for bugs that are now fixed in the main game
+Adds player filter

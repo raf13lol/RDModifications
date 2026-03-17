@@ -41,26 +41,26 @@ public class GameplayBugs : Modification
         }
     }
 
-    [HarmonyPatch(typeof(scrChar), nameof(scrChar.OnCustomAnimEnd))]
-    public class NeutralLoopFixPatch
-    {
-        public static void ILManipulator(ILContext il)
-        {
-            ILCursor cursor = new(il);
+    // [HarmonyPatch(typeof(scrChar), nameof(scrChar.OnCustomAnimEnd))]
+    // public class NeutralLoopFixPatch
+    // {
+    //     public static void ILManipulator(ILContext il)
+    //     {
+    //         ILCursor cursor = new(il);
 
-            void replaceNeutralWithNeutralAnimationName()
-            {
-                cursor.GotoNext(x => x.MatchLdstr("neutral"));
-                cursor.Remove();
-                cursor.Emit(OpCodes.Ldarg_0);
-                cursor.Emit(OpCodes.Ldfld, AccessTools.Field(typeof(scrChar), nameof(scrChar.neutralAnimName)));
-            }
+    //         void replaceNeutralWithNeutralAnimationName()
+    //         {
+    //             cursor.GotoNext(x => x.MatchLdstr("neutral"));
+    //             cursor.Remove();
+    //             cursor.Emit(OpCodes.Ldarg_0);
+    //             cursor.Emit(OpCodes.Ldfld, AccessTools.Field(typeof(scrChar), nameof(scrChar.neutralAnimName)));
+    //         }
 
-            replaceNeutralWithNeutralAnimationName(); // customAnimation.currentClip.name != "neutral"
-            replaceNeutralWithNeutralAnimationName(); // customAnimation.data.clips.TryGetValue("neutral", out var value)
-            replaceNeutralWithNeutralAnimationName(); // PlayExpression("neutral", ...);
-        }
-    }
+    //         replaceNeutralWithNeutralAnimationName(); // customAnimation.currentClip.name != "neutral"
+    //         replaceNeutralWithNeutralAnimationName(); // customAnimation.data.clips.TryGetValue("neutral", out var value)
+    //         replaceNeutralWithNeutralAnimationName(); // PlayExpression("neutral", ...);
+    //     }
+    // }
 
     public class SetCountingSoundPatch
     {
@@ -145,12 +145,5 @@ public class GameplayBugs : Modification
     {
         public static void Postfix(RowEntity __instance)
             => __instance.freezeshotIceController.Setup(__instance.character.customAnimation.data.freezeTexture);
-    }
-
-    [HarmonyPatch(typeof(RDWave), "UpdateBoom")]
-    public class SinkHoldshotPatch
-    {
-        public static void Postfix(RDWave __instance)
-            => __instance.waveRenderer.hold = __instance.assignedBeat.isHeldClap;
     }
 }

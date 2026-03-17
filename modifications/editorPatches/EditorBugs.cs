@@ -54,68 +54,24 @@ public class EditorBugs : Modification
         }
     }
 
-    [HarmonyPatch(typeof(RDPublishPopup), nameof(RDPublishPopup.GetFilesForLevel))]
-    public class IncludeFilesPatch
+    public class ClonedEventsOffsetPatch
     {
-        public static void Postfix(ref string[] __result, RDLevelData levelData)
-        {
-            List<string> missingFiles = [];
-            MethodInfo checkFile = AccessTools.Method(typeof(RDPublishPopup), "CheckFile");
+        public static bool BlockRecalcCell = false;
 
-            scnEditor editor = scnEditor.instance;
-            List<LevelEvent_Base> events = levelData?.levelEvents ?? [];
-            List<LevelEvent_MakeRow> rows = levelData?.rows ?? editor.rowsData;
-            List<LevelEvent_MakeSprite> sprites = levelData?.sprites ?? editor.spritesData;
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(LevelEventControlEventTrigger), nameof(LevelEventControlEventTrigger.OnPointerEnter))]
+        public static void Prefix(LevelEventControlEventTrigger __instance)
+            => BlockRecalcCell = __instance.currentTransform != null && __instance.currentTransform != __instance.transform;
 
-            if (levelData == null)
-                foreach (LevelEventControl_Base eventControl in editor.eventControls)
-                    events.Add(eventControl.levelEvent);
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(LevelEventControlEventTrigger), nameof(LevelEventControlEventTrigger.OnPointerEnter))]
+        public static void Postfix()
+            => BlockRecalcCell = false;
 
-            void AddFreezeshotSprite(string character)
-                => checkFile.Invoke(null, [missingFiles, Path.Combine(RDEditorUtils.GetCurrentLevelFolderPath(), character + "_freeze.png")]);
-
-            foreach (LevelEvent_Base levelEvent in events)
-            {
-                if (levelEvent is LevelEvent_ChangeCharacter changeCharacter)
-                {
-                    if (string.IsNullOrEmpty(changeCharacter.customCharacter))
-                        continue;
-                    AddFreezeshotSprite(changeCharacter.customCharacter);
-                }
-            }
-
-            foreach (LevelEvent_MakeRow row in rows)
-            {
-                if (row.character != Character.Custom || string.IsNullOrEmpty(row.customCharacterName))
-                    continue;
-                AddFreezeshotSprite(row.customCharacterName);
-            }
-
-            foreach (LevelEvent_MakeSprite sprite in sprites)
-            {
-                if (string.IsNullOrEmpty(sprite.filename) || sprite.filename.HasImageFileExtension())
-                    continue;
-                AddFreezeshotSprite(Path.GetFileNameWithoutExtension(sprite.filename));
-            }
-
-            __result = [.. __result, .. missingFiles];
-        }
-    }
-
-    [HarmonyPatch(typeof(scnEditor), nameof(scnEditor.Clone))]
-    public class ClonedEventsSentToStratospherePatch
-    {
-        public static Type LevelState = AccessTools.Inner(typeof(scnEditor), "LevelState");
-        public static List<LevelEventControl_Base> savedSelectedControls = [];
-
-        public static void Prefix(scnEditor __instance, ref LevelEventControlEventTrigger eventTrigger)
-        {
-            savedSelectedControls = [.. __instance.selectedControls.Where(lec => !lec.isBase)];
-            eventTrigger = null;
-        }
-
-        public static void Postfix(scnEditor __instance)
-            => __instance.SelectEventControls(savedSelectedControls);
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(LevelEventControlEventTrigger), nameof(LevelEventControlEventTrigger.RecalculateCurrentCell))]
+        public static bool BlockPrefix()
+            => !BlockRecalcCell;
     }
 
     [HarmonyPatch(typeof(RDUtils), nameof(RDUtils.OpenInLinuxFileBrowser))]

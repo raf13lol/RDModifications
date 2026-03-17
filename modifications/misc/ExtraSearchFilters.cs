@@ -8,9 +8,10 @@ namespace RDModifications;
 
 [Modification(
     "If there should be more ways to search in the CLS.\n" +
-    "'rank=RANK' searches for a specific rank." +
-    "'difficulty=DIFFICULTY' searches for a specific difficulty." +
-    "'pr=STATUS' searches for a specific PR status if LevelPRStatus is enabled." +
+    "'rank=RANK' searches for a specific rank (e.g. NF means Not Finished and corresponds to unfinished levels).\n" +
+    "'difficulty=DIFFICULTY' searches for a specific difficulty (e.g. VT means very tough).\n" +
+    "'pr=STATUS' searches for a specific PR status if LevelPRStatus is enabled (e.g. PR means peer-reviewed levels).\n" +
+    "'players=PLAYERS' searches for levels where you can play as only PLAYERS or if there's a '+' before, at least PLAYERS (e.g. 1p means 1 player only levels).\n" +
     "If any of these filters are prefixed with '!', it will invert the filter."
 )]
 public class ExtraSearchFilters : Modification
@@ -26,12 +27,7 @@ public class ExtraSearchFilters : Modification
         public static void Prefix(ref string textToSearch)
         {
             FiltersToApply.Clear();
-            List<SearchFilter> allFilters = [
-                new DifficultyFilter(),
-                new PRStatusFilter(),
-                new RankFilter(),
-                // new VersionFilter()
-            ];
+            List<SearchFilter> allFilters = SearchFilter.GetFilters();
 
             string sepChar = SeparatorCharacters.Value.ToLower();
             List<string> potentialFilters = [.. textToSearch.Split(" ")];
