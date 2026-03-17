@@ -1,13 +1,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using RDLevelEditor;
 using UnityEngine;
-using System.Linq;
 
 namespace RDModifications;
 
@@ -114,11 +114,11 @@ public class GameplayBugs : Modification
             cursor.EmitDelegate((LevelBase level) =>
             {
                 LevelEvent_AddOneshotBeat[] oneshots = [.. (from levelEvent in level.levelEvents
-                                            where levelEvent is LevelEvent_AddOneshotBeat
-                                            orderby ((LevelEvent_AddOneshotBeat)levelEvent).absoluteClapPos ascending,
-                                                levelEvent.bar ascending,
-                                                levelEvent.beat ascending
-                                            select (LevelEvent_AddOneshotBeat)levelEvent)];
+                                                            where levelEvent is LevelEvent_AddOneshotBeat
+                                                            orderby ((LevelEvent_AddOneshotBeat)levelEvent).absoluteClapPos ascending,
+                                                                levelEvent.bar ascending,
+                                                                levelEvent.beat ascending
+                                                            select (LevelEvent_AddOneshotBeat)levelEvent)];
 
                 for (int i = 1; i < oneshots.Length; i++)
                 {

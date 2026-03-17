@@ -25,6 +25,15 @@ public class CustomIceChiliSpeeds : Modification
             Log.LogMessage("CustomIceChiliSpeeds: All values are default. No differences from base game.");
     }
 
+    public static float GetCustomSpeed(float speed)
+    {
+        if (!Enabled[typeof(CustomIceChiliSpeeds)].Value || speed == 1.0f)
+            return speed;
+        if (speed > 1.0f)
+            return ChiliSpeed.Value;
+        return IceSpeed.Value;
+    }
+
     [HarmonyPatch(typeof(HeartMonitor), nameof(HeartMonitor.Show))]
     public class SpeedAnyPatch
     {

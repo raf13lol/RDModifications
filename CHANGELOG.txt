@@ -1,1 +1,4 @@
-Fixed BPE5 Auto update crashes
+Fixed auto adjust fix.
+Again.
+And for the last time.
+Hopefully.
