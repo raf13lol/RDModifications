@@ -1,2 +1,5 @@
 Added punch in older levels being too loud and rows in older levels being offset by 2px into gameplaybugs
 I'm not sure how much they count as bugs though.
+Please note that i'm not sure about the accuracy of either
+so if you wanna pr this to improve the vol multiplier or something
+feel Free
