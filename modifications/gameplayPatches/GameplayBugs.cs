@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
@@ -145,5 +146,58 @@ public class GameplayBugs : Modification
     {
         public static void Postfix(RowEntity __instance)
             => __instance.freezeshotIceController.Setup(__instance.character.customAnimation.data.freezeTexture);
+    }
+
+    public class Fix2PixelOffsetRowsPatch
+    {
+        public static float RowLeftPosition = 19f;
+
+        public static void AdjustTransform(Transform transform, bool increase = false)
+        {
+            Vector3 position = transform.localPosition;
+            if (increase)
+                position.x += 2; // 2px
+            position.x -= 2; // 2px
+            transform.localPosition = position;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(RowEntity), nameof(RowEntity.Setup))]
+        public static void Postfix(RowEntity __instance)
+        {
+            if (scnGame.instance == null || scnEditor.instance != null
+            || scnGame.levelToLoadSource != LevelSource.ExternalPath || RDLevelData.current.settings.version >= 65)
+            {
+                RowLeftPosition = 19f;
+                return;
+            }
+            RowLeftPosition = 17f;
+            AdjustTransform(__instance.classicRowController.transform);
+            AdjustTransform(__instance.lineHitContainer);
+            AdjustTransform(__instance.heartContainer.parent, true);
+        }
+
+        [HarmonyILManipulator]
+        [HarmonyPatch(typeof(RowEntity), nameof(RowEntity.GetRowWidth))]
+        [HarmonyPatch(typeof(RowEntity), nameof(RowEntity.SetRowLength))]
+        public static void ILManipulator(ILContext il)
+        {
+            ILCursor cursor = new(il);
+            cursor.GotoNext(x => x.MatchLdcR4(19f));
+            cursor.Instrs[cursor.Index].OpCode = OpCodes.Ldsfld;
+            cursor.Instrs[cursor.Index].Operand = AccessTools.Field(typeof(Fix2PixelOffsetRowsPatch), nameof(RowLeftPosition));
+        }
+    }
+
+    [HarmonyPatch(typeof(SoundDataStruct), nameof(SoundDataStruct.Decode))]
+    public class PunchBeatsoundTooLoudPatch
+    {
+        public static void Postfix(ref SoundDataStruct __result, IReadOnlyDictionary<string, object> dict)
+        {
+            if ((string)dict["filename"] != "Punch" || RDLevelData.current.settings.version >= 51)
+                return;
+            float multiplier = 130f / 200f; // Around ? based off me messing around in enchanted love by kin
+            __result = __result.WithNewVolume((int)Mathf.Round(__result.volume * multiplier));
+        }
     }
 }

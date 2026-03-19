@@ -1,4 +1,2 @@
-Fixed auto adjust fix.
-Again.
-And for the last time.
-Hopefully.
+Added punch in older levels being too loud and rows in older levels being offset by 2px into gameplaybugs
+I'm not sure how much they count as bugs though.
