@@ -51,19 +51,6 @@ public class Entry : BaseUnityPlugin
         EditorEnabled = Config.Bind("EditorPatches", "Enabled", true,
         "If any of the editor patches should be enabled.");
 
-        if (AutoUpdateEnabled.Value)
-        {
-            Harmony autoUpdatePatcher = new("RDMAUP");
-            autoUpdatePatcher.PatchAll(typeof(Updater.SteamUpdatePatch));
-            autoUpdatePatcher.PatchAll(typeof(PluginCompatibilityAutoUpdate));
-
-            Application.quitting += delegate()
-            {
-                foreach (AutoUpdateFile file in Updater.FilesToUpdateOnClose)
-                    Updater.HandleFile(file, true);
-            };
-        }
-
         if (!Enabled.Value)
         {
             Logger.LogMessage("All modifications have been disabled.");
@@ -96,8 +83,26 @@ public class Entry : BaseUnityPlugin
             Logger.LogError(e);
             Logger.LogWarning($"An error occurred whilst loading a modification, so RDModifications has disabled itself (except for the auto-update, if you have that enabled).");
         }
+        finally
+        {
+            PatchUpdater();
+        }
     }
 
+    public static void PatchUpdater()
+    {
+        if (!AutoUpdateEnabled.Value)
+            return;
 
+        Harmony autoUpdatePatcher = new("RDMAUP");
+        autoUpdatePatcher.PatchAll(typeof(Updater.SteamUpdatePatch));
+        autoUpdatePatcher.PatchAll(typeof(PluginCompatibilityAutoUpdate));
+
+        Application.quitting += delegate ()
+        {
+            foreach (AutoUpdateFile file in Updater.FilesToUpdateOnClose)
+                Updater.HandleFile(file, true);
+        };
+    }
 }
 

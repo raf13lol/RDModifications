@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
@@ -19,25 +20,25 @@ public class GameplayBugs : Modification
     {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(LevelEvent_SetGameSound), nameof(LevelEvent_SetGameSound.Decode))]
-        public static void DecodePostfix(LevelEvent_SetGameSound __instance, Dictionary<string, object> dict)
+        public static void DecodePostfix(LevelEvent_SetGameSound __instance, Dictionary<string, object> dict, SoundData[] ___soundsData)
         {
             if (dict.ContainsKey("soundSubtypes"))
                 return;
             if (!RDEditorConstants.gameSoundGroups.TryGetValue(__instance.soundType, out GameSoundType[] array))
                 return;
-            for (int i = 0; i < __instance.sounds.Length; i++)
-                __instance.sounds[i].groupSubtype = __instance.sounds[i].used ? array[i] : (GameSoundType)int.MaxValue;
+            for (int i = 0; i < ___soundsData.Length; i++)
+                ___soundsData[i].groupSubtype = ___soundsData[i].used ? array[i] : (GameSoundType)int.MaxValue;
         }
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(LevelEvent_SetGameSound), nameof(LevelEvent_SetGameSound.Run))]
-        public static void RunPrefix(LevelEvent_SetGameSound __instance)
+        public static void RunPrefix(SoundData[] ___soundsData)
         {
-            for (int i = 0; i < __instance.sounds.Length; i++)
+            for (int i = 0; i < ___soundsData.Length; i++)
             {
-                if (!__instance.sounds[i].used || __instance.sounds[i].groupSubtype != (GameSoundType)int.MaxValue)
+                if (!___soundsData[i].used || ___soundsData[i].groupSubtype != (GameSoundType)int.MaxValue)
                     continue;
-                __instance.sounds[i].used = false;
+                ___soundsData[i].used = false;
             }
         }
     }
@@ -63,33 +64,15 @@ public class GameplayBugs : Modification
     //     }
     // }
 
-    public class SetCountingSoundPatch
+    [HarmonyPatch(typeof(AudioManager), nameof(AudioManager.FindOrLoadAudioClip))]
+    public class AllSndBugPatch
     {
-        // I've done some bullshit because otherwise it just doesn't work?
-        public static MethodInfo TargetMethod()
-            => AccessUtils.GetFirstInnerMethodContains(typeof(LevelEvent_SetCountingSound), "<Prepare>", "MoveNext");
-
-        [HarmonyPostfix]
-        public static void Postfix(IEnumerator __instance, bool __result)
+        public static void Postfix(ref AudioClip __result, string clipName)
         {
-            if (__result)
+            string filename = Path.GetFileName(clipName);
+            if (__result != null || !filename.StartsWith("snd"))
                 return;
-
-            LevelEvent_SetCountingSound levelEvent = (LevelEvent_SetCountingSound)AccessUtils.GetFirstFieldContains(__instance.GetType(), "this").GetValue(__instance);
-            if (levelEvent.voiceSource != CountingVoiceSource.Custom)
-                return;
-
-            SoundData[] soundsData = (SoundData[])AccessTools.Field(typeof(LevelEvent_SetCountingSound), "soundsData").GetValue(levelEvent);
-            for (int i = 0; i < soundsData.Length; i++)
-            {
-                SoundData soundData = soundsData[i];
-                if (soundData == null || soundData.filename.HasAudioFileExtension() || soundData.externalClip)
-                    continue;
-
-                soundData.itsASong = true;
-                if (soundData.filename.StartsWith("sndsnd"))
-                    soundData.filename = soundData.filename[3..];
-            }
+            __result = AudioManager.Instance.FindOrLoadAudioClip(Path.Combine(Path.GetDirectoryName(clipName), filename[3..]));
         }
     }
 

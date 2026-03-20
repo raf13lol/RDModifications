@@ -1,1 +1,1 @@
-Fixed for beta
+Fixes auto update on error (maybe) and fixes sound issues
