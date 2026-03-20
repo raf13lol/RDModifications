@@ -12,33 +12,9 @@ public class PluginCompatibility
     public static void OnceAllLoadedRun()
         => Run();
 
-    [HarmonyPostfix]
-    [HarmonyPatch(typeof(SteamIntegration), nameof(SteamIntegration.Setup))]
-    public static void AutoUpdateOthers()
-        => RunAutoUpdates();
-
     public static void Run()
     {
-        if (RDEditorPlusDetected = OtherPluginUtils.DetectPlugin(RDEditorPlusGUID, new(0, 7, 0)))
+        if (RDEditorPlusDetected = OtherPluginUtils.DetectPlugin(RDEditorPlusGUID))
             RDEditorPlusCompatibility.Run();
-    }
-
-    public static void RunAutoUpdates()
-    {
-        if (RDEditorPlusDetected)
-            _ = Updater.CheckUpdate(new()
-            {
-                Logger = Modification.Log,
-                PluginInfo = OtherPluginUtils.PluginInfos[RDEditorPlusGUID],
-
-                GithubRepoURL = "9thCore/RDEditorPlus",
-                GithubRepoBranch = "main",
-
-                ReleaseName = "RDEditorPlus_v{version}.zip",
-                VersionName = "VERSION.txt",
-                ChangelogName = "CHANGELOG.txt",
-
-                IsZip = true,
-            });
     }
 }

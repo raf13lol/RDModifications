@@ -101,7 +101,9 @@ public class Entry : BaseUnityPlugin
         Application.quitting += delegate ()
         {
             foreach (AutoUpdateFile file in Updater.FilesToUpdateOnClose)
+            {
                 Updater.HandleFile(file, true);
+            }
         };
     }
 }

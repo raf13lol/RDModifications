@@ -6,11 +6,13 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using HarmonyLib;
+using UnityEngine;
 
 namespace RDModifications;
 
 public class Updater
 {
+    public static bool CanAutoUpdate = !Entry.IsBPE5 || Application.platform != RuntimePlatform.WindowsPlayer;
     public static bool LoggedClosingWarning = !Entry.IsBPE5;
 
     public static List<AutoUpdateFile> FilesToUpdateOnClose = [];
@@ -67,8 +69,10 @@ public class Updater
             );
             if (serverVersion <= currentVersion)
                 return;
-
-            if (!betaOnly || GC.onBetaBranch || Entry.AutoUpdateAssumeBeta.Value)
+            
+            if (!CanAutoUpdate)
+                data.Logger.LogWarning($"{data.PluginInfo.Metadata.Name} has updated! Get it at https://github.com/{data.GithubRepoURL}/releases/latest.");
+            else if (!betaOnly || GC.onBetaBranch || Entry.AutoUpdateAssumeBeta.Value)
             {
                 using HttpResponseMessage file = await client.GetAsync(
                     $"https://github.com/{data.GithubRepoURL}/releases/download/{versionText}/{data.ReleaseName.Replace("{version}", versionText)}"

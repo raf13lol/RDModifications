@@ -1,1 +1,2 @@
-Fixes auto update on error (maybe) and fixes sound issues
+Auto update doesn't work on bpe5 on windows ?
+Not my problem. Sorry! (if you can prove that it does work i'll readd it but for now...)

@@ -10,3 +10,6 @@ DOTween.dll
 Unity.TextMeshPro.dll
 UnityFileDialog.dll
 from Rhythm Doctor_Data\Managed
+
+RDEditorPlus.dll
+from https://github.com/9thCore/RDEditorPlus/releases/latest

@@ -31,10 +31,10 @@ public class OtherPluginUtils
 
 #if !BPE5
     public static bool DetectPlugin(string pluginGUID, SemanticVersioning.Version version)
-        => PluginInfos.ContainsKey(pluginGUID) && PluginInfos[pluginGUID].Metadata.Version <= version;
+        => PluginInfos.ContainsKey(pluginGUID) && PluginInfos[pluginGUID].Metadata.Version >= version;
 #else
     public static bool DetectPlugin(string pluginGUID, Version version)
-        => PluginInfos.ContainsKey(pluginGUID) && PluginInfos[pluginGUID].Metadata.Version <= version;
+        => PluginInfos.ContainsKey(pluginGUID) && PluginInfos[pluginGUID].Metadata.Version >= version;
 #endif
 
     public static Assembly GetOtherPluginAssembly(string pluginGUID)

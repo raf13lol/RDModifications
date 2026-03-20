@@ -14,7 +14,7 @@ public class PluginCompatibilityAutoUpdate
         if (PluginCompatibility.RDEditorPlusDetected)
             _ = Updater.CheckUpdate(new()
             {
-                Logger = Modification.Log,
+                Logger = RDEditorPlusCompatibility.Log,
                 PluginInfo = OtherPluginUtils.PluginInfos[PluginCompatibility.RDEditorPlusGUID],
 
                 GithubRepoURL = "9thCore/RDEditorPlus",
