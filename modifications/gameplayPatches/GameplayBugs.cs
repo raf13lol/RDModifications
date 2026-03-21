@@ -110,6 +110,12 @@ public class GameplayBugs : Modification
                     LevelEvent_AddOneshotBeat previousOneshot = oneshots[i - 1];
                     if (oneshot.bar == previousOneshot.bar || Math.Abs(oneshot.absoluteClapPos - previousOneshot.absoluteClapPos) >= 0.001f)
                         continue;
+                    if (oneshot.bar < previousOneshot.bar)
+                    {
+                        (oneshot, previousOneshot) = (previousOneshot, oneshot);
+                        oneshots[i] = oneshot;
+                        oneshots[i - 1] = previousOneshot;
+                    }
 
                     oneshot.beat += oneshot.BarAndBeatToAbsoluteBeat(new(oneshot.bar, 1)) - previousOneshot.BarAndBeatToAbsoluteBeat(new(previousOneshot.bar, 1));
                     oneshot.bar = previousOneshot.bar;
