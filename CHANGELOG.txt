@@ -1,1 +1,2 @@
-Updated gameplay bugs to match beta
+Line row 2px fixed
+thanks willow for pointing it out

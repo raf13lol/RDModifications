@@ -149,7 +149,9 @@ public class GameplayBugs : Modification
                 return;
             }
             RowLeftPosition = 17f;
+            AdjustTransform(__instance.lineLeft.transform);
             AdjustTransform(__instance.classicRowController.transform);
+            AdjustTransform(__instance.oneshotRowController.transform);
             AdjustTransform(__instance.lineHitContainer);
             AdjustTransform(__instance.heartContainer.parent, true);
         }
