@@ -64,18 +64,6 @@ public class GameplayBugs : Modification
     //     }
     // }
 
-    [HarmonyPatch(typeof(AudioManager), nameof(AudioManager.FindOrLoadAudioClip))]
-    public class AllSndBugPatch
-    {
-        public static void Postfix(ref AudioClip __result, string clipName)
-        {
-            string filename = Path.GetFileName(clipName);
-            if (__result != null || !filename.StartsWith("snd"))
-                return;
-            __result = AudioManager.Instance.FindOrLoadAudioClip(Path.Combine(Path.GetDirectoryName(clipName), filename[3..]));
-        }
-    }
-
     public class BurnshotPatch
     {
         public static MethodInfo TargetMethod()

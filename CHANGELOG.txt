@@ -1,1 +1,1 @@
-Fix issue with fix for a Gameplay bug
+Updated gameplay bugs to match beta
