@@ -8,9 +8,17 @@ public class RankFilter : SearchFilter
     public string[] Prefixes => ["rank"];
 
     private Rank RankToCheck;
+    private bool Wrapped = false;
 
     public bool Check(string rank, out SearchFilter filterToUse)
     {
+        bool wrapped = false;
+        if (rank == "wr" || rank == "wrapped")
+        {
+            rank = "f";
+            wrapped = true;
+        }
+
         rank = rank switch
         {
             "nf" or "notfinished" => "NotFinished",
@@ -28,11 +36,17 @@ public class RankFilter : SearchFilter
         
         filterToUse = new RankFilter()
         {
-            RankToCheck = filterRank
+            RankToCheck = filterRank,
+            Wrapped = wrapped
         };
         return true;
     }
 
     public bool CheckLevel(CustomLevelData level)
-        => Persistence.GetCustomLevelRank(level.Hash) == RankToCheck;
+    {
+        Rank rank = Persistence.GetCustomLevelRank(level.Hash);
+        if (Wrapped)
+            return rank == Rank.NeverSelected || rank == Rank.NotAvailable;
+        return rank == RankToCheck;
+    }
 }

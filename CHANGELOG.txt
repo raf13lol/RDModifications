@@ -1,2 +1,1 @@
-Line row 2px fixed
-thanks willow for pointing it out
+added wr/wrapped to rank filter for explicit wrapped searching
