@@ -1,1 +1,1 @@
-added wr/wrapped to rank filter for explicit wrapped searching
+Fix levelprstatus when shouldcache is enabled

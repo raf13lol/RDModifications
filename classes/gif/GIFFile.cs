@@ -110,9 +110,8 @@ public class GIFFile : IAnimatedImageFile
                     OutputBufferCurrent[bufferX + bufferY * Width] = OutputBufferPrevious[bufferX + bufferY * Width];
                 }
             }
-            goto OutputReturn;
+            return output;
         }
-
 
         foreach (Frame frame in image.Frames)
         {
@@ -127,7 +126,7 @@ public class GIFFile : IAnimatedImageFile
 
     Previous:
         if (ImageIndex == 0 || OutputBufferPrevious == null)
-            goto OutputReturn;
+            return output;
 
         foreach (Frame frame in image.Frames)
         {
@@ -140,7 +139,6 @@ public class GIFFile : IAnimatedImageFile
             }
         }
 
-    OutputReturn:
         return output;
     }
 

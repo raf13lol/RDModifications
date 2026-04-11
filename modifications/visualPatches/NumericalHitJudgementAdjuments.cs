@@ -90,16 +90,13 @@ public class NumericalHitJudgementAdjuments : Modification
             {
                 string judgementReplacement;
                 if (JudgementDisplay.Value != JudgementDisplayType.FrameOffset)
-                {
                     judgementReplacement = ((float)JudgementInfoPatch.TimeOffset).ToString(); // too much precision otherwise
-                    goto SetValue;
+                else
+                {
+                    judgementReplacement = JudgementInfoPatch.FrameOffset.ToString();
+                    if (JudgementInfoPatch.FrameOffset > 0)
+                        judgementReplacement = $"+{judgementReplacement}";
                 }
-
-                judgementReplacement = JudgementInfoPatch.FrameOffset.ToString();
-                if (JudgementInfoPatch.FrameOffset > 0)
-                    judgementReplacement = $"+{judgementReplacement}";
-
-            SetValue:
                 value = value.Replace("+", "").Replace($"{ms} {RDString.Get("editor.unit.ms")}", judgementReplacement).Replace("[ ", "").Replace(" ]", "");
             }
 

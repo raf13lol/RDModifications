@@ -123,19 +123,22 @@ public class LevelPRStatus : Modification
                 TypeSenseResponse json = JsonConvert.DeserializeObject<TypeSenseResponse>(jsonText);
 
                 TypeSenseResponse.Hit[] hits = [.. json.hits];
-                if (hits.Length < 250)
+                int hitsLength = hits.Length;
+                if (hitsLength < 250)
                     gotAllSongs = true;
 
-                foreach (TypeSenseResponse.Hit hit in hits)
+                for (int i = 0; i < hitsLength; i++)
                 {
-                    string sha = hit.document.sha1[3..];
-                    sbyte approval = (sbyte)hit.document.approval;
-                    LevelStatuses.Add(hit.document.id, approval);
-                    LevelV2Statuses.Add(sha, approval);
+                    TypeSenseResponse.Document doc = hits[i].document;
+
+                    string sha = doc.sha1[3..];
+                    sbyte approval = (sbyte)doc.approval;
+                    LevelStatuses.TryAdd(doc.id, approval);
+                    LevelV2Statuses.TryAdd(sha, approval);
 
                     if (cache != "")
                         cache += "\n";
-                    cache += $"{hit.document.id};{sha};{approval}";
+                    cache += $"{doc.id};{sha};{approval}";
                 }
 
                 response.Dispose();
