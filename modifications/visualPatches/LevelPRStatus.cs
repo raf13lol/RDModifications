@@ -45,6 +45,7 @@ public class LevelPRStatus : Modification
             {
                 PRStatus.NonRefereed => Color.red,
                 PRStatus.Pending => Color.black,
+                PRStatus.Mixed => Color.blue,
                 PRStatus.PeerReviewed => Color.green,
                 _ => Color.white
             };
@@ -56,8 +57,10 @@ public class LevelPRStatus : Modification
     public class PRLevels
     {
         public static Dictionary<string, sbyte> LevelStatuses = [];
-        public static Dictionary<string, sbyte> LevelV2Statuses = [];
-        public static string Filename = Path.Combine(Entry.UserDataFolder, "__rdmodifications_prstatuses_cache.rdmf");
+        private static readonly Dictionary<string, bool> LevelStatusesRead = [];
+
+        public static string OldFilename = Path.Combine(Entry.UserDataFolder, "__rdmodifications_prstatuses_cache.rdmf");
+        public static string Filename = Path.Combine(Entry.UserDataFolder, "__rdmodifications_prstatuses_cachev2.rdmf");
 
         public static PRStatus Get(string id)
         {
@@ -65,26 +68,39 @@ public class LevelPRStatus : Modification
 
             if (LevelStatuses.TryGetValue(id, out sbyte val1))
                 status = val1;
-            else if (LevelV2Statuses.TryGetValue(id, out sbyte val2))
-                status = val2;
 
             return (PRStatus)status;
         }
 
         public static PRStatus Get(CustomLevelData data)
-            => Get(LevelUtils.GetLevelFolderName(data));
+            => Get(data.Hash);
+
+        private static void SetPRStatus(string key, sbyte value)
+        {
+            if (LevelStatusesRead.ContainsKey(key) && LevelStatuses[key] != value)
+                value = (sbyte)PRStatus.Mixed;
+
+            LevelStatusesRead[key] = true;
+            LevelStatuses[key] = value;
+        }
 
         public static async Task Init()
         {
+            try
+            {
+                if (File.Exists(OldFilename))
+                    File.Delete(OldFilename);
+            }
+            catch
+            { }
+
             if (ShouldCache.Value && File.Exists(Filename))
             {
                 string[] savedCache = File.ReadAllLines(Filename);
                 foreach (string str in savedCache)
                 {
-                    string[] parts = str.Split(";");
-                    sbyte approval = sbyte.Parse(parts[2]);
-                    LevelStatuses.Add(parts[0], approval);
-                    LevelV2Statuses.Add(parts[1], approval);
+                    string[] parts = str.Split("=");
+                    LevelStatuses[parts[0]] = sbyte.Parse(parts[1]);
                 }
             }
 
@@ -94,17 +110,14 @@ public class LevelPRStatus : Modification
             };
             bool gotAllSongs = false;
             int page = 1;
-            string cache = "";
 
             Log.LogMessage("LevelPRStatus: Obtaining PR statuses...");
 
             while (!gotAllSongs)
             {
                 using HttpRequestMessage request = new(HttpMethod.Get,
-                new Uri("https://orchardb.fly.dev/typesense/collections/levels/documents/search/"
-                    + "?q=*&per_page=250&include_fields=id, approval, sha1&highlight_fields=none&highlight_full_fields=none"
+                new Uri("https://rhythm.cafe/api/levels/?peer_review=all&show_hidden=all&per_page=100"
                     + "&page=" + page++));
-                request.Headers.Add("x-typesense-api-key", "nicolebestgirl");
 
                 HttpResponseMessage response;
                 try
@@ -120,52 +133,82 @@ public class LevelPRStatus : Modification
                     return;
 
                 string jsonText = await response.Content.ReadAsStringAsync();
-                TypeSenseResponse json = JsonConvert.DeserializeObject<TypeSenseResponse>(jsonText);
+                CafeResponse json = JsonConvert.DeserializeObject<CafeResponse>(jsonText);
 
-                TypeSenseResponse.Hit[] hits = [.. json.hits];
-                int hitsLength = hits.Length;
-                if (hitsLength < 250)
+                CafeResponse.Hit[] hits = json.results.hits;
+                int hitsLength = Math.Min(hits.Length, 100);
+                if (hitsLength < 100)
                     gotAllSongs = true;
 
                 for (int i = 0; i < hitsLength; i++)
                 {
-                    TypeSenseResponse.Document doc = hits[i].document;
-
-                    string sha = doc.sha1[3..];
-                    sbyte approval = (sbyte)doc.approval;
-                    LevelStatuses.TryAdd(doc.id, approval);
-                    LevelV2Statuses.TryAdd(sha, approval);
-
-                    if (cache != "")
-                        cache += "\n";
-                    cache += $"{doc.id};{sha};{approval}";
+                    CafeResponse.Hit hit = hits[i];
+                    SetPRStatus(hit.rd_md5, (sbyte)hit.approval);
                 }
 
                 response.Dispose();
             }
 
             if (ShouldCache.Value)
+            {
+                Log.LogMessage("LevelPRStatus: PR statuses obtained! Generating cache...");
+                string cache = "";
+
+                int linesPerFrame = 50;
+                int i = 0;
+                foreach (KeyValuePair<string, sbyte> kvp in LevelStatuses)
+                {
+                    if (cache != "")
+                        cache += "\n";
+                    cache += $"{kvp.Key}={kvp.Value}";
+
+                    if (i++ >= linesPerFrame)
+                    {
+                        await Task.Delay(25);
+                        i = 0;
+                    }
+                }
+
+                Log.LogMessage("LevelPRStatus: Cache generated!");
                 _ = File.WriteAllTextAsync(Filename, cache);
-            Log.LogMessage("LevelPRStatus: PR statuses obtained!");
+            }
+            else
+                Log.LogMessage("LevelPRStatus: PR statuses obtained!");
         }
 
-        // needed
-        public class TypeSenseResponse
+        public class CafeResponse
         {
-            public int search_time_ms { get; set; }
-            public Hit[] hits { get; set; }
+            public Results results { get; set; }
+
+            public class Results
+            {
+                public Hit[] hits { get; set; }
+            }
 
             public class Hit
             {
-                public Document document { get; set; }
-            }
-
-            public class Document
-            {
-                public string id { get; set; }
-                public string sha1 { get; set; }
+                public string rd_md5 { get; set; }
                 public int approval { get; set; }
             }
         }
+
+        // needed
+        // public class TypesenseResponse
+        // {
+        //     public int search_time_ms { get; set; }
+        //     public Hit[] hits { get; set; }
+
+        //     public class Hit
+        //     {
+        //         public Document document { get; set; }
+        //     }
+
+        //     public class Document
+        //     {
+        //         public string id { get; set; }
+        //         public string sha1 { get; set; }
+        //         public int approval { get; set; }
+        //     }
+        // }
     }
 }
