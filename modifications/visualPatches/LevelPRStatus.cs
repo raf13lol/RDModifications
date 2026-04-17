@@ -57,7 +57,7 @@ public class LevelPRStatus : Modification
     public class PRLevels
     {
         public static Dictionary<string, sbyte> LevelStatuses = [];
-        private static readonly Dictionary<string, bool> LevelStatusesRead = [];
+        public static Dictionary<string, sbyte> LevelStatusesCached = [];
 
         public static string OldFilename = Path.Combine(Entry.UserDataFolder, "__rdmodifications_prstatuses_cache.rdmf");
         public static string Filename = Path.Combine(Entry.UserDataFolder, "__rdmodifications_prstatuses_cachev2.rdmf");
@@ -68,6 +68,8 @@ public class LevelPRStatus : Modification
 
             if (LevelStatuses.TryGetValue(id, out sbyte val1))
                 status = val1;
+            else if (LevelStatusesCached.TryGetValue(id, out sbyte val2))
+                status = val2;
 
             return (PRStatus)status;
         }
@@ -77,10 +79,9 @@ public class LevelPRStatus : Modification
 
         private static void SetPRStatus(string key, sbyte value)
         {
-            if (LevelStatusesRead.ContainsKey(key) && LevelStatuses[key] != value)
+            if (LevelStatuses.TryGetValue(key, out sbyte existingStatus) && existingStatus != value)
                 value = (sbyte)PRStatus.Mixed;
 
-            LevelStatusesRead[key] = true;
             LevelStatuses[key] = value;
         }
 
@@ -100,7 +101,7 @@ public class LevelPRStatus : Modification
                 foreach (string str in savedCache)
                 {
                     string[] parts = str.Split("=");
-                    LevelStatuses[parts[0]] = sbyte.Parse(parts[1]);
+                    LevelStatusesCached[parts[0]] = sbyte.Parse(parts[1]);
                 }
             }
 
@@ -154,7 +155,7 @@ public class LevelPRStatus : Modification
                 Log.LogMessage("LevelPRStatus: PR statuses obtained! Generating cache...");
                 string cache = "";
 
-                int linesPerFrame = 50;
+                int linesPerFrame = 100;
                 int i = 0;
                 foreach (KeyValuePair<string, sbyte> kvp in LevelStatuses)
                 {
