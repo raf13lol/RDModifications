@@ -6,6 +6,7 @@ lib/*.dll
 .vscode/*
 .idea/*
 .vs/*
+*.lscache
 
 com.rhythmdr.randommodifications.dll
 com.rhythmdr.bpe5randommodifications.dll

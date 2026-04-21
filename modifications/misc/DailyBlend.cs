@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -59,10 +58,10 @@ public class DailyBlend : Modification
         }
     }
 
-    [HarmonyPatch(typeof(CustomLevel), nameof(CustomLevel.UpdateInfo))]
+    [HarmonyPatch(typeof(CustomLevelSyringe), nameof(CustomLevelSyringe.UpdateInfo))]
     public class BlendAppearancePatch
     {
-        public static void Postfix(CustomLevel __instance, CustomLevelData data)
+        public static void Postfix(CustomLevelSyringe __instance, CustomLevelData data)
         {
             bool isDailyBlend = RecentBlends.BlendIDs.Contains(data.Hash);
             Image liquid = __instance.liquidRect.gameObject.GetComponent<Image>();

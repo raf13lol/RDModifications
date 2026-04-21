@@ -29,10 +29,10 @@ public class LevelPRStatus : Modification
             _ = PRLevels.Init();
     }
 
-    [HarmonyPatch(typeof(CustomLevel), nameof(CustomLevel.UpdateInfo))]
+    [HarmonyPatch(typeof(CustomLevelSyringe), nameof(CustomLevelSyringe.UpdateInfo))]
     public class CLSPatch
     {
-        public static void Postfix(CustomLevel __instance, CustomLevelData data)
+        public static void Postfix(CustomLevelSyringe __instance, CustomLevelData data)
         {
             PRStatus status = PRLevels.Get(data);
             if (status == PRStatus.Unknown)

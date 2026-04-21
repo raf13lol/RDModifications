@@ -64,7 +64,8 @@ public class MassUnwrapLevels : Modification
                     Rank rank = Persistence.GetCustomLevelRank(data.Hash);
                     if (rank != Rank.NeverSelected && rank != Rank.NotAvailable)
                         continue;
-                    CustomLevel syringe = __instance.visibleLevels.Find((l) => l.path == data.path);
+
+                    CustomLevelSyringe syringe = __instance.visibleLevels.Find((l) => l.path == data.path);
                     Persistence.SetCustomLevelRank(data.Hash, Rank.NotFinished, 1f);
                     if (syringe != null)
                     {
@@ -105,8 +106,8 @@ public class MassUnwrapLevels : Modification
             return true;
         }
 
-        // MODIFIED CustomLevel.PlayUnwrapAnimation as it calls a function at the end which doesn't work correctly when it's not the current selected level
-        public static void UnwrapLevel(CustomLevel level)
+        // MODIFIED CustomLevelSyringe.PlayUnwrapAnimation as it calls a function at the end which doesn't work correctly when it's not the current selected level
+        public static void UnwrapLevel(CustomLevelSyringe level)
         {
             _ = level.boxBrokenAnimation.currentAnimationData.sprites.Length;
             _ = level.boxBrokenAnimation.singleSpriteDuration;
