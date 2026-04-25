@@ -48,10 +48,10 @@ public class DailyBlend : Modification
             if (textToSearch != "daily-blend")
                 return;
 
-            for (int i = 0; i < __instance.levelsData.Count; i++ )
+            for (int i = 0; i < __instance.levelsData.Count; i++)
             {
                 CustomLevelData customLevelData = __instance.levelsData[i];
-                
+
                 if (RecentBlends.BlendIDs.Contains(customLevelData.Hash))
                     __instance.searchLevelsDataIndex.Add(i);
             }
@@ -82,27 +82,27 @@ public class DailyBlend : Modification
         {
             try
             {
-            using HttpClient client = new();
-            using HttpRequestMessage cafeV2 = new(HttpMethod.Get, new Uri("https://rhythm.cafe/?_bridge=1"));
-            cafeV2.Headers.Add("X-Requested-With", "DjangoBridge");
+                using HttpClient client = new();
+                using HttpRequestMessage cafeV2 = new(HttpMethod.Get, new Uri("https://rhythm.cafe/?_bridge=1"));
+                cafeV2.Headers.Add("X-Requested-With", "DjangoBridge");
 
-            using HttpResponseMessage cafeV2Response = await client.SendAsync(cafeV2);
-            if (cafeV2Response.StatusCode != HttpStatusCode.OK)
-                return;
+                using HttpResponseMessage cafeV2Response = await client.SendAsync(cafeV2);
+                if (cafeV2Response.StatusCode != HttpStatusCode.OK)
+                    return;
 
-            string jsonPage = await cafeV2Response.Content.ReadAsStringAsync();
-            CafeV2HomePage page = JsonConvert.DeserializeObject<CafeV2HomePage>(jsonPage);
-            CafeV2HomePage.DailyBlendLevel level = page.props.daily_blend_level;
+                string jsonPage = await cafeV2Response.Content.ReadAsStringAsync();
+                CafeV2HomePage page = JsonConvert.DeserializeObject<CafeV2HomePage>(jsonPage);
+                CafeV2HomePage.DailyBlendLevel level = page.props.daily_blend_level;
 
-            BlendIDs.Add(level.rd_md5);
+                BlendIDs.Add(level.rd_md5);
 
-            string levelURL = $"https://rhythm.cafe/levels/{level.id}/download";
-            BlendURLTextList += $"{levelURL}\n";
+                string levelURL = $"https://rhythm.cafe/levels/{level.id}/download";
+                BlendURLTextList += $"{levelURL}\n";
 
-            if (BlendIDs.Count > 0)
-                Log.LogMessage("DailyBlend: Obtained daily blend(s).");
-            else
-                Log.LogWarning("DailyBlend: No daily blend(s) obtained.");
+                if (BlendIDs.Count > 0)
+                    Log.LogMessage("DailyBlend: Obtained daily blend(s).");
+                else
+                    Log.LogWarning("DailyBlend: No daily blend(s) obtained.");
             }
             catch (Exception e)
             {
