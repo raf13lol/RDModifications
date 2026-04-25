@@ -1,2 +1,1 @@
-Fuck
-fix for latest beta
+Update daily blend due to cafe changing internals

@@ -80,8 +80,10 @@ public class DailyBlend : Modification
 
         public static async Task Init()
         {
+            try
+            {
             using HttpClient client = new();
-            using HttpRequestMessage cafeV2 = new(HttpMethod.Get, new Uri("https://rhythm.cafe/"));
+            using HttpRequestMessage cafeV2 = new(HttpMethod.Get, new Uri("https://rhythm.cafe/?_bridge=1"));
             cafeV2.Headers.Add("X-Requested-With", "DjangoBridge");
 
             using HttpResponseMessage cafeV2Response = await client.SendAsync(cafeV2);
@@ -94,13 +96,18 @@ public class DailyBlend : Modification
 
             BlendIDs.Add(level.rd_md5);
 
-            string levelURL = $"{level.rdzip_url}?filename={HttpUtility.UrlEncode($"{level.song} - {string.Join(", ", level.authors)} {level.id}.rdzip")}";
+            string levelURL = $"https://rhythm.cafe/levels/{level.id}/download";
             BlendURLTextList += $"{levelURL}\n";
 
             if (BlendIDs.Count > 0)
                 Log.LogMessage("DailyBlend: Obtained daily blend(s).");
             else
                 Log.LogWarning("DailyBlend: No daily blend(s) obtained.");
+            }
+            catch (Exception e)
+            {
+                Log.LogError(e);
+            }
         }
 
         public class CafeV2HomePage
@@ -115,10 +122,10 @@ public class DailyBlend : Modification
             public class DailyBlendLevel
             {
                 public string id { get; set; }
-                public string song { get; set; }
-                public string[] authors { get; set; }
+                // public string song { get; set; }
+                // public string[] authors { get; set; }
                 public string rd_md5 { get; set; }
-                public string rdzip_url { get; set; }
+                // public string rdzip_url { get; set; }
             }
         }
     }
