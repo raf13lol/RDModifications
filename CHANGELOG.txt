@@ -1,1 +1,1 @@
-Update daily blend due to cafe changing internals
+Fix ghost row beats and add new option for them

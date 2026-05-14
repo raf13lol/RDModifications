@@ -3,9 +3,12 @@ using System.Reflection;
 using BepInEx.Configuration;
 using DG.Tweening;
 using HarmonyLib;
+using Mono.Cecil.Cil;
+using MonoMod.Cil;
 using RDLevelEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.PlayerLoop;
 using UnityEngine.UI;
 
 namespace RDModifications;
@@ -15,6 +18,9 @@ public class GhostRowBeats : Modification
 {
     [Configuration<float>(0.45f, "What the opacity of the ghost rows should be multiplied by.", [float.Epsilon, float.MaxValue])]
     public static ConfigEntry<float> GhostRowBeatsOpacityMultiplier;
+
+    [Configuration<bool>(false, "If the ghost row events should be selectable.")]
+    public static ConfigEntry<bool> GhostRowBeatsSelectable;
 
     [HarmonyPatch(typeof(TabSection_Rows), nameof(TabSection_Rows.Setup))]
     public class PreventSetupShowPatch
@@ -75,6 +81,9 @@ public class GhostRowBeats : Modification
                     MultiplyGraphicAlpha(control);
                 }
 
+                if (GhostRowBeatsSelectable.Value)
+                    continue;
+
                 control.trigger.enabled = false;
                 control.trigger.OnEndDrag(new(EventSystem.current));
                 control.trigger.OnPointerExit(new(EventSystem.current));
@@ -91,6 +100,29 @@ public class GhostRowBeats : Modification
         }
     }
 
+    [HarmonyPatch(typeof(EventSystem), nameof(EventSystem.RaycastAll))]
+    public class DisableStackSelectPatch
+    {
+        public static void Postfix(List<RaycastResult> raycastResults)
+        {
+            if (GhostRowBeatsSelectable.Value)
+                return;
+            if (scnEditor.instance == null || scnEditor.instance.currentTab == Tab.Rows)
+                return;
+
+            for (int i = 0; i < raycastResults.Count; i++)
+            {
+                RaycastResult hit = raycastResults[i];
+                LevelEventControl_Base control = hit.gameObject.GetComponent<LevelEventControl_Base>();
+                if (control == null || control.tab != Tab.Rows)
+                    continue;
+
+                raycastResults.RemoveAt(i--);
+
+            }
+        }
+    }
+
     public class EnsureUIPatch
     {
         [HarmonyPostfix]
@@ -104,11 +136,9 @@ public class GhostRowBeats : Modification
         [HarmonyPatch(typeof(Timeline), nameof(Timeline.ZoomVert))]
         public static void ZoomUpdatePostfix(bool ___hasZoomed, bool ___hasZoomedVert)
         {
-            scnEditor editor = scnEditor.instance;
-            if ((!___hasZoomed && !___hasZoomedVert) || editor.currentTab == Tab.Rows)
+            if ((!___hasZoomed && !___hasZoomedVert) || scnEditor.instance.currentTab == Tab.Rows)
                 return;
-            foreach (LevelEventControl_Base control in editor.eventControls_rows[editor.tabSection_rows.pageIndex])
-                UpdateControlUI(control);
+            UpdateRowPageUI();
         }
 
         [HarmonyPostfix]
@@ -117,25 +147,23 @@ public class GhostRowBeats : Modification
         {
             if (__instance.currentTab == Tab.Rows || type != LevelEventType.SetCrotchetsPerBar)
                 return;
-            foreach (LevelEventControl_Base control in __instance.eventControls_rows[__instance.tabSection_rows.pageIndex])
-                UpdateControlUI(control);
+            UpdateRowPageUI();
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(InspectorPanel_SetCrotchetsPerBar), nameof(InspectorPanel_SetCrotchetsPerBar.SaveProperties))]
         public static void SetCPBEventPostfix()
         {
-            scnEditor editor = scnEditor.instance;
-            if (editor.currentTab == Tab.Rows)
+            if (scnEditor.instance.currentTab == Tab.Rows)
                 return;
-            foreach (LevelEventControl_Base control in editor.eventControls_rows[editor.tabSection_rows.pageIndex])
-                UpdateControlUI(control);
+            UpdateRowPageUI();
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(scnEditor), nameof(scnEditor.OffsetSelectedEventsByBar))]
         [HarmonyPatch(typeof(BulkSelectPanel), nameof(BulkSelectPanel.UpdateTag))]
         [HarmonyPatch(typeof(BulkSelectPanel), nameof(BulkSelectPanel.UpdateTagRunNormally))]
+        [HarmonyPatch(typeof(LevelEventControlEventTrigger), nameof(LevelEventControlEventTrigger.OnDrag))]
         public static void OffsetPostfix()
         {
             scnEditor instance = scnEditor.instance;
@@ -184,6 +212,25 @@ public class GhostRowBeats : Modification
             LevelEventControl_Base control = scnEditor.instance.eventControls.Find(x => x.levelEvent == levelEvent);
             if (control.tab == Tab.Rows)
                 UpdateControlUI(control);
+        }
+
+        public static void UpdateRowPageUI()
+        {
+            scnEditor editor = scnEditor.instance;
+            int pageIndex = editor.tabSection_rows.pageIndex;
+
+            int firstOfPage = RowHeader.GetRowDataIndex(0, pageIndex);
+            if (firstOfPage == editor.eventControls.Count)
+                return;
+
+            int startOfNextPage = RowHeader.GetRowDataIndex(0, pageIndex + 1);
+
+            for (int i = firstOfPage; i < startOfNextPage; i++)
+            {
+                List<LevelEventControl_Base> controls = editor.eventControls_rows[i];
+                foreach (LevelEventControl_Base control in controls)
+                    UpdateControlUI(control);
+            }
         }
 
         public static void UpdateControlUI(LevelEventControl_Base control)
