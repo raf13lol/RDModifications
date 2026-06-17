@@ -189,22 +189,4 @@ public class GameplayBugs : Modification
                 __result = __result[3..];
         }
     }
-
-    public class TemplateRDLevelPatch
-    {
-        public static MethodInfo TargetMethod()
-            => AccessUtils.GetFirstInnerMethodContains(typeof(Timeline), "<UpdateUIInternalCo>", "MoveNext");
-
-        [HarmonyILManipulator]
-        public static void ILManipulator(ILContext il)
-        {
-            ILCursor cursor = new(il);
-
-            Type innerType = AccessTools.FirstInner(typeof(Timeline), (t) => t.Name.Contains("<UpdateUIInternalCo>"));
-            FieldInfo maxBar = innerType.GetFields(AccessTools.all).First((f) => f.Name.Contains("<maxBar>"));
-
-            cursor.GotoNext(x => x.MatchStfld(maxBar));
-            cursor.Prev.OpCode = OpCodes.Ldc_I4_1;
-        }
-    }
 }
