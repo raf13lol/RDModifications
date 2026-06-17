@@ -20,11 +20,21 @@ public class PlayersFilter : SearchFilter
 
         switch (players)
         {
-            case "1p": players = LevelPlayMode.OnePlayerOnly.ToString(); break;
-            case "2p": players = LevelPlayMode.TwoPlayerOnly.ToString(); break;
+            case "1":
+            case "1p":
+                players = LevelPlayMode.OnePlayerOnly.ToString(); 
+                break;
+                
+            case "2":
+            case "2p":
+                players = LevelPlayMode.TwoPlayerOnly.ToString(); 
+                break;
+
             case "1p2p":
             case "2p1p":
-                players = LevelPlayMode.BothModes.ToString(); 
+            case "12":
+            case "21":
+                players = LevelPlayMode.BothModes.ToString();
                 atLeast = false;
                 break;
         }

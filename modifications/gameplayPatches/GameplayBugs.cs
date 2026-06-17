@@ -179,4 +179,32 @@ public class GameplayBugs : Modification
             __result = __result.WithNewVolume((int)Mathf.Round(__result.volume * multiplier));
         }
     }
+
+    [HarmonyPatch(typeof(Beat), "beatHitSound", MethodType.Getter)]
+    public class StackedBeatsoundsPatch
+    {
+        public static void Postfix(ref string __result)
+        {
+            if (!__result.EndsWith("*external") && __result.StartsWith("snd"))
+                __result = __result[3..];
+        }
+    }
+
+    public class TemplateRDLevelPatch
+    {
+        public static MethodInfo TargetMethod()
+            => AccessUtils.GetFirstInnerMethodContains(typeof(Timeline), "<UpdateUIInternalCo>", "MoveNext");
+
+        [HarmonyILManipulator]
+        public static void ILManipulator(ILContext il)
+        {
+            ILCursor cursor = new(il);
+
+            Type innerType = AccessTools.FirstInner(typeof(Timeline), (t) => t.Name.Contains("<UpdateUIInternalCo>"));
+            FieldInfo maxBar = innerType.GetFields(AccessTools.all).First((f) => f.Name.Contains("<maxBar>"));
+
+            cursor.GotoNext(x => x.MatchStfld(maxBar));
+            cursor.Prev.OpCode = OpCodes.Ldc_I4_1;
+        }
+    }
 }

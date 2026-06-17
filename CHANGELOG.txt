@@ -1,1 +1,1 @@
-Fix ghost row beats and add new option for them
+Fix two bugs and remove a fix for a bug that is now patched

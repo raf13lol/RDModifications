@@ -24,36 +24,6 @@ public class EditorBugs : Modification
         }
     }
 
-    public class Separate2PLevelSetCountingSoundPatch
-    {
-        public static RDLevelData LevelDataToUse = null;
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(scnEditor), nameof(scnEditor.ForceSave))]
-        public static void ExportPrefix(RDLevelData rdLevelData)
-            => LevelDataToUse = rdLevelData;
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(scnEditor), nameof(scnEditor.ForceSave))]
-        public static void ExportPostfix()
-            => LevelDataToUse = null;
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(LevelEvent_SetCountingSound), nameof(LevelEvent_SetCountingSound.EnableSubdivOffsetIf))]
-        public static bool EnablePrefix(LevelEvent_SetCountingSound __instance, ref bool __result)
-        {
-            __result = false;
-            if (LevelDataToUse == null)
-                return __instance.row < __instance.editor.rowsData.Count;
-
-            if (!__instance.IfEnabled() || __instance.row >= LevelDataToUse.rows.Count)
-                return false;
-
-            __result = LevelDataToUse.rows[__instance.row].rowType == RowType.Oneshot;
-            return false;
-        }
-    }
-
     public class ClonedEventsOffsetPatch
     {
         public static bool BlockRecalcCell = false;
