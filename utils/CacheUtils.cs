@@ -4,7 +4,7 @@ namespace RDModifications;
 
 public class CachePathUtils
 {
-    public static string BasePath = Path.Combine(Entry.UserDataFolder, "rdmc");
+    public static string BasePath = Path.Combine(Entry.UserDataFolder, "__rdmcache");
 
     static string CreatePathIfNeeded(string path)
     {
