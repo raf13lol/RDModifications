@@ -14,8 +14,8 @@ public class CachePathUtils
     }
 
     public static string GetPath(string modificationName, string fileName)
-        => Path.Combine(BasePath, modificationName, fileName);
+        => CreatePathIfNeeded(Path.Combine(BasePath, modificationName, fileName));
 
     public static string GetPath(string modificationName)
-        => Path.Combine(BasePath, modificationName);
+        => CreatePathIfNeeded(Path.Combine(BasePath, modificationName));
 }
