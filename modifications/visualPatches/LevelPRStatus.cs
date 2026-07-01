@@ -59,8 +59,9 @@ public class LevelPRStatus : Modification
         public static Dictionary<string, sbyte> LevelStatuses = [];
         public static Dictionary<string, sbyte> LevelStatusesCached = [];
 
-        public static string OldFilename = Path.Combine(Entry.UserDataFolder, "__rdmodifications_prstatuses_cache.rdmf");
-        public static string Filename = Path.Combine(Entry.UserDataFolder, "__rdmodifications_prstatuses_cachev2.rdmf");
+        public static string OldVersionFileName = Path.Combine(Entry.UserDataFolder, "__rdmodifications_prstatuses_cache.rdmf");
+        public static string OldFileName = Path.Combine(Entry.UserDataFolder, "__rdmodifications_prstatuses_cachev2.rdmf");
+        public static string FileName = CachePathUtils.GetPath(nameof(LevelPRStatus), "statusCache.txt");
 
         public static PRStatus Get(string id)
         {
@@ -89,15 +90,21 @@ public class LevelPRStatus : Modification
         {
             try
             {
-                if (File.Exists(OldFilename))
-                    File.Delete(OldFilename);
+                if (File.Exists(OldVersionFileName))
+                    File.Delete(OldVersionFileName);
+                if (File.Exists(OldFileName))
+                {
+                    if (!File.Exists(FileName))
+                        File.Copy(OldFileName, FileName);
+                    File.Delete(OldFileName);
+                }
             }
             catch
             { }
 
-            if (ShouldCache.Value && File.Exists(Filename))
+            if (ShouldCache.Value && File.Exists(FileName))
             {
-                string[] savedCache = File.ReadAllLines(Filename);
+                string[] savedCache = File.ReadAllLines(FileName);
                 foreach (string str in savedCache)
                 {
                     string[] parts = str.Split("=");
@@ -171,7 +178,7 @@ public class LevelPRStatus : Modification
                 }
 
                 Log.LogMessage("LevelPRStatus: Cache generated!");
-                _ = File.WriteAllTextAsync(Filename, cache);
+                _ = File.WriteAllTextAsync(FileName, cache);
             }
             else
                 Log.LogMessage("LevelPRStatus: PR statuses obtained!");

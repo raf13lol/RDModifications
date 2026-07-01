@@ -1,0 +1,21 @@
+using System.IO;
+
+namespace RDModifications;
+
+public class CachePathUtils
+{
+    public static string BasePath = Path.Combine(Entry.UserDataFolder, "rdmc");
+
+    static string CreatePathIfNeeded(string path)
+    {
+        // apparently creates needed directories without errors if they already exist
+        Directory.CreateDirectory(path);
+        return path;
+    }
+
+    public static string GetPath(string modificationName, string fileName)
+        => Path.Combine(BasePath, modificationName, fileName);
+
+    public static string GetPath(string modificationName)
+        => Path.Combine(BasePath, modificationName);
+}
