@@ -17,8 +17,6 @@ public class Updater
 
     public static List<AutoUpdateFile> FilesToUpdateOnClose = [];
 
-    public static CustomArm.ArmTextures bullshit;
-
     [HarmonyPatch(typeof(SteamIntegration), nameof(SteamIntegration.Setup))]
     public class SteamUpdatePatch
     {
