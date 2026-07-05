@@ -81,7 +81,8 @@ public class APNGPreviewImage : Modification
             while ((Frames.Count - 1) < frameIndex)
             {
                 OutputFrame frame = APNG.GetFrame();
-                frame.Texture.filterMode = (APNG.Width == 120 && APNG.Height == 85) ? FilterMode.Point : FilterMode.Trilinear;
+                if (APNG.Width != 120 || APNG.Height != 85)
+                    frame.Texture.filterMode = FilterMode.Trilinear;
                 Frames.Add(frame);
 
                 // garbage collector! more cleaning up please!

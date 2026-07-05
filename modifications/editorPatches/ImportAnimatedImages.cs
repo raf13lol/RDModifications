@@ -143,10 +143,7 @@ public class ImportAnimatedImages : Modification
             int totalHeight = (img.Height + padding) * height;
             int frameArea = img.Width * img.Height;
 
-            Texture2D spritesheet = new(totalWidth, totalHeight, CommonConstants.Format, false, true)
-            {
-                hideFlags = HideFlags.HideAndDontSave
-            };
+            Texture2D spritesheet = Tex2DUtils.Create(totalWidth, totalHeight, false);
             spritesheet.ClearTexture();
 
             NativeArray<uint> spritesheetData = spritesheet.GetPixelData<uint>(0);

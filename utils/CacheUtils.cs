@@ -13,6 +13,9 @@ public class CachePathUtils
         return path;
     }
 
+    public static string GetPath(string modificationName, string subFolderName, string fileName)
+        => CreatePathIfNeeded(Path.Combine(BasePath, modificationName, subFolderName, fileName));
+
     public static string GetPath(string modificationName, string fileName)
         => CreatePathIfNeeded(Path.Combine(BasePath, modificationName, fileName));
 

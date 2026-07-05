@@ -78,13 +78,9 @@ public class APNGFile : IAnimatedImageFile
                 case "IDAT":
                     if (!IsAnimated)
                     {
-                        Texture2D image = new(2, 2, CommonConstants.Format, false, true, true)
-                        {
-                            hideFlags = HideFlags.HideAndDontSave
-                        };
                         fileReader.BaseStream.Position = 0;
-                        image.LoadImage(fileReader.ReadBytes((int)fileReader.BaseStream.Length));
-                        NonAnimatedImage = image;
+                        NonAnimatedImage = Tex2DUtils.LoadImage(fileReader.ReadBytes((int)fileReader.BaseStream.Length));
+                        
                         IsValidImage = true;
                         IsAnimated = false;
                         return;
@@ -114,14 +110,8 @@ public class APNGFile : IAnimatedImageFile
         PreIDATChunksData = Utils.GetDataFromChunkList(preIDATChunks);
         PostIDATChunksData = Utils.GetDataFromChunkList(postIDATChunks);
 
-        OutputBufferCurrent = new(Width, Height, CommonConstants.Format, false, true, false)
-        {
-            hideFlags = HideFlags.HideAndDontSave
-        };
-        OutputBufferPrevious = new(Width, Height, CommonConstants.Format, false, true, false)
-        {
-            hideFlags = HideFlags.HideAndDontSave
-        };
+        OutputBufferCurrent = Tex2DUtils.Create(Width, Height, false);
+        OutputBufferPrevious = Tex2DUtils.Create(Width, Height, false);
     }
 
     private int CurrentFrame;
@@ -135,12 +125,8 @@ public class APNGFile : IAnimatedImageFile
         Frame frame = Frames[CurrentFrame++];
 
         // load the frame image
-        Texture2D frameImage = new(2, 2, CommonConstants.Format, false, true, true)
-        {
-            hideFlags = HideFlags.HideAndDontSave
-        };
         byte[] data = frame.ToImageBytes(InfoChunk, PreIDATChunksData, PostIDATChunksData);
-        frameImage.LoadImage(data);
+        Texture2D frameImage = Tex2DUtils.LoadImage(data);
 
         // merge the frames
         int yOffset = Height - (frame.Height + frame.YOffset); // unity y starts at the bottom and goes to the top
@@ -151,10 +137,7 @@ public class APNGFile : IAnimatedImageFile
 
         Object.Destroy(frameImage);
         // render the frame
-        Texture2D output = new(Width, Height, CommonConstants.Format, false, true, true)
-        {
-            hideFlags = HideFlags.HideAndDontSave
-        };
+        Texture2D output = Tex2DUtils.Create(Width, Height);
         output.CopyPixelsRaw(OutputBufferCurrent, false);
 
         // Disposal of the frame after it's rendered

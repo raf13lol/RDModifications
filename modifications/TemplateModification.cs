@@ -1,5 +1,3 @@
-using HarmonyLib;
-
 namespace RDModifications;
 
 [Modification("Template")]

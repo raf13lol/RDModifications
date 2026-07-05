@@ -17,11 +17,14 @@ public class Updater
 
     public static List<AutoUpdateFile> FilesToUpdateOnClose = [];
 
+    public static CustomArm.ArmTextures bullshit;
+
     [HarmonyPatch(typeof(SteamIntegration), nameof(SteamIntegration.Setup))]
     public class SteamUpdatePatch
     {
         public static void Postfix()
-            => _ = CheckUpdate(new()
+        {
+            _ = CheckUpdate(new()
             {
                 Logger = Modification.Log,
                 PluginInfo = Entry.PluginInfo,
@@ -35,6 +38,11 @@ public class Updater
 
                 IsZip = false,
             });
+            
+            // my little test area 
+            //
+            Modification.Log.LogMessage(CustomArm.CustomSprites.LoadTemplateFile(File.ReadAllBytes("/home/raf/Downloads/test.png"), 0, 0));
+        }
     }
 
     public static async Task CheckUpdate(AutoUpdateData data)
@@ -69,7 +77,7 @@ public class Updater
             );
             if (serverVersion <= currentVersion)
                 return;
-            
+
             if (!CanAutoUpdate)
                 data.Logger.LogWarning($"{data.PluginInfo.Metadata.Name} has updated! Get it at https://github.com/{data.GithubRepoURL}/releases/latest.");
             else if (!betaOnly || GC.onBetaBranch || Entry.AutoUpdateAssumeBeta.Value)

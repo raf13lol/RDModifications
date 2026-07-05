@@ -16,10 +16,7 @@ public class OutputFrame
 
     public OutputFrame(ARGB32[] texture, int width, int height, double frameDuration)
     {
-        Texture = new(width, height, CommonConstants.Format, false, true, true)
-        {
-            hideFlags = HideFlags.HideAndDontSave
-        };
+        Texture = Tex2DUtils.Create(width, height);
         FrameDuration = frameDuration;
 
         NativeArray<ARGB32> pixels = Texture.GetPixelData<ARGB32>(0);

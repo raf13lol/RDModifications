@@ -114,18 +114,15 @@ public class AnimatedSleeves : Modification
             if (!File.Exists(baseFilename + "_animated.png"))
             {
                 int imageIndex = 1;
-                bool individualImageExists = File.Exists(baseFilename + $"_frame{imageIndex}.png");
+                string filename = baseFilename + $"_frame{imageIndex}.png";
+
+                bool individualImageExists = File.Exists(filename);
                 while (individualImageExists)
                 {
-                    Texture2D image = new(2, 2)
-                    {
-                        hideFlags = HideFlags.HideAndDontSave
-                    };
-                    image.LoadImage(File.ReadAllBytes(baseFilename + $"_frame{imageIndex}.png"), true);
-                    image.filterMode = FilterMode.Point;
+                    animatedSleeve.frames.Add(Tex2DUtils.LoadImage(File.ReadAllBytes(filename), true));
 
-                    animatedSleeve.frames.Add(image);
-                    individualImageExists = File.Exists(baseFilename + $"_frame{++imageIndex}.png");
+                    filename = baseFilename + $"_frame{++imageIndex}.png";
+                    individualImageExists = File.Exists(filename);
                 }
                 return;
             }
@@ -138,14 +135,12 @@ public class AnimatedSleeves : Modification
                 for (int i = 0; i < apng.FrameCount; i++)
                 {
                     Texture2D tex = apng.GetFrame().Texture;
-                    tex.filterMode = FilterMode.Point;
                     animatedSleeve.frames.Add(tex);
                 }
                 return;
             }
 
             Texture2D spritesheet = apng.GetFrame().Texture;
-            spritesheet.filterMode = FilterMode.Point;
             int framesAcross = spritesheet.width / 524;
             int framesDown = spritesheet.height / 40;
             int framesToAdd = framesAcross * framesDown;
@@ -160,7 +155,6 @@ public class AnimatedSleeves : Modification
                     hideFlags = HideFlags.HideAndDontSave
                 };
                 frame.CopyPixels(spritesheet, frameGridX * 524, frameGridY * 40, 524, 40, 0, 0, true);
-                frame.filterMode = FilterMode.Point;
 
                 animatedSleeve.frames.Add(frame);
             }

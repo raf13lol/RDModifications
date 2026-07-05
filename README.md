@@ -21,6 +21,7 @@ List of modifications available with a simple summary:
 - APNGPreviewImage -> Allows for animated preview images using the APNG file format
 - Blindfolded -> Allows for hiding the row visuals 
 - ConsistentHoldPitchAlternation -> Allows for making the pitch alternation of holds consistent with regular classics
+- CustomArm -> Allows for a custom arm  [(see the section for how to do it)](#customarm-setup)
 - CustomDifficulty -> Allows for a custom hit margin
 - CustomDiscordRichPresence -> Allows for customising the discord rich presence, including the presence id
 - CustomIceChiliSpeeds -> Allows for having a custom speed on ice/chili speeds instead of 0.75x/1.5x
@@ -76,6 +77,12 @@ each image should have the suffix of `_frameX` where X is a number starting from
 <br>
 
 ### *please do ask for more details if there's some parts you don't understand*
+
+## CustomArm setup
+
+TBA
+
+<!-- ### *please do ask for more details if there's some parts you don't understand -->
 
 ## EditorPatches
 
