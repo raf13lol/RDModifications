@@ -29,13 +29,12 @@ public class UnlockEditor : Modification
     {
         public static IEnumerable<MethodBase> TargetMethods()
         {
-            yield return AccessTools.Constructor(typeof(RDLevelData), [typeof(Dictionary<string, object>), typeof(bool), typeof(bool), typeof(bool)]);
             yield return AccessTools.Method(typeof(LevelEvent_ReorderRow), nameof(LevelEvent_ReorderRow.EnableSortingOrderIf));
             yield return AccessTools.Method(typeof(LevelEvent_SetTheme), nameof(LevelEvent_SetTheme.EnableFirstRowOnFloorIf));
             yield return AccessTools.Method(typeof(RDStartup), "LoadLevelEditorProperties");
-            //yield return AccessTools.Method(typeof(InspectorPanel_MakeRow), nameof(InspectorPanel_MakeRow.Awake));
             yield return AccessTools.Method(typeof(InspectorPanel_AddOneshotBeat), nameof(InspectorPanel_AddOneshotBeat.Awake));
             yield return AccessTools.Method(typeof(LevelBase), "GoToLevelWithWarning");
+            yield return AccessTools.PropertyGetter(typeof(Conditionals), "ShowOnlyConstantConditionals");
         }
 
         [HarmonyPrefix]

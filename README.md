@@ -80,9 +80,23 @@ each image should have the suffix of `_frameX` where X is a number starting from
 
 ## CustomArm setup
 
-TBA
+the custom arm requires a specific template that can be found in the [docs folder](/docs/) (withArmTemplate.png and withoutArmTemplate.png)
 
-<!-- ### *please do ask for more details if there's some parts you don't understand -->
+the filename system works similar to rhythm doctor's `scribble` naming system for the sleeves
+
+so to make a custom arm sheet match a sleeve the filename should end with the same `P1_0.png` or whatever, but instead of starting with `scribble` it should start with `customArm`
+
+e.g. `customArmP1_0.png` for a custom arm sheet for player 1, slot 1
+
+the custom arm templates/sheets should be self-explanatory about how to edit them, use whatever program you like
+
+However please note that there are some similar colours in the palette, this is not a mistake
+
+the 4 repeated colours in the later part of the palette are the "palm" meaning they will be affected by the game's palm lightness slider (if you do not have DisablePalette enabled)
+
+furthermore, if you do change the palette, keep the colours of each component in the same place (e.g. skin colour, nail colour, etc.)
+
+### *please do ask for more details if there's some parts you don't understand*
 
 ## EditorPatches
 

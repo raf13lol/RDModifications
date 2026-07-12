@@ -36,10 +36,6 @@ public class Updater
 
                 IsZip = false,
             });
-            
-            // my little test area 
-            //
-            Modification.Log.LogMessage(CustomArm.CustomSprites.LoadTemplateFile(File.ReadAllBytes("/home/raf/Downloads/test.png"), 0, 0));
         }
     }
 

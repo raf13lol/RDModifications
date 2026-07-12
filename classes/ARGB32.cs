@@ -4,16 +4,16 @@ using UnityEngine;
 [StructLayout(LayoutKind.Explicit)]
 public struct ARGB32(byte a, byte r, byte g, byte b)
 {
-    [FieldOffset(3)]
+    [FieldOffset(0)]
     public byte a = a;
 
-    [FieldOffset(0)]
+    [FieldOffset(1)]
     public byte r = r;
 
-    [FieldOffset(1)]
+    [FieldOffset(2)]
     public byte g = g;
 
-    [FieldOffset(2)]
+    [FieldOffset(3)]
     public byte b = b;
 
     public static ARGB32 FromColor(Color col)

@@ -100,7 +100,8 @@ public class ExtraLevelEndDetails : Modification
             if (Enabled[typeof(DoctorMode)].Value)
                 baseMods.Add($"Doctor ({DoctorMode.LowMultiplier.Value}x-{DoctorMode.HighMultiplier.Value}x)");
             // Custom difficulty
-            if (Enabled[typeof(CustomDifficulty)].Value && (CustomDifficulty.P1Enabled.Value || (GC.twoPlayerMode && CustomDifficulty.P2Enabled.Value)))
+            if (Enabled[typeof(CustomDifficulty)].Value 
+            && (CustomDifficulty.P1Enabled.Value || (GC.twoPlayerMode && CustomDifficulty.P2Enabled.Value)))
                 baseMods.Add($"{CustomDifficulty.HitMargin.Value}ms");
             // Chilly/Chili
             if (RDTime.speed != 1.0f)

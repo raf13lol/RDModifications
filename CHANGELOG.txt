@@ -1,1 +1,3 @@
-Move a bug patch to where it should have been
+Add CustomArm
+
+please read https://github.com/raf13lol/RDModifications#customarm-setup for more info on how to set it up

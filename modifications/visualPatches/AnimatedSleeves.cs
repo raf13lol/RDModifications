@@ -164,8 +164,6 @@ public class AnimatedSleeves : Modification
 
         public static void LoadAnimatedSleeves()
         {
-            RDStartup.DetermineAppLocation();
-            // try ask a dev about this. i shouldn't have to do this weirdness, if it even works
             for (int playerIndex = 0; playerIndex < 2; playerIndex++)
                 for (int slot = 0; slot < 3; slot++)
                     LoadAnimatedSleeve(Path.Combine(Entry.UserDataFolder, $"scribbleP{playerIndex + 1}_{slot}"), playerIndex, slot);

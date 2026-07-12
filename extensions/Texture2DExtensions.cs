@@ -72,7 +72,9 @@ public static class Texture2DExtensions
             int destPixelIndex = destX + relativeX + (destY + relativeY) * destTexWidth;
 
             ARGB32 foreground = srcPixels[srcPixelIndex];
-            if (foreground.a != 255 && foreground.a != 0)
+            if (foreground.a == 0)
+                continue;
+            if (foreground.a != 255)
             {
                 ARGB32 background = destPixels[destPixelIndex];
                 double foregroundMult = foreground.a / 255d;
@@ -86,8 +88,6 @@ public static class Texture2DExtensions
                 );
                 continue;
             }
-            if (foreground.a == 0)
-                continue;
             destPixels[destPixelIndex] = foreground;
         }
 

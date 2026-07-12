@@ -1,10 +1,8 @@
-// TODO: support without arm templates
-// TODO: sort out default arms having default sprites - material bullshit, can i make it work ?
-// TODO: test test test test and test disablepalette too and then test for more bugs
-// TODO: add cache (can be done after release)
+// maybe i'll add a cache one day but eh
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Security.Cryptography;
 using BepInEx.Configuration;
 using HarmonyLib;
@@ -19,9 +17,42 @@ public class CustomArm : Modification
 {
     [Configuration<bool>(false,
     "If the palettes of the custom arms should be disabled.\n" +
-    "This means that you cannot change the skin colour, palm lightness nor nail colour of the arms in-game, but you are able to have as many colours as you want in the sprites."
+    "This means that you cannot properly change the skin colour, palm lightness nor nail colour of the arms in-game, but you are able to have as many colours as you want in the sprites."
     )]
     public static ConfigEntry<bool> DisablePalette;
+
+    [Configuration<bool>(true,
+    "If the game should log a warning if the custom arm sheet for a player's slot is the default template."
+    )]
+    public static ConfigEntry<bool> LogUnchangedTemplateError;
+
+    [HarmonyPatch(typeof(RDStartup), nameof(RDStartup.Setup))]
+    public class InitPatch
+    {
+        public static bool HasLoaded = false;
+
+        public static void Prefix()
+        {
+            if (RDStartup.hasInitialized || HasLoaded)
+                return;
+
+            HasLoaded = true;
+            for (int playerIndex = 0; playerIndex < 2; playerIndex++)
+            {
+                for (int slot = 0; slot < 3; slot++)
+                {
+                    string path = Path.Combine(Entry.UserDataFolder, $"customArmP{playerIndex + 1}_{slot}.png");
+                    if (!File.Exists(path))
+                        continue;
+
+                    LoadErrorCodes returnCode = CustomSprites.LoadTemplateFile(File.ReadAllBytes(path), slot, playerIndex);
+                    if (returnCode != LoadErrorCodes.OK
+                    && (returnCode != LoadErrorCodes.UnchangedTemplate || LogUnchangedTemplateError.Value))
+                        Log.LogWarning($"CustomArm: Loading custom arm for player {playerIndex + 1}, slot {slot + 1} failed with error code {returnCode}.");
+                }
+            }
+        }
+    }
 
     [HarmonyPatch(typeof(SlotUI), nameof(SlotUI.SetSkin))]
     public class SlotUIPatch
@@ -133,10 +164,24 @@ public class CustomArm : Modification
 
     public class ArmPatch
     {
+        public const string SpecificRendererName = "RDModificationsCustomArmRenderer";
+
+        public static Texture2D BasePalette = null;
+        public static Texture BaseMainTex = null;
+        public static Texture BaseMaskTex = null;
+
+        public static Texture BaseSpritesheet = null;
+        public static Texture BaseOutlineSpritesheet = null;
+        public static Texture BaseGlowSpritesheet = null;
+
         [HarmonyPostfix]
         [HarmonyPatch(typeof(RDArm), "Awake")]
         public static void AwakePostfix(RDArm __instance)
         {
+            if (BasePalette == null)
+                BasePalette = __instance.basePaletteTex;
+            __instance.hand.shaderRenderer.name = SpecificRendererName;
+
             if (__instance.player != RDPlayer.P1 && __instance.player != RDPlayer.P2)
                 return;
 
@@ -153,10 +198,44 @@ public class CustomArm : Modification
             handMat.SetTexture("_PaletteTex", texs.Palette);
         }
 
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(tk2dSprite), "UpdateMaterial")]
+        public static bool UpdateMatPrefix(tk2dSprite __instance)
+            => __instance.GetComponent<Renderer>().name != SpecificRendererName;
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(RDArm), nameof(RDArm.SetSkin))]
+        public static void SetSkinPrefix(RDArm __instance)
+        {
+            if (DisablePalette.Value)
+                return;
+            __instance.basePaletteTex = BasePalette;
+
+            if (__instance.player != RDPlayer.P1 && __instance.player != RDPlayer.P2)
+                return;
+
+            if (!CustomSprites.HasCustomArm(__instance.player))
+                return;
+
+            __instance.basePaletteTex = CustomSprites.GetArmTextures(__instance.player).Palette;
+        }
+
         [HarmonyPostfix]
         [HarmonyPatch(typeof(RDArm), nameof(RDArm.SetSkin))]
         public static void SetSkinPostfix(RDArm __instance)
         {
+            // Yawn why do i have to do this
+            if (BaseMainTex != null)
+            {
+                __instance.drawing.material.SetTexture("_MainTex", BaseMainTex);
+                __instance.drawing.material.SetTexture("_SleeveMask", BaseMaskTex);
+            }
+            else
+            {
+                BaseMainTex = __instance.drawing.material.GetTexture("_MainTex");
+                BaseMaskTex = __instance.drawing.material.GetTexture("_SleeveMask");
+            }
+
             if (__instance.player != RDPlayer.P1 && __instance.player != RDPlayer.P2)
                 return;
 
@@ -170,21 +249,49 @@ public class CustomArm : Modification
 
             Material handMat = __instance.hand.shaderRenderer.material;
             handMat.SetFloat("_UsesPalette", !DisablePalette.Value ? 1f : 0f);
-            if (!DisablePalette.Value)
-                handMat.SetTexture("_PaletteTex", texs.Palette);
-        
-            Material handSpriteMat = __instance.hand.sprite.CurrentSprite.material;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(RDArm), "Update")]
+        public static void UpdatePostfix(RDArm __instance)
+        {
+            Renderer renderer = __instance.hand.shaderRenderer;
+            Material handMat = renderer.material;
+
+            if ((__instance.player != RDPlayer.P1 && __instance.player != RDPlayer.P2)
+            || !CustomSprites.HasCustomArm(__instance.player))
+            {
+                if (BaseSpritesheet != null && handMat.mainTexture != BaseSpritesheet)
+                {
+                    handMat.mainTexture = BaseSpritesheet;
+                    handMat.SetTexture(RDShaderProperties.OutlineTexID, BaseOutlineSpritesheet);
+                    handMat.SetTexture(RDShaderProperties.GlowTexID, BaseGlowSpritesheet);
+                }
+                return;
+            }
+
+            ArmTextures texs = CustomSprites.GetArmTextures(__instance.player);
+            if (BaseSpritesheet == null)
+            {
+                BaseSpritesheet = handMat.mainTexture;
+                BaseOutlineSpritesheet = handMat.GetTexture(RDShaderProperties.OutlineTexProperty);
+                BaseGlowSpritesheet = handMat.GetTexture(RDShaderProperties.GlowTexProperty);
+            }
+
             if (!texs.HasSpritesheets)
                 texs.CreateArmSpritesheets(
                     __instance.hand.animator.Library,
-                    (Texture2D)handSpriteMat.mainTexture,
-                    (Texture2D)handSpriteMat.GetTexture(RDShaderProperties.OutlineTexProperty),
-                    (Texture2D)handSpriteMat.GetTexture(RDShaderProperties.GlowTexProperty)
+                    (Texture2D)BaseSpritesheet,
+                    (Texture2D)BaseOutlineSpritesheet,
+                    (Texture2D)BaseGlowSpritesheet
                 );
 
-            handSpriteMat.mainTexture = texs.ArmSpritesheet;
-            handSpriteMat.SetTexture(RDShaderProperties.OutlineTexProperty, texs.ArmOutlineSpritesheet);
-            handSpriteMat.SetTexture(RDShaderProperties.GlowTexProperty, texs.ArmGlowSpritesheet);
+            if (handMat.mainTexture == texs.ArmSpritesheet)
+                return;
+
+            handMat.mainTexture = texs.ArmSpritesheet;
+            handMat.SetTexture(RDShaderProperties.OutlineTexID, texs.ArmOutlineSpritesheet);
+            handMat.SetTexture(RDShaderProperties.GlowTexID, texs.ArmGlowSpritesheet);
         }
     }
 
@@ -218,13 +325,13 @@ public class CustomArm : Modification
             foreach (byte b in pngDataHashBytes)
                 pngDataHash += b.ToString("x2");
 
-            if (pngDataHash == "withArmImageHash" || pngDataHash == "withoutArmImageHash")
+            if (pngDataHash == "614625036dde2723b9c4c4ba8c8a0a83" // with arm image hash
+             || pngDataHash == "12729d089a4fd0eba4a9ed18f1280370") // w/o arm image hash
                 return LoadErrorCodes.UnchangedTemplate;
+                
             // no need to do it all again
             if (HashToArmTextures.ContainsKey(pngDataHash))
                 return LoadErrorCodes.OK;
-
-            // TODO: check cache here once i do it
 
             Texture2D template = Tex2DUtils.LoadImage(pngData);
             if (template.width != 350 && template.height != 520)
@@ -295,7 +402,6 @@ public class CustomArm : Modification
         public Sprite[] SlotHandPalmFrames = new Sprite[2];
         public Sprite[] SlotHandNailsFrames = new Sprite[2];
 
-
         public ArmTextures(Texture2D templateImage, bool isWithoutArmTemplate)
         {
             Vector2 middlePivot = Vector2.one / 2f;
@@ -305,9 +411,8 @@ public class CustomArm : Modification
 
             SleeveTexture = Tex2DUtils.CopyCropped(templateImage, 0, 500, 262, 20, false);
             SleeveSprite = Sprite.Create(SleeveTexture, new(0, 0, 262, 20), middlePivot);
-            SleeveTexture.Apply(false, !isWithoutArmTemplate);
 
-            SleevePaintHand = Tex2DUtils.CopyCropped(templateImage, 0, 105, 313, 35, false);
+            SleevePaintHand = Tex2DUtils.CopyCropped(templateImage, 0, 105, 313, 35, DisablePalette.Value);
 
             Color[] palmColours = [];
             Color[] nailColours = [];
@@ -326,6 +431,11 @@ public class CustomArm : Modification
                 SleevePaintHandPalm = Tex2DUtils.FilterPixels(SleevePaintHand, palmColours);
                 SleevePaintHandNails = Tex2DUtils.FilterPixels(SleevePaintHand, nailColours, true);
                 SleevePaintHand.Apply(false, true);
+            }
+            else
+            {
+                SleevePaintHandPalm = Tex2DUtils.CreateBlank(SleevePaintHand.width, SleevePaintHand.height, true);
+                SleevePaintHandNails = Tex2DUtils.CreateBlank(SleevePaintHand.width, SleevePaintHand.height, true);
             }
 
             SmallHandNormalButtonFrames = [
@@ -367,23 +477,48 @@ public class CustomArm : Modification
             slotHandTexFrames[0].Apply(false, true);
             slotHandTexFrames[1].Apply(false, true);
 
-            HandleArmFrame(396); // catch not pressed - 0
-            HandleArmFrame(345); // catch pressed frame 1 - 1
-            HandleArmFrame(294); // catch pressed frame 2 - 2
-            HandleArmFrame(243); // not pressed - 3
-            HandleArmFrame(192); // pressed frame 1 - 4
-            HandleArmFrame(141); // pressed frame 2 - 5
+            Texture2D sleeveTemplate = SleeveTexture;
+            if (IsWithoutArmTemplate && !DisablePalette.Value)
+            {
+                sleeveTemplate = Tex2DUtils.Create(SleeveTexture.width, SleeveTexture.height);
+
+                NativeArray<uint> sleeveTemplateData = sleeveTemplate.GetPixelData<uint>(0);
+                NativeArray<uint> sleeveData = SleeveTexture.GetPixelData<uint>(0);
+
+                int pixelsToTouch = sleeveTemplate.width * sleeveTemplate.height;
+                for (int i = 0; i < pixelsToTouch; i++)
+                {
+                    uint sleevePixel = sleeveData[i];
+                    if ((sleevePixel & 0xff) != 0x00)
+                        sleeveTemplateData[i] = (sleevePixel & 0xff) | 0x00_00_0d_00;
+                    else
+                        sleeveTemplateData[i] = 0;
+                }
+            }
+
+            HandleArmFrame(396, 78, 13, sleeveTemplate); // catch not pressed - 0
+            HandleArmFrame(345, 78, 13, sleeveTemplate); // catch pressed frame 1 - 1
+            HandleArmFrame(294, 78, 13, sleeveTemplate); // catch pressed frame 2 - 2
+            HandleArmFrame(243, 88, 12, sleeveTemplate); // not pressed - 3
+            HandleArmFrame(192, 88, 13, sleeveTemplate); // pressed frame 1 - 4
+            HandleArmFrame(141, 88, 13, sleeveTemplate); // pressed frame 2 - 5
+
+            SleeveTexture.Apply(false, true);
+            if (IsWithoutArmTemplate && !DisablePalette.Value)
+                UnityEngine.Object.Destroy(sleeveTemplate);
 
             ErrorCode = LoadErrorCodes.OK;
         }
 
         private int armFrameIndex = 0;
 
-        private void HandleArmFrame(int bottomLeftY)
+        private void HandleArmFrame(int bottomLeftY, int sleeveOffsetX, int sleeveOffsetY, Texture2D sleeve)
         {
             int pixelsToTouch = 350 * 50;
 
             Texture2D frame = Tex2DUtils.CopyCropped(TemplateImage, 0, bottomLeftY, 350, 50, false);
+            if (IsWithoutArmTemplate)
+                frame.MergePixels(sleeve, 0, 0, sleeve.width, sleeve.height, sleeveOffsetX, sleeveOffsetY);
             Texture2D outline = tk2dSpriteCollectionBuilderUtil.OutlineTexture(frame);
             Texture2D glow = tk2dSpriteCollectionBuilderUtil.GaussianBlur(frame, 1);
 
