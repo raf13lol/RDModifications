@@ -174,6 +174,20 @@ public class CustomArm : Modification
         public static Texture BaseOutlineSpritesheet = null;
         public static Texture BaseGlowSpritesheet = null;
 
+        public static bool ShouldArmBeCustomArm(RDArm arm)
+        {
+            if (arm.player != RDPlayer.P1 && arm.player != RDPlayer.P2)
+                return false;
+
+            if (!arm.playerCanUse)
+                return false;
+
+            if (!CustomSprites.HasCustomArm(arm.player))
+                return false;
+
+            return true;
+        }
+
         [HarmonyPostfix]
         [HarmonyPatch(typeof(RDArm), "Awake")]
         public static void AwakePostfix(RDArm __instance)
@@ -182,10 +196,7 @@ public class CustomArm : Modification
                 BasePalette = __instance.basePaletteTex;
             __instance.hand.shaderRenderer.name = SpecificRendererName;
 
-            if (__instance.player != RDPlayer.P1 && __instance.player != RDPlayer.P2)
-                return;
-
-            if (!CustomSprites.HasCustomArm(__instance.player))
+            if (!ShouldArmBeCustomArm(__instance))
                 return;
 
             ArmTextures texs = CustomSprites.GetArmTextures(__instance.player);
@@ -211,11 +222,9 @@ public class CustomArm : Modification
                 return;
             __instance.basePaletteTex = BasePalette;
 
-            if (__instance.player != RDPlayer.P1 && __instance.player != RDPlayer.P2)
+            if (!ShouldArmBeCustomArm(__instance))
                 return;
 
-            if (!CustomSprites.HasCustomArm(__instance.player))
-                return;
 
             __instance.basePaletteTex = CustomSprites.GetArmTextures(__instance.player).Palette;
         }
@@ -236,10 +245,7 @@ public class CustomArm : Modification
                 BaseMaskTex = __instance.drawing.material.GetTexture("_SleeveMask");
             }
 
-            if (__instance.player != RDPlayer.P1 && __instance.player != RDPlayer.P2)
-                return;
-
-            if (!CustomSprites.HasCustomArm(__instance.player))
+            if (!ShouldArmBeCustomArm(__instance))
                 return;
 
             ArmTextures texs = CustomSprites.GetArmTextures(__instance.player);
@@ -258,8 +264,7 @@ public class CustomArm : Modification
             Renderer renderer = __instance.hand.shaderRenderer;
             Material handMat = renderer.material;
 
-            if ((__instance.player != RDPlayer.P1 && __instance.player != RDPlayer.P2)
-            || !CustomSprites.HasCustomArm(__instance.player))
+            if (!ShouldArmBeCustomArm(__instance))
             {
                 if (BaseSpritesheet != null && handMat.mainTexture != BaseSpritesheet)
                 {
@@ -328,7 +333,7 @@ public class CustomArm : Modification
             if (pngDataHash == "614625036dde2723b9c4c4ba8c8a0a83" // with arm image hash
              || pngDataHash == "12729d089a4fd0eba4a9ed18f1280370") // w/o arm image hash
                 return LoadErrorCodes.UnchangedTemplate;
-                
+
             // no need to do it all again
             if (HashToArmTextures.ContainsKey(pngDataHash))
                 return LoadErrorCodes.OK;
