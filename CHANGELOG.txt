@@ -1,1 +1,2 @@
-Fix some character arm issues with CustomArm
+Added gif support to AnimatedSleeves
+Added AlwaysShowRoomSelector as an editor patch

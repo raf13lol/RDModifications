@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using APNG;
 using BepInEx.Configuration;
+using GIF;
 using HarmonyLib;
 using UnityEngine;
 
@@ -10,26 +11,28 @@ namespace RDModifications;
 
 [Modification(
     "If sleeves should be able to be animated. For more info on how to do this, consult the README.md on the github.\n" +
+    "Note that if the FPS of a sleeve is set to 0 and an animated sleeve is done via an APNG or a GIF,\n" +
+    "it will use the FPS of the file, otherwise it will use 6 FPS for that sleeve.\n" +
     "(WARNING: Do not attempt to load images that are quite big, as this may cause a crash.)"
 )]
 public class AnimatedSleeves : Modification
 {
-    [Configuration<int>(6, "The FPS of the player 1 sleeve in slot 1.", [1, int.MaxValue])]
-    public static ConfigEntry<int> P1Slot1FPS;
-    [Configuration<int>(6, "The FPS of the player 2 sleeve in slot 1.", [1, int.MaxValue])]
-    public static ConfigEntry<int> P2Slot1FPS;
+    [Configuration<double>(6, "The FPS of the player 1 sleeve in slot 1.", [0, double.MaxValue])]
+    public static ConfigEntry<double> P1Slot1FPS;
+    [Configuration<double>(6, "The FPS of the player 2 sleeve in slot 1.", [0, double.MaxValue])]
+    public static ConfigEntry<double> P2Slot1FPS;
 
-    [Configuration<int>(6, "The FPS of the player 1 sleeve in slot 2.", [1, int.MaxValue])]
-    public static ConfigEntry<int> P1Slot2FPS;
-    [Configuration<int>(6, "The FPS of the player 2 sleeve in slot 2.", [1, int.MaxValue])]
-    public static ConfigEntry<int> P2Slot2FPS;
+    [Configuration<double>(6, "The FPS of the player 1 sleeve in slot 2.", [0, double.MaxValue])]
+    public static ConfigEntry<double> P1Slot2FPS;
+    [Configuration<double>(6, "The FPS of the player 2 sleeve in slot 2.", [0, double.MaxValue])]
+    public static ConfigEntry<double> P2Slot2FPS;
 
-    [Configuration<int>(6, "The FPS of the player 1 sleeve in slot 3.", [1, int.MaxValue])]
-    public static ConfigEntry<int> P1Slot3FPS;
-    [Configuration<int>(6, "The FPS of the player 2 sleeve in slot 3.", [1, int.MaxValue])]
-    public static ConfigEntry<int> P2Slot3FPS;
+    [Configuration<double>(6, "The FPS of the player 1 sleeve in slot 3.", [0, double.MaxValue])]
+    public static ConfigEntry<double> P1Slot3FPS;
+    [Configuration<double>(6, "The FPS of the player 2 sleeve in slot 3.", [0, double.MaxValue])]
+    public static ConfigEntry<double> P2Slot3FPS;
 
-    [Configuration<bool>(false, "If the FPS of an animated sleeve shouldn't change with things like the Set Speed event.")]
+    [Configuration<bool>(true, "If the FPS of an animated sleeve shouldn't change with things like the Set Speed event.")]
     public static ConfigEntry<bool> ConsistentFPS;
 
     [Configuration<bool>(false, "If the FPS should be linked with the current song's BPM.")]
@@ -46,20 +49,36 @@ public class AnimatedSleeves : Modification
         static void animateSleeve(Material mat, int player, int slot, bool continueAnimation = true)
         {
             AnimatedSleeve animatedSleeve = SleeveData.animatedSleeves[player][slot];
-            double currentFrame = animatedSleeve.currentFrame;
             if (animatedSleeve.frames.Count <= 0)
                 return;
 
-            mat.SetTexture("_Drawing", animatedSleeve.frames[(int)Math.Floor(currentFrame)]);
-            if (continueAnimation)
+            double fps = animatedSleeve.fps;
+
+            double currentFrame = animatedSleeve.currentFrame;
+            int frameIndex = animatedSleeve.frameIndex;
+            int displayFrame = fps == 0 ? frameIndex : (int)Math.Floor(currentFrame);
+
+            mat.SetTexture("_Drawing", animatedSleeve.frames[displayFrame]);
+            if (!continueAnimation)
+                return;
+
+            double elapsed = Time.deltaTime;
+            if (ConsistentFPS.Value && Time.timeScale != 0)
+                elapsed /= Time.timeScale;
+            if (BPMFPS.Value)
+                elapsed /= scrConductor.instance.visualCrotchet;
+
+            if (fps > 0d)
             {
-                double elapsed = Time.deltaTime;
-                if (ConsistentFPS.Value && Time.timeScale != 0)
-                    elapsed /= Time.timeScale;
-                if (BPMFPS.Value)
-                    elapsed /= scrConductor.instance.visualCrotchet;
-                animatedSleeve.currentFrame = (currentFrame + elapsed * animatedSleeve.fps) % animatedSleeve.frames.Count;
-                SleeveData.animatedSleeves[player][slot] = animatedSleeve;
+                animatedSleeve.currentFrame = (currentFrame + elapsed * fps) % animatedSleeve.frames.Count;
+                return;
+            }
+
+            currentFrame += elapsed;
+            if (currentFrame >= animatedSleeve.frameLengths[frameIndex])
+            {
+                animatedSleeve.frameIndex = (frameIndex + 1) % animatedSleeve.frames.Count;
+                animatedSleeve.currentFrame = 0d;
             }
         }
 
@@ -94,11 +113,14 @@ public class AnimatedSleeves : Modification
         }
     }
 
-    public struct AnimatedSleeve(List<Texture2D> frames, int fps = 6)
+    public class AnimatedSleeve(List<Texture2D> frames, double fps = 6)
     {
         public List<Texture2D> frames = frames;
-        public int fps = fps;
+        public double fps = fps;
         public double currentFrame = 0;
+
+        public int frameIndex = 0;
+        public List<double> frameLengths = [];
     }
 
     [Patch]
@@ -111,8 +133,13 @@ public class AnimatedSleeves : Modification
         public static void LoadAnimatedSleeve(string baseFilename, int playerIndex, int slot)
         {
             AnimatedSleeve animatedSleeve = animatedSleeves[playerIndex][slot];
-            if (!File.Exists(baseFilename + "_animated.png"))
+
+            bool useGIF = File.Exists(baseFilename + "_animated.gif");
+            if (!File.Exists(baseFilename + "_animated.png") && !useGIF)
             {
+                if (animatedSleeve.fps == 0)
+                    animatedSleeve.fps = 6;
+
                 int imageIndex = 1;
                 string filename = baseFilename + $"_frame{imageIndex}.png";
 
@@ -127,20 +154,25 @@ public class AnimatedSleeves : Modification
                 return;
             }
 
-            using FileStream stream = File.Open(baseFilename + "_animated.png", FileMode.Open);
-            using APNGFile apng = new(stream);
+            using FileStream stream = File.Open(baseFilename + $"_animated.{(useGIF ? "gif" : "png")}", FileMode.Open);
+            using IAnimatedImageFile image = useGIF ? new GIFFile(stream) : new APNGFile(stream);
 
-            if (apng.IsAnimated && apng.Width == 524 && apng.Height == 40)
+            if (image.IsAnimated && image.Width == 524 && image.Height == 40)
             {
-                for (int i = 0; i < apng.FrameCount; i++)
+                for (int i = 0; i < image.FrameCount; i++)
                 {
-                    Texture2D tex = apng.GetFrame().Texture;
+                    if (animatedSleeve.fps == 0)
+                        animatedSleeve.frameLengths.Add(image.CurrentFrameDuration);
+                    Texture2D tex = image.GetFrame().Texture;
                     animatedSleeve.frames.Add(tex);
                 }
                 return;
             }
 
-            Texture2D spritesheet = apng.GetFrame().Texture;
+            if (animatedSleeve.fps == 0)
+                animatedSleeve.fps = 6;
+
+            Texture2D spritesheet = image.GetFrame().Texture;
             int framesAcross = spritesheet.width / 524;
             int framesDown = spritesheet.height / 40;
             int framesToAdd = framesAcross * framesDown;

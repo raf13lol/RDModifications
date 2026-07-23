@@ -13,6 +13,7 @@ public class GIFFile : IAnimatedImageFile
     public int Height { get; set; }
     public int FrameCount { get => Images.Count; }
     public bool EndOfFrames { get => ImageIndex >= FrameCount; }
+    public double CurrentFrameDuration { get => Images[ImageIndex].Info.Delay; }
 
     public ARGB32[]? GlobalColourTable;
     public byte BackgroundColourIndex;

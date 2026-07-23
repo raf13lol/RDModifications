@@ -46,7 +46,7 @@ List of modifications available with a simple summary:
 
 ## AnimatedSleeves setup
 
-### there are three methods for having animated sleeves, either each frame is a seperate image or the sleeve image is an apng file or one big spritesheet
+### there are four methods for having animated sleeves, either each frame is a seperate image, the sleeve image is an apng file, the sleeve image is a gif file or one big spritesheet
 
 #### each `frame` referred to here is and must be 524px x 40px (width x height) in size !!!
 
@@ -54,10 +54,12 @@ List of modifications available with a simple summary:
 
 ### if you are doing the apng, do note that:
 
-- this is experimental so idk if it works please alert me if not
-- apngs are a bit special and idk where you make them so
-
 the apng should be placed where the sleeve images are and should be suffixed with `_animated`, e.g. `scribbleP1_0_animated.png`
+<br>
+
+### if you are doing the gif, do note that:
+
+the gif should be placed where the sleeve images are and should be suffixed with `_animated`, e.g. `scribbleP1_0_animated.gif`
 <br>
 
 ### if you are doing the spritesheet, do note that:
@@ -100,6 +102,7 @@ furthermore, if you do change the palette, keep the colours of each component in
 
 ## EditorPatches
 
+- AlwaysShowRoomSelector -> Always shows the room selector for applicable events
 - BorderTintOpacity -> Enables/adds the built-in border/tint opacity field to paint events
 - DefaultNarrateOffOnCreate -> Narrate on created level events is by default off
 - DisableInputFieldLimits -> Numerical input field limits are disabled

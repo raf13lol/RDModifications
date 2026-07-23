@@ -18,6 +18,7 @@ public class APNGFile : IAnimatedImageFile
     public int Height { get; set; }
     public int FrameCount { get => Frames.Count; }
     public bool EndOfFrames { get => CurrentFrame >= FrameCount; }
+    public double CurrentFrameDuration { get => Frames[CurrentFrame].FrameDuration; }
 
     private readonly List<Frame> Frames = [];
 

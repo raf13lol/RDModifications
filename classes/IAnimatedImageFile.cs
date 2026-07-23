@@ -10,6 +10,8 @@ public interface IAnimatedImageFile : IDisposable
 	public int Height { get; }
 	public int FrameCount { get; }
 	public bool EndOfFrames { get; }
+    public double CurrentFrameDuration { get; }
 
 	public OutputFrame GetFrame();
+
 }
