@@ -11,17 +11,6 @@ namespace RDModifications;
 [Modification("If the bugs within the editor should be fixed.", true)]
 public class EditorBugs : Modification
 {
-    [HarmonyPatch(typeof(LevelEvent_Base), nameof(LevelEvent_Base.isSpriteTabEvent), MethodType.Getter)]
-    public class IsSpriteTabCommentPatch
-    {
-        public static void Postfix(LevelEvent_Base __instance, ref bool __result)
-        {
-            if (!__result || __instance is not LevelEvent_Comment comment)
-                return;
-            __result = comment.tab == Tab.Sprites;
-        }
-    }
-
     public class ClonedEventsOffsetPatch
     {
         public static bool BlockRecalcCell = false;

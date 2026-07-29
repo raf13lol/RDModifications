@@ -7,13 +7,13 @@ using UnityEngine.UI;
 
 namespace RDModifications;
 
-[Modification("If there should be a button to duplicate decoration in the sprite settings panel.", true)]
+[Modification("If there should be a button to duplicate decoration in the decoration settings panel.", true)]
 public class DuplicateDecorationButton : Modification
 {
-    [HarmonyPatch(typeof(InspectorPanel_MakeSprite), nameof(InspectorPanel_MakeSprite.Awake))]
+    [HarmonyPatch(typeof(MakeDecorationInspectorPanel), nameof(MakeDecorationInspectorPanel.Awake))]
     public class CreateDuplicateButtonPatch
     {
-        public static void Postfix(InspectorPanel_MakeSprite __instance)
+        public static void Postfix(MakeDecorationInspectorPanel __instance)
         {
             GameObject deleteButton = __instance.container.Find("delete").gameObject;
             GameObject duplicateButton = Object.Instantiate(deleteButton, deleteButton.transform.parent);
@@ -28,7 +28,7 @@ public class DuplicateDecorationButton : Modification
             RectTransform deleteButtonRectTransform = deleteButton.GetComponent<RectTransform>();
             deleteButtonRectTransform.AnchorPosY(deleteButtonRectTransform.anchoredPosition.y - 17.55f);
 
-            // horrible code to remove the delete sprite callback
+            // horrible code to remove the delete decoration callback
             Button button = duplicateButton.GetComponent<Button>();
             button.onClick.RemoveAllListeners();
             AccessTools.Method(typeof(UnityEventBase), "DirtyPersistentCalls").Invoke(button.onClick, []);
@@ -54,63 +54,59 @@ public class DuplicateDecorationButton : Modification
             {
                 editor.LevelEditorPlaySound("sndEditorPanelCreate", "LevelEditorActive", 1f, 1f, 0f);
 
-                // get sprite
-                LevelEvent_MakeSprite spriteData = SpriteHeader.GetSpriteData(editor.selectedSprite);
-                int spriteDataIndex = SpriteHeader.GetSpriteDataIndex(editor.selectedSprite);
+                // get decoration
+                LevelEvent_MakeDecorationBase decorationData = DecorationHeader.GetDecorationData(editor.selectedDecoration);
+                int decorationDataIndex = DecorationHeader.GetDecorationDataIndex(editor.selectedDecoration);
 
-                // make new sprite data
-                LevelEvent_MakeSprite newSpriteData = (LevelEvent_MakeSprite)spriteData.Clone();
-                int newSpriteDataIndex = spriteDataIndex + 1;
-                newSpriteData.spriteId = LevelEvent_MakeSprite.RandomString(7);
+                // make new decoration data
+                LevelEvent_MakeDecorationBase newDecorationData = (LevelEvent_MakeDecorationBase)decorationData.Clone();
+                int newDecorationDataIndex = decorationDataIndex + 1;
+                newDecorationData.decorationId = LevelEvent_MakeDecorationBase.RandomString(7);
 
                 // err the events themselves i think
-                List<LevelEventControl_Base> spriteEventControls = editor.eventControls_sprites[spriteDataIndex];
-                List<LevelEventControl_Base> newSpriteEventControls = [];
+                List<LevelEventControl_Base> decorationEventControls = editor.eventControls_decorations[decorationDataIndex];
+                List<LevelEventControl_Base> newDecorationEventControls = [];
 
-                editor.spritesData.Insert(newSpriteDataIndex, newSpriteData);
-                editor.eventControls_sprites.Insert(newSpriteDataIndex, newSpriteEventControls);
+                editor.decorationsData.Insert(newDecorationDataIndex, newDecorationData);
+                editor.eventControls_decorations.Insert(newDecorationDataIndex, newDecorationEventControls);
 
                 // Move already existing events to the next index,
                 // since LevelEventController_Base.controller indexes based on the event's row
-                foreach (LevelEventControl_Base spriteEventControl in editor.eventControls)
+                foreach (LevelEventControl_Base decorationEventControl in editor.eventControls)
                 {
-                    if (spriteEventControl.levelEvent.isSpriteTabEvent)
-                    // && (spriteEventControl.levelEvent.type != LevelEventType.Comment || (spriteEventControl.levelEvent as LevelEvent_Comment).tab == Tab.Sprites))
+                    if (!decorationEventControl.levelEvent.isDecorationTabEvent)
+                        continue;
+                    if (decorationEventControl.levelEvent.row >= newDecorationDataIndex)
                     {
-                        if (spriteEventControl.levelEvent.row >= newSpriteDataIndex)
-                        {
-                            spriteEventControl.levelEvent.row++;
-                        }
+                        decorationEventControl.levelEvent.row++;
                     }
                 }
 
-                foreach (LevelEventControl_Base spriteEventControl in spriteEventControls)
+                foreach (LevelEventControl_Base decorationEventControl in decorationEventControls)
                 {
-                    if (spriteEventControl.levelEvent.target == spriteData.spriteId)
+                    if (decorationEventControl.levelEvent.target == decorationData.decorationId)
                     {
-                        LevelEvent_Base newSpriteEvent = spriteEventControl.levelEvent.Clone();
-                        newSpriteEvent.target = newSpriteData.spriteId;
-                        newSpriteEvent.y++;
+                        LevelEvent_Base newDecorationEvent = decorationEventControl.levelEvent.Clone();
+                        newDecorationEvent.target = newDecorationData.decorationId;
+                        newDecorationEvent.y++;
 
-                        newSpriteEvent.row = newSpriteDataIndex;
-                        editor.CreateEventControl(newSpriteEvent, Tab.Sprites, true);
-                        // LevelEventControl_Sprite newSpriteEventControl = (LevelEventControl_Sprite)editor.CreateEventControl(newSpriteEvent, Tab.Sprites, true);
+                        newDecorationEvent.row = newDecorationDataIndex;
+                        editor.CreateEventControl(newDecorationEvent, Tab.Decorations, true);
                     }
                 }
 
                 int[] indexRooms = [0, 0, 0, 0];
-                foreach (LevelEventControl_Base spriteEventControl in editor.eventControls)
+                foreach (LevelEventControl_Base decorationEventControl in editor.eventControls)
                 {
-                    if (spriteEventControl.levelEvent.isSpriteTabEvent)
-                    // && (spriteEventControl.levelEvent.type != LevelEventType.Comment || (spriteEventControl.levelEvent as LevelEvent_Comment).tab == Tab.Sprites))
+                    if (decorationEventControl.levelEvent.isDecorationTabEvent)
                     {
-                        spriteEventControl.levelEvent.y = indexRooms[SpriteHeader.GetSpriteData(spriteEventControl.levelEvent.target).room]++;
-                        spriteEventControl.UpdateUI();
+                        decorationEventControl.levelEvent.y = indexRooms[DecorationHeader.GetDecorationData(decorationEventControl.levelEvent.target).room]++;
+                        decorationEventControl.UpdateUI();
                     }
                 }
 
-                editor.selectedSprite = newSpriteData.spriteId;
-                editor.tabSection_sprites.UpdateUI();
+                editor.selectedDecoration = newDecorationData.decorationId;
+                editor.tabSection_decorations.UpdateUI();
             }
         }
     }

@@ -52,8 +52,8 @@ public class RemoveFourRowLimit : Modification
                 rowHeaders.Add(rowHeader);
             }
             GameObject rowsList = baseHolder.transform.parent.gameObject;
-            GameObject spritesList = __instance.editor.tabSection_sprites.headersListRect.parent.gameObject;
-            RectTransform spritesListRectTransform = spritesList.GetComponent<RectTransform>();
+            GameObject decorationList = __instance.editor.tabSection_decorations.headersListRect.parent.gameObject;
+            RectTransform decorationListRectTransform = decorationList.GetComponent<RectTransform>();
 
             GameObject maskObject = new()
             {
@@ -62,18 +62,18 @@ public class RemoveFourRowLimit : Modification
             maskObject.transform.SetParent(rowsList.transform.parent);
 
             RectTransform rectTransform = maskObject.AddComponent<RectTransform>();
-            rectTransform.offsetMin = spritesListRectTransform.offsetMin;
-            rectTransform.offsetMax = spritesListRectTransform.offsetMax;
-            rectTransform.anchorMin = spritesListRectTransform.anchorMin;
-            rectTransform.anchorMax = spritesListRectTransform.anchorMax;
-            rectTransform.pivot = spritesListRectTransform.pivot;
-            rectTransform.anchoredPosition = spritesListRectTransform.anchoredPosition;
-            rectTransform.sizeDelta = spritesListRectTransform.sizeDelta;
+            rectTransform.offsetMin = decorationListRectTransform.offsetMin;
+            rectTransform.offsetMax = decorationListRectTransform.offsetMax;
+            rectTransform.anchorMin = decorationListRectTransform.anchorMin;
+            rectTransform.anchorMax = decorationListRectTransform.anchorMax;
+            rectTransform.pivot = decorationListRectTransform.pivot;
+            rectTransform.anchoredPosition = decorationListRectTransform.anchoredPosition;
+            rectTransform.sizeDelta = decorationListRectTransform.sizeDelta;
 
             maskObject.AddComponent<SpritesListScroll>();
             Image image = maskObject.AddComponent<Image>();
             Mask mask = maskObject.AddComponent<Mask>();
-            image.sprite = spritesList.GetComponent<Image>().sprite;
+            image.sprite = decorationList.GetComponent<Image>().sprite;
             mask.showMaskGraphic = false;
 
             rowsList.transform.SetParent(maskObject.transform);

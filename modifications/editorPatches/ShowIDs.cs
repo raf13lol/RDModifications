@@ -23,12 +23,12 @@ public class ShowIDs : Modification
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(SpriteHeader), nameof(SpriteHeader.ShowPanel))]
-        public static void MakeSpritePostfix(string spriteId)
+        [HarmonyPatch(typeof(DecorationHeader), nameof(DecorationHeader.ShowPanel))]
+        public static void MakeSpritePostfix(string decorationId)
         {
-            LevelEvent_MakeSprite spriteData = SpriteHeader.GetSpriteData(spriteId);
-            if (spriteData != null)
-                DoText(spriteData);
+            LevelEvent_MakeDecorationBase decorationData = DecorationHeader.GetDecorationData(decorationId);
+            if (decorationData != null)
+                DoText(decorationData);
         }
 
         public static void DoText(LevelEvent_Base levelEvent)
@@ -40,8 +40,8 @@ public class ShowIDs : Modification
                 text = at.id.ToString();
             else if (levelEvent is LevelEvent_MakeRow mr)
                 text = mr.row.ToString();
-            else if (levelEvent is LevelEvent_MakeSprite ms)
-                text = ms.spriteId;
+            else if (levelEvent is LevelEvent_MakeDecorationBase mdb)
+                text = mdb.decorationId;
 
             if (text.IsNullOrEmpty())
                 return;

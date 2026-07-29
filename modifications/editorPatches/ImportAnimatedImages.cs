@@ -114,7 +114,7 @@ public class ImportAnimatedImages : Modification
         }
     }
 
-    [HarmonyPatch(typeof(InspectorPanel_MakeSprite), nameof(InspectorPanel_MakeSprite.LoadCustomCharacterFromPath))]
+    [HarmonyPatch(typeof(InspectorPanel_Sprite), nameof(InspectorPanel_Sprite.LoadCustomCharacterFromPath))]
     public class SpritesheetPatch
     {
         public static void Prefix(ref string spritePath)

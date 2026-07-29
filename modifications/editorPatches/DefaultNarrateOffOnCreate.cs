@@ -6,10 +6,10 @@ namespace RDModifications;
 [Modification("If events that have a narrate option should have said option off by default when created.", true)]
 public class DefaultNarrateOffOnCreate : Modification
 {
-    [HarmonyPatch(typeof(LevelEvent_FloatingText), nameof(LevelEvent_FloatingText.Init))]
+    [HarmonyPatch(typeof(LevelEvent_TextAttributesBase), nameof(LevelEvent_TextAttributesBase.Init))]
     public class FloatingTextPatch
     {
-        public static void Postfix(LevelEvent_FloatingText __instance)
+        public static void Postfix(LevelEvent_TextAttributesBase __instance)
             => __instance.narrate = false;
     }
 

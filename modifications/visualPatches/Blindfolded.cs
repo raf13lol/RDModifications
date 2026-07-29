@@ -59,12 +59,12 @@ public class Blindfolded : Modification
             => __instance.game.currentLevel.noHitParticles |= SavedEnabled.Value;
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(LevelEvent_MakeSprite), "CreateSprite")]
-        public static void ClassyBeatPostfix(LevelEvent_MakeSprite __instance)
+        [HarmonyPatch(typeof(LevelEvent_Sprite), "CreateCharacter")]
+        public static void ClassyBeatPostfix(LevelEvent_Sprite __instance)
         {
             if (!SavedEnabled.Value || !__instance.filename.Contains("classybeat", StringComparison.OrdinalIgnoreCase))
                 return;
-            CustomSprite sprite = __instance.game.currentLevel.sprites[__instance.spriteId];
+            CustomSprite sprite = __instance.game.currentLevel.sprites[__instance.decorationId];
             sprite.gameObject.SetActive(false);
             sprite.gameObject.AddComponent<BlindfoldedMarkedForDeath>();
         }

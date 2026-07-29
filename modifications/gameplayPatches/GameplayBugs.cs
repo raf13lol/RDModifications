@@ -62,66 +62,59 @@ public class GameplayBugs : Modification
     //     }
     // }
 
-    public class BurnshotPatch
-    {
-        public static MethodInfo TargetMethod()
-            => AccessUtils.GetFirstInnerMethodContains(typeof(LevelBase), nameof(LevelBase.LoadCustomAssets), "MoveNext");
+    // public class BurnshotPatch
+    // {
+    //     public static MethodInfo TargetMethod()
+    //         => AccessUtils.GetFirstInnerMethodContains(typeof(LevelBase), nameof(LevelBase.LoadCustomAssets), "MoveNext");
 
-        public static void ILManipulator(ILContext il)
-        {
-            ILCursor cursor = new(il);
+    //     public static void ILManipulator(ILContext il)
+    //     {
+    //         ILCursor cursor = new(il);
 
-            // cursor.GotoNext(x => x.MatchCallvirt(AccessTools.Method(typeof(LevelEvent_Base), nameof(LevelEvent_Base.BarAndBeatToAbsoluteBeat))));
-            cursor.GotoNext(MoveType.After, x => x.MatchIsinst(typeof(LevelEvent_AddOneshotBeat)));
+    //         // cursor.GotoNext(x => x.MatchCallvirt(AccessTools.Method(typeof(LevelEvent_Base), nameof(LevelEvent_Base.BarAndBeatToAbsoluteBeat))));
+    //         cursor.GotoNext(MoveType.After, x => x.MatchIsinst(typeof(LevelEvent_AddOneshotBeat)));
 
-            cursor.Emit(OpCodes.Pop);
-            cursor.Emit(OpCodes.Ldc_I4_0);
+    //         cursor.Emit(OpCodes.Pop);
+    //         cursor.Emit(OpCodes.Ldc_I4_0);
 
-            cursor.GotoNext(x => x.MatchLdloc(3));
-            cursor.Index--;
+    //         cursor.GotoNext(x => x.MatchLdloc(3));
+    //         cursor.Index--;
 
-            cursor.Emit(OpCodes.Ldloc, 1);
-            cursor.EmitDelegate((LevelBase level) =>
-            {
-                LevelEvent_AddOneshotBeat[] oneshots = [.. (from levelEvent in level.levelEvents
-                                                            where levelEvent is LevelEvent_AddOneshotBeat
-                                                            orderby ((LevelEvent_AddOneshotBeat)levelEvent).absoluteClapPos ascending,
-                                                                levelEvent.bar ascending,
-                                                                levelEvent.beat ascending
-                                                            select (LevelEvent_AddOneshotBeat)levelEvent)];
+    //         cursor.Emit(OpCodes.Ldloc, 1);
+    //         cursor.EmitDelegate((LevelBase level) =>
+    //         {
+    //             LevelEvent_AddOneshotBeat[] oneshots = [.. (from levelEvent in level.levelEvents
+    //                                                         where levelEvent is LevelEvent_AddOneshotBeat
+    //                                                         orderby ((LevelEvent_AddOneshotBeat)levelEvent).absoluteClapPos ascending,
+    //                                                             levelEvent.bar ascending,
+    //                                                             levelEvent.beat ascending
+    //                                                         select (LevelEvent_AddOneshotBeat)levelEvent)];
 
-                for (int i = 1; i < oneshots.Length; i++)
-                {
-                    LevelEvent_AddOneshotBeat oneshot = oneshots[i];
-                    LevelEvent_AddOneshotBeat previousOneshot = oneshots[i - 1];
-                    if (oneshot.bar == previousOneshot.bar || Math.Abs(oneshot.absoluteClapPos - previousOneshot.absoluteClapPos) >= 0.001f)
-                        continue;
-                    if (oneshot.bar < previousOneshot.bar)
-                    {
-                        (oneshot, previousOneshot) = (previousOneshot, oneshot);
-                        oneshots[i] = oneshot;
-                        oneshots[i - 1] = previousOneshot;
-                    }
+    //             for (int i = 1; i < oneshots.Length; i++)
+    //             {
+    //                 LevelEvent_AddOneshotBeat oneshot = oneshots[i];
+    //                 LevelEvent_AddOneshotBeat previousOneshot = oneshots[i - 1];
+    //                 if (oneshot.bar == previousOneshot.bar || Math.Abs(oneshot.absoluteClapPos - previousOneshot.absoluteClapPos) >= 0.001f)
+    //                     continue;
+    //                 if (oneshot.bar < previousOneshot.bar)
+    //                 {
+    //                     (oneshot, previousOneshot) = (previousOneshot, oneshot);
+    //                     oneshots[i] = oneshot;
+    //                     oneshots[i - 1] = previousOneshot;
+    //                 }
 
-                    oneshot.beat += oneshot.BarAndBeatToAbsoluteBeat(new(oneshot.bar, 1)) - previousOneshot.BarAndBeatToAbsoluteBeat(new(previousOneshot.bar, 1));
-                    oneshot.bar = previousOneshot.bar;
-                }
+    //                 oneshot.beat += oneshot.BarAndBeatToAbsoluteBeat(new(oneshot.bar, 1)) - previousOneshot.BarAndBeatToAbsoluteBeat(new(previousOneshot.bar, 1));
+    //                 oneshot.bar = previousOneshot.bar;
+    //             }
 
-                int maxBar = 0;
-                foreach (LevelEvent_Base levelEvent in level.levelEvents)
-                    maxBar = Mathf.Max(levelEvent.bar, maxBar);
-                return maxBar;
-            });
-            cursor.Emit(OpCodes.Stloc, 3);
-        }
-    }
-
-    [HarmonyPatch(typeof(RowEntity), nameof(RowEntity.ChangeCharacterCustom))]
-    public class FreezeshotSpriteFreezePatch
-    {
-        public static void Postfix(RowEntity __instance)
-            => __instance.freezeshotIceController.Setup(__instance.character.customAnimation.data.freezeTexture);
-    }
+    //             int maxBar = 0;
+    //             foreach (LevelEvent_Base levelEvent in level.levelEvents)
+    //                 maxBar = Mathf.Max(levelEvent.bar, maxBar);
+    //             return maxBar;
+    //         });
+    //         cursor.Emit(OpCodes.Stloc, 3);
+    //     }
+    // }
 
     public class Fix2PixelOffsetRowsPatch
     {

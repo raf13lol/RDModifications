@@ -1,2 +1,1 @@
-Added gif support to AnimatedSleeves
-Added AlwaysShowRoomSelector as an editor patch
+Hopefully fix for 1.2 beta
