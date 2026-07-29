@@ -180,4 +180,25 @@ public class GameplayBugs : Modification
                 __result = __result[3..];
         }
     }
+
+    public class SubdivisionLateTintPatch
+    {
+        [HarmonyILManipulator]
+        [HarmonyPatch(typeof(RDWaveRenderer_Polygon), "LateUpdate")]
+        public static void LateUpdateILManipulator(ILContext il)
+        {
+            ILCursor cursor = new(il);
+            cursor.RemoveRange(9);
+        }
+    
+        [HarmonyILManipulator]
+        [HarmonyPatch(typeof(RDWaveRenderer_Polygon), "UpdateColor")]
+        public static void UpdateColorILManipulator(ILContext il)
+        {
+            ILCursor cursor = new(il);
+            cursor.Index += 2;
+            cursor.RemoveRange(4);
+            cursor.Emit(OpCodes.Ldc_I4_1);
+        }
+    }
 }

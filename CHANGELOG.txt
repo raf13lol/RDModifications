@@ -1,1 +1,2 @@
-Hopefully fix for 1.2 beta
+fix subdiv tint green issue Hopefully
+please tell me if this fucks performance or something
