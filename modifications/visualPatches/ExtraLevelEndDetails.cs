@@ -211,6 +211,9 @@ public class ExtraLevelEndDetails : Modification
         [HarmonyPatch(typeof(scnGame), "Start")]
         public static void ResetOnStart(scnGame __instance)
         {
+            if (!GoToLevelTracker.OnFirstLevel)
+                return;
+
             scnGame game = __instance;
 
             // init

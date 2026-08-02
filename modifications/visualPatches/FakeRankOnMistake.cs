@@ -6,6 +6,7 @@ using DG.Tweening;
 using DG.Tweening.Core;
 using DG.Tweening.Plugins.Options;
 using HarmonyLib;
+using RDLevelEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -28,12 +29,8 @@ public class FakeRankOnMistake : Modification
     [Configuration<float>(0.5f, "How long the shown fake rank should be shown for in seconds.", [float.Epsilon, float.PositiveInfinity])]
     public static ConfigEntry<float> Duration;
 
-    public static string SoundName;
-
-    public static void Init()
-    {
-        SoundName = RankToDisplayAndSay.Value.ToString().Replace("Minus", "-").Replace("Plus", "+");
-    }
+    public static string GetRankString(LevelRank rank)
+        => rank.ToString().Replace("Minus", "-").Replace("Plus", "+");
 
     // mwehehehehe
     public class FPatch
@@ -44,6 +41,8 @@ public class FakeRankOnMistake : Modification
 
         public static float BaseAlpha = 0.0f;
         public static int LastFrame = -1;
+
+        public static LevelRank? ForceRank = null; 
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(scnGame), nameof(scnGame.OnMistakeOrHeal))]
@@ -60,9 +59,11 @@ public class FakeRankOnMistake : Modification
             if (isInOver(field, rankscreen))
                 return;
 
+            LevelRank rankToUse = ForceRank ?? RankToDisplayAndSay.Value;
+
             LastFrame = Time.frameCount;
             if (Say.Value)
-                scrConductor.PlayImmediately("sndJyi - Rank" + SoundName, SayVolume.Value * Mathf.Clamp01(weight), RDUtils.GetMixerGroup("RDGSVoice"), 1f, 0f, false, false, false);
+                scrConductor.PlayImmediately("sndJyi - Rank" + GetRankString(rankToUse), SayVolume.Value * Mathf.Clamp01(weight), RDUtils.GetMixerGroup("RDGSVoice"), 1f, 0f, false, false, false);
 
             if (!Display.Value)
                 return;
@@ -76,7 +77,7 @@ public class FakeRankOnMistake : Modification
             rankscreen.rankscreen.SetActive(true);
             rankscreen.header.gameObject.SetActive(true);
             rankscreen.rank.gameObject.SetActive(true);
-            rankscreen.rank.text = SoundName;
+            rankscreen.rank.text = GetRankString(rankToUse);
             float duration = 0.5f;
             if (BaseAlpha == 0.0f)
                 BaseAlpha = img.color.a;

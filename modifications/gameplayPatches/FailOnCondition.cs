@@ -1,6 +1,7 @@
 using System.Linq;
 using BepInEx.Configuration;
 using HarmonyLib;
+using RDLevelEditor;
 
 namespace RDModifications;
 
@@ -28,17 +29,36 @@ public class FailOnCondition : Modification
     [Configuration<string>("Fail condition met!", "The text to appear upon meeting the fail condition and with AlertInsteadOfFail enabled.")]
     public static ConfigEntry<string> AlertText;
 
+    [Configuration<bool>(true, "If the level uses GoToLevel and the fail condition is a certain rank (unless A rank) or on heartbreak, FailOnCondition will not trigger.")]
+    public static ConfigEntry<bool> DisableWithGoToLevel;
+
     public static bool FailedYet = false;
+
+    public static bool DoesLevelUsesGoToLevel()
+    {
+        if (!DisableWithGoToLevel.Value)
+            return false;
+            
+        LevelBase level = scnGame.instance?.currentLevel;
+        if (level == null)
+            return false;
+        if (scnGame.levelToLoadSource != LevelSource.ExternalPath)
+            return false;
+
+        return !GoToLevelTracker.OnFirstLevel || level.levelEvents.Any((x) => x is LevelEvent_GoToLevel);
+    }
 
     public static void FailLevel(RowEntity entity = null)
     {
         if (FailedYet || scnGame.instance.currentLevel.failedLevel)
             return;
         FailedYet = true;
-        if (AlertInsteadOfFail.Value || entity == null)
+
+        RowEntity ent = entity ?? scnGame.instance.currentLevel.rowEnt0;
+        if (AlertInsteadOfFail.Value || ent == null)
             scnGame.instance.statusText.SetStatusText(AlertText.Value);
         else
-            scnGame.instance.FailLevel(entity);
+            scnGame.instance.FailLevel(ent);
     }
 
     [HarmonyPatch(typeof(scnGame), nameof(scnGame.StartTheGame))]
@@ -59,6 +79,8 @@ public class FailOnCondition : Modification
                 Rank rank = __instance.currentLevel.GetRankFromMistakes().ToNormal();
                 shouldFail = rank <= (int)FailCondition.Value;
             }
+            if (shouldFail && FailCondition.Value < FailOn.A && DoesLevelUsesGoToLevel())
+                shouldFail = false;
             if (shouldFail)
                 FailLevel(prop.ent);
         }
@@ -83,7 +105,7 @@ public class FailOnCondition : Modification
     {
         public static void Postfix(scrHeart __instance)
         {
-            if (FailCondition.Value != FailOn.Heartbreak)
+            if (FailCondition.Value != FailOn.Heartbreak || DoesLevelUsesGoToLevel())
                 return;
             FailLevel(__instance.ent);
         }

@@ -7,6 +7,7 @@ public class GlobalPatches
     public static void PatchAll(Harmony patcher)
     {
         patcher.PatchAll(typeof(Fix2PSwappedInputPatch));
+        GoToLevelTracker.Patch(patcher);
     }
 
     // Fuck this fucking fucking bitch cunt bullshit. 

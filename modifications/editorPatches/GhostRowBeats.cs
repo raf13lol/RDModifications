@@ -69,6 +69,8 @@ public class GhostRowBeats : Modification
             LevelEventControl_Base[] events = rows.container[rows.pageIndex].GetComponentsInChildren<LevelEventControl_Base>(true);
             foreach (LevelEventControl_Base control in events)
             {
+                if (control.levelEvent.row >= scnEditor.instance.rowsData.Count)
+                    continue;
                 control.UpdateUIInternal();
                 if (rows.editor.selectedControls.Contains(control))
                     control.ShowAsSelected();

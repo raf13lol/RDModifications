@@ -8,6 +8,8 @@ using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using RDLevelEditor;
 using UnityEngine;
+using UnityEngine.Assertions.Must;
+using UnityEngine.SocialPlatforms;
 
 namespace RDModifications;
 
@@ -171,15 +173,15 @@ public class GameplayBugs : Modification
         }
     }
 
-    [HarmonyPatch(typeof(Beat), "beatHitSound", MethodType.Getter)]
-    public class StackedBeatsoundsPatch
-    {
-        public static void Postfix(ref string __result)
-        {
-            if (!__result.EndsWith("*external") && __result.StartsWith("snd"))
-                __result = __result[3..];
-        }
-    }
+    // [HarmonyPatch(typeof(Beat), "beatHitSound", MethodType.Getter)]
+    // public class StackedBeatsoundsPatch
+    // {
+    //     public static void Postfix(ref string __result)
+    //     {
+    //         if (!__result.EndsWith("*external") && __result.StartsWith("snd"))
+    //             __result = __result[3..];
+    //     }
+    // }
 
     public class SubdivisionLateTintPatch
     {
@@ -199,6 +201,20 @@ public class GameplayBugs : Modification
             cursor.Index += 2;
             cursor.RemoveRange(4);
             cursor.Emit(OpCodes.Ldc_I4_1);
+        }
+    }
+
+    [HarmonyPatch(typeof(FreezeshotIceController), nameof(FreezeshotIceController.Setup))]
+    public class IceScreenPatch
+    {
+        static Vector2? baseScale = null;
+        
+        public static void Prefix(FreezeshotIceController __instance)
+        {
+            if (baseScale == null)
+                baseScale = __instance.iceBlock.transform.localScale;
+            else
+                __instance.iceBlock.transform.localScale = baseScale.Value;
         }
     }
 }
