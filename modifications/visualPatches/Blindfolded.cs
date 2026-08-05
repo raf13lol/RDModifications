@@ -20,6 +20,8 @@ public class Blindfolded : Modification
     [Configuration<bool>(true, "If the option for this should be shown in the settings menu, under Advanced.")]
     public static ConfigEntry<bool> DisplayOption;
 
+    public static bool ForceEnable = false;
+
     public class BlindfoldedVisualsPatch
     {
         [HarmonyPostfix]
@@ -28,7 +30,7 @@ public class Blindfolded : Modification
         [HarmonyPatch(typeof(RowEntity), nameof(RowEntity.DoEntrance))]
         public static void RowPostfix(RowEntity __instance)
         {
-            if (!SavedEnabled.Value)
+            if (!SavedEnabled.Value && !ForceEnable)
                 return;
             bool isClassyCC = __instance.character.customAnimation.data.name.Contains("classybeat", StringComparison.OrdinalIgnoreCase);
             __instance.Hide(__instance.character.visible && !isClassyCC, false);
@@ -38,7 +40,7 @@ public class Blindfolded : Modification
         [HarmonyPatch(typeof(RowEntity), "Update")]
         public static void UpdatePostfix(RowEntity __instance)
         {
-            if (!SavedEnabled.Value || !__instance.character.visible)
+            if ((!SavedEnabled.Value && !ForceEnable) || !__instance.character.visible)
                 return;
             bool isClassyCC = __instance.character.customAnimation.data.name.Contains("classybeat", StringComparison.OrdinalIgnoreCase);
             __instance.character.visible = !isClassyCC;
@@ -48,7 +50,7 @@ public class Blindfolded : Modification
         [HarmonyPatch(typeof(scrHoldBar), nameof(scrHoldBar.visibleHold), MethodType.Getter)]
         public static void HoldBarPostfix(scrHoldBar __instance)
         {
-            if (!SavedEnabled.Value)
+            if (!SavedEnabled.Value && !ForceEnable)
                 return;
             __instance.visible = false;
         }
@@ -62,7 +64,7 @@ public class Blindfolded : Modification
         [HarmonyPatch(typeof(LevelEvent_Sprite), "CreateCharacter")]
         public static void ClassyBeatPostfix(LevelEvent_Sprite __instance)
         {
-            if (!SavedEnabled.Value || !__instance.filename.Contains("classybeat", StringComparison.OrdinalIgnoreCase))
+            if ((!SavedEnabled.Value && !ForceEnable) || !__instance.filename.Contains("classybeat", StringComparison.OrdinalIgnoreCase))
                 return;
             CustomSprite sprite = __instance.game.currentLevel.sprites[__instance.decorationId];
             sprite.gameObject.SetActive(false);
@@ -78,7 +80,7 @@ public class Blindfolded : Modification
         [HarmonyPostfix]
         public static void Postfix(LevelEvent_SetVisible __instance)
         {
-            if (!SavedEnabled.Value)
+            if (!SavedEnabled.Value && !ForceEnable)
                 return;
             Dictionary<string, CustomSprite> sprites = __instance.game.currentLevel.sprites;
             if (!sprites.TryGetValue(__instance.target, out CustomSprite sprite) || !sprite.GetComponent<BlindfoldedMarkedForDeath>())

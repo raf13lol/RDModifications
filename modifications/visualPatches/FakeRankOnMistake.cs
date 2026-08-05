@@ -62,10 +62,10 @@ public class FakeRankOnMistake : Modification
             LevelRank rankToUse = ForceRank ?? RankToDisplayAndSay.Value;
 
             LastFrame = Time.frameCount;
-            if (Say.Value)
+            if (Say.Value || ForceRank != null)
                 scrConductor.PlayImmediately("sndJyi - Rank" + GetRankString(rankToUse), SayVolume.Value * Mathf.Clamp01(weight), RDUtils.GetMixerGroup("RDGSVoice"), 1f, 0f, false, false, false);
 
-            if (!Display.Value)
+            if (!Display.Value && ForceRank == null)
                 return;
             // F
             rankscreen.UpdateFontSizes();
