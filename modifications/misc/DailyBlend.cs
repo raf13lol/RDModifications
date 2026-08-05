@@ -27,7 +27,8 @@ public class DailyBlend : Modification
     {
         public static bool Prefix(scnCLS __instance)
         {
-            if (!__instance.ShowingWard || !__instance.CanReceiveInput || __instance.levelImporter.Showing || !Input.GetKeyDown(KeyCode.B))
+            if (!__instance.ShowingWard || !__instance.CanReceiveInput || __instance.levelImporter.Showing 
+            || !Input.GetKeyDown(KeyCode.B) || string.IsNullOrEmpty(RecentBlends.BlendURLTextList))
                 return true;
 
             LevelImporter levelImporter = __instance.levelImporter;
@@ -75,7 +76,7 @@ public class DailyBlend : Modification
     public class RecentBlends
     {
         public static List<string> BlendIDs = [];
-        public static string BlendURLTextList = "";
+        public static string BlendURLTextList = string.Empty;
 
         public static async Task Init()
         {

@@ -8,8 +8,11 @@ public class CachePathUtils
 
     static string CreatePathIfNeeded(string path)
     {
+        // @FUCK (my old code was @FUCKed)
+        if (Directory.Exists(path))
+            Directory.Delete(path);
         // apparently creates needed directories without errors if they already exist
-        Directory.CreateDirectory(path);
+        Directory.CreateDirectory(Path.GetDirectoryName(path));
         return path;
     }
 
