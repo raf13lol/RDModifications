@@ -1,1 +1,1 @@
-Fix fucking levelprstatus
+Update SetGameSoundCompatibilityPatch in GameplayBugs to fix shunran level

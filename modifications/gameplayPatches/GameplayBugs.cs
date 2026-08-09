@@ -22,9 +22,22 @@ public class GameplayBugs : Modification
         [HarmonyPatch(typeof(LevelEvent_SetGameSound), nameof(LevelEvent_SetGameSound.Decode))]
         public static void DecodePostfix(LevelEvent_SetGameSound __instance, Dictionary<string, object> dict, SoundData[] ___soundsData)
         {
-            if (dict.ContainsKey("soundSubtypes"))
-                return;
-            if (!RDEditorConstants.gameSoundGroups.TryGetValue(__instance.soundType, out GameSoundType[] array))
+            bool containsSoundSubtypes = dict.ContainsKey("soundSubtypes");
+            bool inGameSoundGroups = RDEditorConstants.gameSoundGroups.TryGetValue(__instance.soundType, out GameSoundType[] array);
+
+            if (containsSoundSubtypes && !inGameSoundGroups)
+            {
+                foreach (KeyValuePair<GameSoundType, GameSoundType[]> kvp in RDEditorConstants.gameSoundGroups)
+                {
+                    List<GameSoundType> soundTypes = [.. kvp.Value];
+                    if (___soundsData.All(sound => sound == null || soundTypes.Contains(sound.groupSubtype)))
+                    {
+                        __instance.soundType = kvp.Key;
+                        break;
+                    }   
+                }
+            }
+            if (containsSoundSubtypes || !inGameSoundGroups)
                 return;
             for (int i = 0; i < ___soundsData.Length; i++)
                 ___soundsData[i].groupSubtype = ___soundsData[i].used ? array[i] : (GameSoundType)int.MaxValue;
@@ -192,7 +205,7 @@ public class GameplayBugs : Modification
             ILCursor cursor = new(il);
             cursor.RemoveRange(9);
         }
-    
+
         [HarmonyILManipulator]
         [HarmonyPatch(typeof(RDWaveRenderer_Polygon), "UpdateColor")]
         public static void UpdateColorILManipulator(ILContext il)
@@ -208,7 +221,7 @@ public class GameplayBugs : Modification
     public class IceScreenPatch
     {
         static Vector2? baseScale = null;
-        
+
         public static void Prefix(FreezeshotIceController __instance)
         {
             if (baseScale == null)
