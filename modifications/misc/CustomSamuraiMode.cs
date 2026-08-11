@@ -41,10 +41,7 @@ public class CustomSamuraiMode : Modification
         public static IEnumerable<MethodInfo> TargetMethods()
         {
             List<MethodInfo> methods = [];
-            // This sucks
-            Type[] makeLyricsTypes = [typeof(string), typeof(TextFont), typeof(Vector2), typeof(int), typeof(float), typeof(Color),
-            typeof(int), typeof(int), typeof(float), typeof(bool), typeof(Color), typeof(TextAnchor), typeof(bool), typeof(bool)];
-
+            
             yield return AccessTools.Method(typeof(RDString), nameof(RDString.Get));
             yield return AccessTools.Method(typeof(LyricsGame), nameof(LyricsGame.AdvanceText));
 
@@ -52,7 +49,7 @@ public class CustomSamuraiMode : Modification
             yield return AccessUtils.GetFirstMethodContains(typeof(LevelEvent_TextExplosion), "<Run>");
 
             // two functions with same name so we need to get this really specific one
-            MethodInfo makeLyrics = AccessTools.Method(typeof(scrVfxControl), nameof(scrVfxControl.MakeLyrics), makeLyricsTypes);
+            MethodInfo makeLyrics = AccessTools.Method(typeof(scrVfxControl), nameof(scrVfxControl.SetLyrics));
 
             yield return makeLyrics;
             // due to compiled IEnumerable

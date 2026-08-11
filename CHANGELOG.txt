@@ -1,1 +1,1 @@
-Update SetGameSoundCompatibilityPatch in GameplayBugs to fix shunran level
+Fix CustomSamuraiMode (didn't know it was fucked because it turned off on my side for some reason)
