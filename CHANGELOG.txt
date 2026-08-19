@@ -1,1 +1,1 @@
-Fix CustomSamuraiMode (didn't know it was fucked because it turned off on my side for some reason)
+Fix ImportAnimatedImages on 1 frame gifs
