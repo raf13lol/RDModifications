@@ -28,7 +28,7 @@ public class DisableExcessiveLogging : Modification
     }
 
     [HarmonyPatch(typeof(Window), nameof(Window.CheckIfCurrentViewSizeIsCorrect))]
-    [HarmonyPatch(typeof(WindowChoreographer), nameof(WindowChoreographer.Check))]
+    [HarmonyPatch(typeof(WindowChoreographer), nameof(WindowChoreographer.LateUpdate))]
     public class ToggleLogPatch
     {
         public static void Prefix()

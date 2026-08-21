@@ -1,1 +1,1 @@
-Fix ImportAnimatedImages on 1 frame gifs
+Fix DisableExcessiveLogging for latest beta
