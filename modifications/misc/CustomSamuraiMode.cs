@@ -48,10 +48,9 @@ public class CustomSamuraiMode : Modification
             // compiler generated
             yield return AccessUtils.GetFirstMethodContains(typeof(LevelEvent_TextExplosion), "<Run>");
 
-            // two functions with same name so we need to get this really specific one
-            MethodInfo makeLyrics = AccessTools.Method(typeof(scrVfxControl), nameof(scrVfxControl.SetLyrics));
+            MethodInfo setLyrics = AccessTools.Method(typeof(LyricsGame), nameof(LyricsGame.SetLyrics));
 
-            yield return makeLyrics;
+            yield return setLyrics;
             // due to compiled IEnumerable
             yield return AccessUtils.GetFirstInnerMethodContains(typeof(RDInk), "<Say>", "MoveNext");
         }

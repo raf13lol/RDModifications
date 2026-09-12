@@ -1,1 +1,2 @@
-Fix DisableExcessiveLogging for latest beta
+Fix for latest beta
+Adjust extrasearchfilters to be inline with how the new builtin filter system works
